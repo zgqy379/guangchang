@@ -1,0 +1,17 @@
+{
+  "date": "2026-10-25T22:30:00+08:00",
+  "pipeline": "lux3d",
+  "assetLine": "props-gold",
+  "version": "gold-coins",
+  "prompt": "A small stack of stylized gold coins, mobile game asset, clean silhouette, single object, no background",
+  "params": {
+    "mode": "G1-Turbo",
+    "style": "cartoon",
+    "outputFormat": "glb",
+    "enablePbr": true
+  },
+  "result": "success",
+  "elapsedSeconds": 107.8,
+  "error": null,
+  "note": "对照实验：v1 真钞 prompt 失败(provider status=4)，本组验证是否内容审核所致"
+}

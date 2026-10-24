@@ -427,14 +427,17 @@ dictionary/
 
 ## 7.3 照片 → 3D 办公空间：三档管线
 
-> 事实约束：单张照片直接生成可自由行走的 3D 空间，目前全球无稳定落地方案
-> （NeRF/3DGS 需多角度素材）。故采用三档混合：
+> 事实约束一：单张照片直接生成可自由行走的 3D 空间，目前全球无稳定落地方案。
+> **事实约束二（10.25 官网 API 文档核实）：World 重建接口要求多图 ≥20 张、普通视频或 Insta360 全景（.insv）**——原"3–5 张照片"的采集设定必须修正为"一段 1–2 分钟环绕视频或 20+ 张照片"。
 
 | 档 | 方案 | 说明 | 用途 |
 |---|---|---|---|
-| 一档（兜底，必做） | 3–5 张 360° 全景照片 → 球面全景漫游 | 低门槛、效果稳定 | 保底体验 |
-| 二档（进阶） | 多张照片 → 3D Gaussian Splatting 重建 | 渲染惊艳但不可编辑、难做碰撞 | Demo 视频/传播素材 |
-| 三档（杀手锏） | 照片→多模态 LLM 识别语义（工位×20/会议室×2/落地窗）→**预制资产库程序化拼装** | 可控、可交互、可编辑 | **产品主路径** |
+| 一档（兜底，必做） | 全景视频/Insta360 .insv 或环绕视频 → 3DGS 世界重建 | 素材改为视频采集，满足 ≥20 图等价要求 | 保底体验 |
+| 二档（进阶） | 多角度照片 ≥20 张 → `POST /world/v1/reconstructions` 3DGS 重建 | 渲染惊艳但不可编辑、难做碰撞 | Demo 视频/传播素材 |
+| 三档（杀手锏） | 照片→多模态 LLM 识别语义（工位×20/会议室×2/落地窗）→**预制资产库程序化拼装** | 可控、可交互、可编辑；配合 `POST /world/v1/generations`（文案/单图生成空间）打草稿 | **产品主路径** |
+
+> **Aholo Viewer（aholojs.dev，MIT 开源）自带"行走模式"**：3DGS 场景 + 体素化碰撞体 +
+> 实时碰撞检测 + 第一/第三人称切换——办公室漫游不必自研，直接用 Viewer。
 
 ## 7.4 关键技术点：Instanced Mesh 钞票山
 
@@ -560,42 +563,47 @@ function MoneyMountain({ salary }: { salary: number }) {
 空间"到"定义工作空间"**，是 Aholo 空间智能向千行百业渗透的全新行业切口，
 正是本届赛事期待看到的生态探索方向。
 
-## 8.3 W1 实测落地路径（v1.1 新增，重要）
+## 8.3 API 接入事实与实测状态（10.25 官网文档核实 + 首次实测）
 
-已核实的官方资源（2026-10-25）：
+**接入事实**：
 
-1. **GitHub 官方仓库 `manycore-research/Aholo-Lux3D`**：可本地安装的 skill
-   套件（v1.2.0，MIT），支持 OpenAPI（本地 Python）与 MCP 两种模式。
-   安装**不需要 API Key**，调用云服务时配环境变量 `LUX3D_CN_API_KEY`
-   （国内）/ `LUX3D_GLOBAL_API_KEY`（国际），两区密钥不通用。
-   能力：图/文生 3D、材质处理、网格重拓扑、**模型关节化、人物自动绑骨、
-   动画重定向**、离线预览查看器。
-2. **开发者平台 `manycoreapis.com`**：开放文档在 `/openapi/document` 路径，
-   SpatialGen / Reality / Viewer / LuxReal 的接入从这里走。
+1. **网关与鉴权**：`https://api.aholo3d.cn`（国内）；请求头 `Authorization: <API key>`，**不加 Bearer 前缀**；Key 在 labs.aholo3d.cn/api-keys 申请，国内/国际不通用
+2. **Lux3D**（`/lux3d/v1/...`，异步任务+轮询，产物 ZIP 含 GLB+PBR 贴图）：
+   - 环境变量专用名 `LUX3D_CN_API_KEY`（旧名 `LUX3D_API_KEY` 需配 `LUX3D_API_KEY_REGION=cn`）
+   - 版本：`G1` / `G1-Turbo`；格式：`zip / glb / ply`；可选 PBR
+   - **风格列表：photorealistic / cartoon / anime / hand_painted / cyberpunk / fantasy / glass**——风格锚定的官方抓手
+   - 能力：图生 3D、文生 3D、材质迁移、网格重拓扑、**模型关节化、人物自动绑骨、动画重定向**、多格式导出
+3. **World**（`/world/v1/...`）：`reconstructions`（重建：≥20 图/视频/.insv）、`generations`（生成：文案/单图/图文）、`GET /world/v1/{worldId}` 轮询、`POST /world/v1/list`；上传先走 `GET /asset/v1/token` + OUS 直传（`ous-token-v2` 头）
+4. **MCP**：官方包 `@manycore/aholo-sdk-mcp`（npm，stdio），env `AHOLO_API_KEY` + `AHOLO_REGION=cn`
+5. **Skills**：官方 SkillHub（skillhub.cn）安装，`lux3d` 与 `aholo-3dgs-reconstruction`（Aholo World）两个技能
+6. **Aholo Viewer**：aholojs.dev，MIT 开源 3DGS 渲染器（PLY/SPZ/SOG/LCC、chunk LoD、流式、行走模式、体素碰撞）
 
-**对 M2 的直接影响**：Lux3D 实测不必等开放平台审核——克隆仓库、装 skill、
-配 Key 当天可跑；Avatar"能不能动"的疑问已被官方能力清单回答（能）。
-实测项与验收标准见 `/docs/w1-api-test-checklist.md`。
+**首次实测记录（10.25 晚，详见 `/docs/iterations/lux3d-money/`）**：
+
+- ✅ API Key 鉴权通过，任务创建与轮询链路全通（`tools/gen_money_v1.py`）
+- ❌ 真钞主题 prompt（"Chinese 100 yuan banknotes"）服务端生成失败（provider status=4），**疑似货币内容审核**——与 7.6 人民币图样合规预判相互印证
+- ⏳ 对照实验进行中：中性主题（金币堆）vs 虚构货币（fantasy banknote）——若虚构币可过，则"逛厂币"从 B 方案升级为**主路径**
 
 ---
 
 # 第九部分　黑客松参赛方案（当前阶段）
 
-## 9.1 赛事关键信息
+## 9.1 赛事关键信息（2026-10-25 官网核实）
 
 | 项目 | 内容 |
 |--|--|
 | 赛事 | 群核科技 Aholo 全球 3D AI 黑客松（"Play in 3D, Create with Aholo"） |
-| 赛制 | 线上赛，全球开放，支持 1–3 人组队；10.19 报名开启 → **11.19 19:00 提交截止** → 11.20–30 评审 → 12 月初公布 |
-| 评审权重 | **群核技术栈应用 30%** > 有趣 25% > 创新性 20% > 完成度 20% > 传播 5% |
-| 强制要求 | 必须使用 **Aholo Lux3D** 参与核心创作流程；SpatialGen/Reality/LuxReal 全面开放 |
-| 必交项 | 项目报告书（**必须含过程截图、关键资产迭代对比**）+ 完整 Demo（可运行链接或含真实运行画面的视频） |
-| 加分项 | 小红书帖子（#Aholo黑客松，官号流量扶持）+ 源代码 |
-| 团队积分 | 仅在**首次确认组队时**发放，11.19 前成员锁定 |
-| 奖金 | 总池 32 万元，其中 10 万元特别奖用于"对 3D AI 生态有重要价值"的作品 |
+| 赛制 | 线上赛，全球开放，支持 1–3 人组队（**个人参赛也需创建团队；每账号同时只能加入一支团队**）；10.19 报名开启 → **11.19 19:00 提交截止** → 11.20–30 评审 → 12 月初公布 → 线下颁奖（待定） |
+| 评审机制 | 最终得分 = **专家评委 70% + 玩家评委 30%**（玩家评委团：50 名资深 AI 从业者） |
+| 评审权重 | **群核技术栈应用 30%** > 有趣 25% > 创新性 20% > 完成度 20% > 传播 5%；"有趣"官方描述强调**提交视频清晰呈现趣味亮点**——视频质量直接影响 25% 权重 |
+| 强制要求 | 必须使用 **Aholo Lux3D** 并参与核心创作流程；Aholo API / LuxReal / 第三方工具按需选用 |
+| 必交项 | 项目报告书（**含过程截图、关键资产迭代对比**）+ 完整 Demo（**可运行链接或视频**；视频必须包含真实运行画面） |
+| 加分项 | 小红书（#Aholo黑客松，官号流量支持，**结果公布前保持公开可访问**）+ 源代码；**发布至魔搭社区并提交有效链接 → 额外获 20 小时 Notebook GPU 额度** |
+| 团队积分 | 报名即发首笔个人积分；**组队成功并提交选题后**解锁团队积分（平均分配）；积分只在首次确认组队时发放给当时成员；成员 11.19 19:00 锁定 |
+| 奖金 | 总池 ¥320,000，明细见 9.6 |
+| 赛事活动 | 10.29 线上赛事说明会（可预约）；10.31–11.1 北京 Workshop；11.7–11.8 上海；**11.12 线上冲刺加油站** |
 
-> 注：时间线/权重等细则以官方渠道与报名后台的赛事手册为准，本表已在
-> 2026-10-25 与公开报道交叉核验（官网为 JS 渲染页面，细则页需登录后查看）。
+**当前参赛状态（10.25）**：报名完成，报名积分已发放 ✓；团队「必胜客的汉堡最好吃」（编号 3FO4K4VY3D07，队长=发起人）已创建；**待办：确认组队 → 解锁提交选题 → 提交选题领团队积分**。
 
 ## 9.2 Demo 功能优先级
 
@@ -643,8 +651,7 @@ API实测(今起) │           │           │ 提交 11.19 19:00
   （`/docs/report-skeleton.md`），每周填一节，M5 只做定稿不做初稿
 - **迭代存档从今天开始**：格式规范见 `/docs/iterations/README.md`——
   每次生成必存 prompt+参数+版本，只截成功图拼不出"迭代对比"
-- **进度状态**：截至 10.25 晚——文档 v1.1、词典 schema、脚手架、docs 产物
-  已就绪；**API 实测与官方报名组队是当前最大欠账**
+- **进度状态（10.25 深夜更新）**：✅ 报名完成（积分已发放）｜✅ API Key 到手并实测（鉴权通，真钞主题疑似审核拦截，对照实验中）｜✅ 词典 schema / R3F 脚手架 / docs 产物 / GitHub 私有仓库（zgqy379/guangchang）就绪｜❌ **确认组队 + 提交选题（当前最大欠账，阻塞团队积分）**｜⏳ W1 其余实测项（绑骨 Avatar、World 重建）
 
 | 里程碑 | 时间 | 关键交付 | 验收标准 |
 |--|--|--|--|
@@ -675,14 +682,26 @@ API实测(今起) │           │           │ 提交 11.19 19:00
 | 完成度 | **20%** | 单机闭环完整；P0 全交付，不贪多 |
 | 传播 | **5%** | 小红书 3 篇（W1 起发）+ 官方话题词 |
 
-## 9.6 目标奖项
+## 9.6 奖项明细与目标（10.25 官网核实）
 
-1. **3D AI 新物种奖**（"信息 3D 化"全新品类）
-2. **空间设计应用奖**（Aholo 空间智能在招聘行业落地）
-3. **国内人气奖**（小红书传播）
-   > 赛事总奖金池 32 万元，其中 10 万元特别奖专用于对 3D AI 生态有重要价值的
-   作品——逛厂的"参数词典引擎"（schema 化、可自动生成表单与场景驱动）若开源，
-   即是对生态的直接贡献。
+| 奖项 | 金额 | 名额 |
+|--|--|--|
+| **3D AI 新物种奖** | ¥100,000 | ×1 |
+| 一等奖 | ¥50,000 | ×1 |
+| 二等奖 | ¥30,000 | ×2 |
+| 三等奖 | ¥10,000 | ×3 |
+| 应用单项奖（游戏/空间设计/影视/3D打印/具身智能） | ¥5,000/项 | ×5 |
+| 创意单项奖（VC看了都想投/技术学霸/怪点子/最没有用/功德无量） | ¥5,000/项 | ×5 |
+| 人气单项奖（国内 ×4 + 海外 ×2） | ¥5,000/项 | ×6 |
+
+**目标奖项排序（v1.1 修订）**：
+
+1. **3D AI 新物种奖（¥100,000）**——"信息 3D 化"全新品类正中靶心，主攻方向
+2. **一等奖**——P0 全交付 + 词典引擎开源贡献生态
+3. **VC看了都想投奖（创意单项）**——逛厂的商业故事（B2B2C 订阅 + 数据飞轮）天然契合
+4. 空间设计应用奖 + 国内人气奖——顺位争取
+   > 原 v1.0 中"10 万特别奖"的表述修正：¥100,000 即"3D AI 新物种奖"本身。
+   > 词典引擎（schema 化、表单/场景同源驱动）开源是"技术学霸奖"与生态叙事的加分素材。
 
 ## 9.7 演示叙事脚本：三家虚构公司（v1.1 新增）
 
@@ -733,8 +752,9 @@ API实测(今起) │           │           │ 提交 11.19 19:00
 
 | 风险 | 等级 | 应对策略 |
 |---|---|---|
-| **官方报名/组队未完成** | **高（当前最大）** | 团队积分只在首次确认组队发放——**10.26 前完成**，这是零成本失分点 |
-| Aholo API 实测效果不达预期（如 Reality 重建质量不足） | 高 | W1 第一时间实测（skill 仓库当天可跑，见 8.3）；若不足，降级为 Lux3D + 程序化预制资产拼装管线（7.3 三档方案本就为此设计） |
+| **官方确认组队/提交选题未完成** | **高（当前最大）** | 团队已建（3FO4K4VY3D07）但未点"确认组队"——选题提交被锁、团队积分未领。**单人策略已定（10.3 预案），建议 10.26 前确认并提交选题** |
+| **真钞主题疑似触发 Lux3D 内容审核（实测 provider status=4）** | **高（10.25 实测发现）** | 对照实验验证中；若确认，视觉锤直接改用"逛厂币"虚构币面（7.6 B 方案转正），Instanced Mesh 几何不变只换贴图 |
+| Aholo API 实测效果不达预期（如 Reality 重建质量不足） | 高 | skill 仓库当天可跑（已跑通鉴权链路）；若不足，降级为 Lux3D + 程序化预制资产拼装管线（7.3 三档方案本就为此设计） |
 | **Aholo 生成资产风格不一致 / 单次耗时长** | 高（v1.1） | W1 实测清单含"同 prompt 多次生成的风格方差"项；风格锚定：固定 prompt 模板 + 统一后处理色调；耗时长 → 资产全预生成（7.7） |
 | 移动端性能不达标 | 高 | 首屏 5MB 红线；Draco/KTX2/LOD 全套；必要时桌面优先、移动降级为视频观看 |
 | 范围蔓延（功能做不完） | 高（v1.1 升级） | 每周三"砍功能会"；多人同步、数据飞轮明确不做；**单人预案已备（10.3）** |
@@ -809,10 +829,14 @@ API实测(今起) │           │           │ 提交 11.19 19:00
 
 # 附录C　参考链接
 
-- 赛事官网：https://www.aholo3d.cn/hackathon （JS 渲染页，细则需登录查看）
-- Lux3D 官方 skill 仓库：https://github.com/manycore-research/Aholo-Lux3D
-- 群核开放平台：https://www.manycoreapis.com （文档：/openapi/document）
-- 赛事启动报道（中国日报）：https://ex.chinadaily.com.cn/exchange/partners/82/rss/channel/cn/columns/snl9a7/stories/WS6ad5db8ae4b09a165c79028c.html
+- 赛事官网：https://www.aholo3d.cn/hackathon （赛程/奖项/FAQ/我的参赛）
+- Lux3D 产品站：https://lux3d.aholo3d.cn/lux3d/home
+- **Aholo API 文档：https://labs.aholo3d.cn/api-docs** （quickstart / authentication / api-reference / skills / mcp）
+- API Key 管理：https://labs.aholo3d.cn/api-keys
+- Lux3D 官方 skill 仓库：https://github.com/manycore-research/Aholo-Lux3D （本地克隆在 `~/tools/Aholo-Lux3D`）
+- SkillHub：https://skillhub.cn/skills/lux3d
+- Aholo Viewer（MIT 开源 3DGS 渲染器）：https://aholojs.dev/zh-CN/
+- Reality 产品站：https://studio.aholo3d.cn/
 - React Three Fiber：https://docs.pmnd.rs/react-three-fiber
 - Mapbox GL JS：https://docs.mapbox.com/mapbox-gl-js
 - GitHub GraphQL API：https://docs.github.com/en/graphql
@@ -824,10 +848,13 @@ API实测(今起) │           │           │ 提交 11.19 19:00
 | 路径 | 内容 |
 |---|---|
 | `project.md` | 本文档（唯一权威） |
+| **GitHub 私有仓库** | `github.com/zgqy379/guangchang`（默认分支 main） |
 | `dictionary/dictionary.schema.json` | 词典 DSL（含 antiGaming 防博弈字段） |
 | `dictionary/hr-dictionary.json` | HR 侧词条（5.1 机器可读版） |
 | `dictionary/candidate-dictionary.json` | 求职者侧词条（5.2 机器可读版） |
 | `web/` | R3F 脚手架：词典引擎 + 钞票山 + 工时天空 + HR 面板 + A/B 对比 |
+| `tools/gen_money_v1.py` 等 | Lux3D 实测脚本（key 走 `.env`，不入库） |
+| `docs/iterations/` | Aholo 资产迭代存档（含 10.25 真钞失败记录与对照实验） |
 | `docs/iterations/README.md` | 迭代存档规范（prompt 日志模板，报告书硬性要求） |
 | `docs/w1-api-test-checklist.md` | Aholo 全 API 实测清单（可打勾） |
 | `docs/asset-manifest.md` | 资产预生成清单与预算 |

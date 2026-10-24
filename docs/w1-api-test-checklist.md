@@ -3,17 +3,21 @@
 > 目的：用最小成本回答"哪些能力可用、质量如何、耗时多少、风格是否一致"，
 > 决定 M3/M4 用哪条管线。**每完成一项，把结果写进对应行，截图进 `/docs/iterations/`。**
 
-## 0. 环境准备
+## 0. 环境准备（10.25 完成）
 
-- [ ] 克隆 `manycore-research/Aholo-Lux3D`，本地安装 skill（`scripts/install_skill.py`，无需 API Key）
-- [ ] 获取 Lux3D API Key（国内 `LUX3D_CN_API_KEY`），配置环境变量；确认配额/计费方式
-- [ ] 到 `manycoreapis.com/openapi/document` 注册并确认 SpatialGen / Reality / Viewer / LuxReal 的接入方式与配额
-- [ ] 建立 `docs/iterations/` 存档目录（已建，见 README）
+- [x] 克隆 `manycore-research/Aholo-Lux3D`（本地位置 `C:\Users\dqy\tools\Aholo-Lux3D`，移出项目目录避免第三方代码入库）
+- [x] Lux3D API Key 已申请并配置（`E:\guangchang\.env` → `LUX3D_CN_API_KEY`，gitignored）
+- [x] 官方 API 事实确认：网关 `api.aholo3d.cn`；`Authorization: <key>` 无 Bearer；Lux3D 版本 G1/G1-Turbo；风格 photorealistic/cartoon/anime/hand_painted/cyberpunk/fantasy/glass；格式 zip/glb/ply
+- [x] World API 确认：`/world/v1/reconstructions`（**要求 ≥20 图/视频/.insv**）、`/world/v1/generations`、`{worldId}` 轮询；上传走 `/asset/v1/token` + OUS（`ous-token-v2`）
+- [x] 建立 `docs/iterations/` 存档目录
 
-## 1. Lux3D：图生 3D（Avatar 路径）
+## 1. Lux3D：文生 3D（10.25 首测）
 
 | # | 测试项 | 通过标准 | 结果 |
 |---|--------|---------|------|
+| 1.0 | **真钞主题生成** | 输出 GLB | ❌ **10.25 实测：鉴权/建任务/轮询链路全通，但服务端生成失败 provider status=4，疑似货币内容审核**（存档 `lux3d-money/2026-10-25-v1`） |
+| 1.0a | 对照 A：金币堆（中性主题） | 输出 GLB | ⏳ 进行中 |
+| 1.0b | 对照 B：虚构货币 fantasy banknote | 输出 GLB | ⏳ 进行中（若通过 → "逛厂币"转正为视觉锤主路径） |
 | 1.1 | 自拍照片 → 风格化 Avatar 头部 | 输出可载入 three.js 的网格，无明显破面 | ☐ |
 | 1.2 | 同一输入生成 3 次 | 3 次结果风格一致（人眼判断"像同一个产品线"） | ☐ |
 | 1.3 | 文生 3D：发型 ×3 款 / 配饰 ×3 款 | ≥3 款可用作可换部件，风格统一 | ☐ |
