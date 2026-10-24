@@ -1,0 +1,18 @@
+{
+  "date": "2026-10-26T02:20:00+08:00",
+  "pipeline": "spatialgen",
+  "assetLine": "office-space",
+  "version": "v1",
+  "steps": {
+    "upload": {
+      "url": "https://holo-cos.aholo3d.cn/resource/platform/temp/2026/10/25/NLOPGTAKTLGAMAABAAAAACY8.jpg",
+      "bytes": 5135754
+    },
+    "create": {
+      "worldId": "3FO4K4QG1K0F"
+    }
+  },
+  "result": "failed",
+  "error": "PollingFailedError: World failed worldId=3FO4K4QG1K0F status=FAILED",
+  "elapsedSeconds": 47.4
+}

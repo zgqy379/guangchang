@@ -10,7 +10,9 @@ docs/iterations/**/output/
 !.env.example
 .DS_Store
 Thumbs.db
-# 迭代存档里的 Aholo 原始资产可能很大，按需放行（报告书需要截图，必须保留）
+# 迭代存档：meta/截图入库存档，大二进制留本地（报告书素材从本地取）
 docs/iterations/**/*.glb
 docs/iterations/**/*.fbx
 docs/iterations/**/*.ply
+docs/iterations/**/*.zip
+docs/iterations/**/*.spz

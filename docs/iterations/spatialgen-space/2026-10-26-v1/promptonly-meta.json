@@ -1,0 +1,25 @@
+{
+  "worldId": "3FO4K4QG13AA",
+  "name": "逛厂示范办公室-prompt-only",
+  "cover": null,
+  "scene": "indoor",
+  "createTime": 1792865332000,
+  "updateTime": 1792865979000,
+  "status": "SUCCEEDED",
+  "progress": 1.0,
+  "assets": {
+    "splats": {
+      "urls": {
+        "plyPath": "https://holo-cos.aholo3d.cn/spatial-gen-3dgs/3FO4FNOCX23E/aholo/output/230e677836074b5897ea95ef6d7d1f56-021434-b70b_MaaSReportFile-10503b7be227e532a6e8002d8980fcac.ply",
+        "spzPath": "https://holo-cos.aholo3d.cn/splat-transform/3FO4FNOCX23E/format/0536438fd8b44d3688fc6ba370c62873.spz",
+        "lodMetaPath": "https://holo-cos.aholo3d.cn/splat-transform/3FO4FNOCX23E/1792865969/lod-meta.json"
+      }
+    },
+    "imagery": {
+      "panoUrl": "https://holo-cos.aholo3d.cn/spatial-gen-3dgs/3FO4FNOCX23E/aholo/output/230e677836074b5897ea95ef6d7d1f56-021434-b70b_MaaSReportFile-0fe4854c70981e1788095e0339c502f9.jpg"
+    },
+    "semanticsMetadata": {
+      "upAxis": "Z"
+    }
+  }
+}

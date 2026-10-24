@@ -1,0 +1,14 @@
+[
+  {
+    "tag": "retry-with-image",
+    "result": "failed",
+    "elapsed": 41.9,
+    "error": "World failed worldId=3FO4K4QG1DBD status=FAILED"
+  },
+  {
+    "tag": "prompt-only",
+    "worldId": "3FO4K4QG13AA",
+    "result": "success",
+    "elapsed": 651.9
+  }
+]

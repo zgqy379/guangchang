@@ -1,0 +1,11 @@
+{
+  "pipeline": "lux3d",
+  "assetLine": "avatar-from-photo",
+  "version": "2026-02-",
+  "source": "Screenshot_2026-02-07-01-40-53-18_2332cb9b27b851b548ba47a91682926c (1).jpg",
+  "imgUrl": "https://holo-cos.aholo3d.cn/resource/platform/temp/2026/10/25/NLOPHBYKTLGAMAABAAAAACY8.jpg",
+  "result": "success",
+  "elapsedSeconds": 76.8,
+  "outputs": "{'zip': 'https://qhsmodel.kujiale.com/genesis3d/inference/20261024/14b17f09a4ae4063968287fbc3b8c767/results/results.zip'}",
+  "downloadError": "Missing expected result formats: glb"
+}
