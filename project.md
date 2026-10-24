@@ -577,11 +577,13 @@ function MoneyMountain({ salary }: { salary: number }) {
 5. **Skills**：官方 SkillHub（skillhub.cn）安装，`lux3d` 与 `aholo-3dgs-reconstruction`（Aholo World）两个技能
 6. **Aholo Viewer**：aholojs.dev，MIT 开源 3DGS 渲染器（PLY/SPZ/SOG/LCC、chunk LoD、流式、行走模式、体素碰撞）
 
-**首次实测记录（10.25 晚，详见 `/docs/iterations/lux3d-money/`）**：
+**首次实测记录（10.25–10.26，详见 `/docs/iterations/`）**：
 
 - ✅ API Key 鉴权通过，任务创建与轮询链路全通（`tools/gen_money_v1.py`）
 - ❌ 真钞主题 prompt（"Chinese 100 yuan banknotes"）服务端生成失败（provider status=4），**疑似货币内容审核**——与 7.6 人民币图样合规预判相互印证
-- ⏳ 对照实验进行中：中性主题（金币堆）vs 虚构货币（fantasy banknote）——若虚构币可过，则"逛厂币"从 B 方案升级为**主路径**
+- ✅ 对照实验：金币堆/虚构货币均通过（~107s/个）→ **"逛厂币"转正为视觉锤主路径**
+- ✅ **Avatar 全管线打通（10.26）**：文生 3D 三款 Avatar（同模板改单变量，76–91s/个）→ OUS 本地上传（19.6MB GLB → 公开直链）→ **auto-rig 绑骨成功**（43MB 带骨骼 GLB，待 R3F 载入播动画做最终验收）
+- ⚠ 工程数据：生成产物原始 16–43MB，移动端 5MB 红线必须做减面+Draco（W2 资产管线任务）；provider status=4 有偶发性，批量脚本需带重试
 
 ---
 
@@ -650,7 +652,7 @@ API实测(今起) │           │           │ 提交 11.19 19:00
   （`/docs/report-skeleton.md`），每周填一节，M5 只做定稿不做初稿
 - **迭代存档从今天开始**：格式规范见 `/docs/iterations/README.md`——
   每次生成必存 prompt+参数+版本，只截成功图拼不出"迭代对比"
-- **进度状态（10.26 更新）**：✅ 报名/组队/选题全部完成（进度条 01–03 绿，报名+团队积分均已发放，04 作品提交已开启）｜✅ API 实测：鉴权通、逛厂币路线确立、生成耗时 ~107s、GLB 16–21MB 待压缩｜✅ 词典 schema / R3F 脚手架（含两条生长动画）/ docs / GitHub 私有仓库就绪｜⏳ Avatar 三连+绑骨实测进行中｜下一步：M3 可视化打磨 + 资产压缩管线 + 魔搭部署
+- **进度状态（10.26 更新）**：✅ 报名/组队/选题全部完成（进度条 01–03 绿，报名+团队积分均已发放，04 作品提交已开启）｜✅ W1 核心实测完成：逛厂币路线确立、Avatar 三款生成+绑骨成功（43MB 带骨骼 GLB 存档）、OUS 上传链路验证｜✅ 词典 schema / R3F 脚手架（含两条生长动画）/ docs / GitHub 私有仓库就绪｜⏳ 待办：三款 Avatar 与风格锚定并排视觉验收、R3F 载入绑骨 GLB 播动画、World 办公室管线（3.x/4.x）、资产压缩管线、魔搭部署
 
 | 里程碑 | 时间 | 关键交付 | 验收标准 |
 |--|--|--|--|

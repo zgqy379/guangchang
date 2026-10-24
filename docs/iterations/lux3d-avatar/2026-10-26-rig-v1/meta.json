@@ -1,0 +1,8 @@
+{
+  "id": "rig-v1",
+  "srcAsset": "avatar-v1",
+  "modelUrl": "https://qhsmodel.kujiale.com/genesis3d/inference/20261024/2a1e4adc00384ffb9946c7350e47987a/results/results.zip",
+  "result": "failed",
+  "error": "ValueError: modelUrl URL path must end with .glb",
+  "elapsedSeconds": 0.0
+}

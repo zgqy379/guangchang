@@ -1,0 +1,25 @@
+{
+  "id": "rig-v2",
+  "steps": {
+    "download": {
+      "bytes": 46820290
+    },
+    "extract": {
+      "file": "mesh/tex_mesh.glb",
+      "bytes": 19594008
+    },
+    "upload": {
+      "url": "https://holo-cos.aholo3d.cn/resource/platform/temp/2026/10/25/NLOO2PYKTLGAMAABAAAAADY8.glb",
+      "size": 19594008,
+      "uploadMode": "block"
+    },
+    "createTask": {
+      "taskId": "4346269"
+    }
+  },
+  "result": "success (retry task 4346472)",
+  "error": "TaskTerminalError: Task failed: provider status=4",
+  "elapsedSeconds": 318.9,
+  "riggedGlb": "avatar-rigged.glb",
+  "note": "首次失败为偶发(provider status=4)，同URL重试即成功；全管线验证：文生3D→下载→OUS上传→auto-rig"
+}
