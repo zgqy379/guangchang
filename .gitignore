@@ -7,6 +7,8 @@ tools/Aholo-Lux3D/
 办公室内景招聘/
 办公室外景照片/
 用于生成有趣的3D形象的照片/
+# 素材视频等大文件不入库（viewer.html 保留）
+assets/*.mp4
 docs/iterations/**/output/
 *.local
 .env

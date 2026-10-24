@@ -1,0 +1,19 @@
+{
+  "date": "2026-10-26T03:00:00+08:00",
+  "pipeline": "world-recon",
+  "assetLine": "office-space",
+  "version": "v1",
+  "source": "Pexels 5483080 (free license) 14s UHD panorama, empty office with cubicles",
+  "steps": {
+    "upload": {
+      "url": "https://holo-cos.aholo3d.cn/resource/platform/temp/2026/10/25/NLOPW5AKTKX72AABAAAAABQ8.mp4",
+      "bytes": 25238833
+    },
+    "create": {
+      "worldId": "3FO4K4QFYGFS"
+    }
+  },
+  "result": "failed",
+  "error": "PollingFailedError: World failed worldId=3FO4K4QFYGFS status=FAILED",
+  "elapsedSeconds": 93.5
+}

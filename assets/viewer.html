@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>逛厂资产预览</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #171b20; overflow: hidden; }
+  #label { position: fixed; top: 10px; left: 12px; color: #9fb0c0; font: 12px/1.4 system-ui; }
+  #err { position: fixed; bottom: 10px; left: 12px; color: #ff7b6b; font: 12px system-ui; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<div id="label">HTML ok</div>
+<div id="err"></div>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+  }
+}
+</script>
+<script>
+  window.__stage = "html";
+  window.onerror = function (msg) {
+    document.getElementById("err").textContent += "JS ERROR: " + msg + "\n";
+  };
+</script>
+<script type="module">
+const $err = document.getElementById("err");
+const $label = document.getElementById("label");
+try {
+  const THREE = await import("three");
+  const { OrbitControls } = await import("three/addons/controls/OrbitControls.js");
+  const { GLTFLoader } = await import("three/addons/loaders/GLTFLoader.js");
+  window.__stage = "modules";
+
+  const src = new URLSearchParams(location.search).get("src") || "";
+  $label.textContent = src;
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(innerWidth, innerHeight);
+  renderer.setPixelRatio(1.5);
+  document.body.appendChild(renderer.domElement);
+
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color("#171b20");
+  scene.add(new THREE.HemisphereLight(0xdfe8f0, 0x2a2f36, 1.1));
+  const key = new THREE.DirectionalLight(0xffffff, 1.6);
+  key.position.set(3, 5, 4);
+  scene.add(key);
+  const rim = new THREE.DirectionalLight(0x88aaff, 0.6);
+  rim.position.set(-4, 3, -3);
+  scene.add(rim);
+  const grid = new THREE.GridHelper(10, 20, 0x33404d, 0x232a32);
+  scene.add(grid);
+
+  const camera = new THREE.PerspectiveCamera(40, innerWidth / innerHeight, 0.01, 100);
+  const controls = new OrbitControls(camera, renderer.domElement);
+
+  const loader = new GLTFLoader();
+  loader.load(src, (gltf) => {
+    const obj = gltf.scene || gltf.scenes[0];
+    scene.add(obj);
+    const box = new THREE.Box3().setFromObject(obj);
+    const size = box.getSize(new THREE.Vector3());
+    const center = box.getCenter(new THREE.Vector3());
+    const maxDim = Math.max(size.x, size.y, size.z) || 1;
+    obj.position.y -= box.min.y;
+    const dist = maxDim * 1.9;
+    camera.position.set(center.x + dist * 0.7, maxDim * 0.9, center.z + dist * 0.9);
+    controls.target.set(center.x, maxDim * 0.45, center.z);
+    controls.update();
+    let animNote = "";
+    if (gltf.animations && gltf.animations.length) {
+      const mixer = new THREE.AnimationMixer(obj);
+      mixer.clipAction(gltf.animations[0]).play();
+      obj.userData.mixer = mixer;
+      animNote = ` （动画×${gltf.animations.length}）`;
+    }
+    $label.textContent = src + animNote;
+    window.__loaded = true;
+  }, undefined, (e) => {
+    $err.textContent = "加载失败: " + ((e && e.message) || e);
+    window.__loaded = "error";
+  });
+
+  addEventListener("resize", () => {
+    camera.aspect = innerWidth / innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth, innerHeight);
+  });
+
+  const clock = new THREE.Clock();
+  (function loop() {
+    requestAnimationFrame(loop);
+    const dt = clock.getDelta();
+    scene.traverse((o) => { if (o.userData && o.userData.mixer) o.userData.mixer.update(dt); });
+    controls.update();
+    renderer.render(scene, camera);
+  })();
+} catch (e) {
+  $err.textContent = "模块加载失败: " + (e && e.message ? e.message : String(e));
+  window.__loaded = "error";
+}
+</script>
+</body>
+</html>
