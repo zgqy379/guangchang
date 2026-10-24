@@ -1,0 +1,17 @@
+{
+  "date": "2026-10-25T22:30:00+08:00",
+  "pipeline": "lux3d",
+  "assetLine": "money-gc-coin",
+  "version": "fantasy-banknote",
+  "prompt": "A neat bundle of fictional fantasy banknotes with glowing blue patterns, original made-up currency design, mobile game asset, clean silhouette, single object, no background",
+  "params": {
+    "mode": "G1-Turbo",
+    "style": "cartoon",
+    "outputFormat": "glb",
+    "enablePbr": true
+  },
+  "result": "success",
+  "elapsedSeconds": 107.2,
+  "error": null,
+  "note": "对照实验：v1 真钞 prompt 失败(provider status=4)，本组验证是否内容审核所致"
+}
