@@ -1,0 +1,120 @@
+{
+  "$schema": "./dictionary.schema.json",
+  "dictionary": "candidate",
+  "version": "1.1.0",
+  "description": "求职者侧参数空间化词典（project.md 5.2 的机器可读版）。含反刷分与反羞辱规则（5.3 / 3.3）。",
+  "entries": [
+    {
+      "id": "github_streak_years",
+      "label": "连续贡献年限",
+      "side": "candidate",
+      "priority": "P1",
+      "implementation": "planned",
+      "perception": "长跑者 vs 冲刺型",
+      "input": { "type": "readonly", "source": "github_oauth" },
+      "mapping": { "type": "glowPath", "params": { "metersPerYear": 1 } },
+      "antiGaming": [
+        {
+          "rule": "连续性 > 总量：提交时间方差做衰减，每月稳定提交者地砖更亮",
+          "params": { "varianceDecay": true }
+        },
+        {
+          "rule": "green-repo 机器人特征（无 review、无 issue 关联的高频空提交）命中者亮度不升"
+        }
+      ]
+    },
+    {
+      "id": "contribution_heatmap",
+      "label": "贡献热力图",
+      "side": "candidate",
+      "priority": "P1",
+      "implementation": "planned",
+      "perception": "三天打鱼的路面直接是断的",
+      "input": { "type": "readonly", "source": "github_oauth" },
+      "mapping": { "type": "glowPath", "params": { "brightnessFromHeatmap": true } }
+    },
+    {
+      "id": "original_repo_stars",
+      "label": "原创仓库 Stars",
+      "side": "candidate",
+      "priority": "P1",
+      "implementation": "planned",
+      "perception": "有真东西的人路边有树",
+      "input": { "type": "readonly", "source": "github_oauth" },
+      "mapping": { "type": "glowForest", "params": { "treesPer1kStars": 1 } },
+      "antiGaming": [
+        { "rule": "Fork 仓库不计入植物生长" },
+        {
+          "rule": "年度通胀校正：按仓库创建年份调整系数（2015 年 1k ≈ 今天 4k）",
+          "params": { "inflationCurve": { "2015": 4, "2019": 2, "2023": 1 } }
+        },
+        {
+          "rule": "施肥检测：stars 增速远超 issues/forks 互动增速的仓库，植物挂「疑似施肥」枯黄标记",
+          "params": { "growthAnomalyCheck": true }
+        }
+      ]
+    },
+    {
+      "id": "tech_stack_spectrum",
+      "label": "技术栈分布",
+      "side": "candidate",
+      "priority": "P1",
+      "implementation": "planned",
+      "perception": "主副技能比例一眼可读",
+      "input": { "type": "readonly", "source": "github_oauth" },
+      "mapping": { "type": "spectrumRing", "params": { "colors": { "JavaScript": "#f1e05a", "Python": "#3572A5", "Rust": "#dea584" } } }
+    },
+    {
+      "id": "portfolio_gallery",
+      "label": "作品集",
+      "side": "candidate",
+      "priority": "P1",
+      "implementation": "planned",
+      "perception": "作品强制可见",
+      "input": { "type": "readonly", "source": "github_oauth" },
+      "mapping": { "type": "gallery", "params": { "surround": true, "focusOnApproach": true } }
+    },
+    {
+      "id": "credential_order",
+      "label": "学历/证书排序",
+      "side": "candidate",
+      "priority": "P1",
+      "implementation": "planned",
+      "perception": "暴露真实自我认知",
+      "input": { "type": "readonly", "source": "github_oauth" },
+      "mapping": { "type": "nameplate", "params": { "userOrdered": true } }
+    },
+    {
+      "id": "expected_salary",
+      "label": "期望薪资",
+      "side": "candidate",
+      "priority": "P0",
+      "implementation": "implemented",
+      "perception": "与 HR 钞票山同框，匹配度一目了然",
+      "input": {
+        "type": "slider",
+        "min": 60000,
+        "max": 1000000,
+        "step": 10000,
+        "default": 200000,
+        "unit": "元",
+        "format": "wan-yuan"
+      },
+      "mapping": { "type": "salaryCloud", "params": { "billDenominationYuan": 100, "billsPerStack": 50 } }
+    },
+    {
+      "id": "verified_enterprise_years",
+      "label": "企业内从业年限（非 GitHub）",
+      "side": "candidate",
+      "priority": "vision",
+      "implementation": "planned",
+      "perception": "暗示实力但不公开处刑",
+      "input": { "type": "readonly", "source": "verified_employer" },
+      "mapping": { "type": "verifiedBasePath", "params": { "baseColor": "#6b7280", "badge": "企业内贡献已验证" } },
+      "antiGaming": [
+        { "rule": "非 OSS 岗位的反羞辱设计（project.md 3.3）：无亮砖但有路基，不与公开提交数据并排对比" },
+        { "rule": "求职者空间之间永不并排排名——对比是 HR 端叙事，不是 C 端斗兽场" }
+      ]
+    }
+  ]
+}

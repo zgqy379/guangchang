@@ -1,0 +1,130 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "guangchang://dictionary/dictionary.schema.json",
+  "title": "逛厂参数空间化词典条目",
+  "description": "词典即引擎：input 定义 HR 面板表单如何自动生成，mapping 定义参数如何驱动 3D 场景，antiGaming 定义可视化语言的防博弈规则（与 project.md 5.4 同源）。",
+  "type": "object",
+  "required": ["id", "label", "side", "priority", "input", "mapping", "perception"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "description": "词条唯一 ID"
+    },
+    "label": { "type": "string", "description": "面板显示名" },
+    "side": { "enum": ["hr", "candidate"] },
+    "priority": { "enum": ["P0", "P1", "vision"] },
+    "implementation": {
+      "enum": ["implemented", "planned"],
+      "default": "planned",
+      "description": "当前 Demo 是否已接入渲染引擎"
+    },
+    "perception": { "type": "string", "description": "感知直觉（一句话，来自 project.md 词典表第三列）" },
+    "input": { "$ref": "#/definitions/input" },
+    "mapping": { "$ref": "#/definitions/mapping" },
+    "antiGaming": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/antiGamingRule" },
+      "description": "防博弈规则；引擎渲染时强制应用，规则见 project.md 5.4"
+    }
+  },
+  "definitions": {
+    "input": {
+      "type": "object",
+      "required": ["type"],
+      "oneOf": [
+        { "$ref": "#/definitions/sliderInput" },
+        { "$ref": "#/definitions/selectInput" },
+        { "$ref": "#/definitions/toggleInput" },
+        { "$ref": "#/definitions/readonlyInput" }
+      ]
+    },
+    "sliderInput": {
+      "type": "object",
+      "required": ["type", "min", "max", "step", "default"],
+      "properties": {
+        "type": { "const": "slider" },
+        "min": { "type": "number" },
+        "max": { "type": "number" },
+        "step": { "type": "number" },
+        "default": { "type": "number" },
+        "unit": { "type": "string" },
+        "format": { "enum": ["plain", "wan-yuan", "clock-hour"], "description": "wan-yuan=显示为 N 万；clock-hour=显示为 HH:MM" }
+      }
+    },
+    "selectInput": {
+      "type": "object",
+      "required": ["type", "options", "default"],
+      "properties": {
+        "type": { "const": "select" },
+        "options": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["value", "label"],
+            "properties": {
+              "value": { "type": ["string", "number"] },
+              "label": { "type": "string" }
+            }
+          }
+        },
+        "default": { "type": ["string", "number"] }
+      }
+    },
+    "toggleInput": {
+      "type": "object",
+      "required": ["type", "default"],
+      "properties": {
+        "type": { "const": "toggle" },
+        "default": { "type": "boolean" }
+      }
+    },
+    "readonlyInput": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "const": "readonly" },
+        "source": { "enum": ["github_oauth", "verified_employer"], "description": "第三方数据源（求职者侧），Demo 期可用滑杆模拟" }
+      }
+    },
+    "mapping": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "enum": [
+            "moneyMountain",
+            "schrodingerBills",
+            "skyClock",
+            "calendarWall",
+            "noticeBoardLight",
+            "remoteCamp",
+            "timeRing",
+            "buildingStage",
+            "npcDensity",
+            "lifeZone",
+            "exitGate",
+            "commuteMap",
+            "glowPath",
+            "glowForest",
+            "spectrumRing",
+            "gallery",
+            "nameplate",
+            "salaryCloud",
+            "verifiedBasePath"
+          ]
+        },
+        "params": { "type": "object", "description": "映射的自由参数（几何/材质/阈值），由各渲染器自行解析" }
+      }
+    },
+    "antiGamingRule": {
+      "type": "object",
+      "required": ["rule"],
+      "properties": {
+        "rule": { "type": "string" },
+        "params": { "type": "object" }
+      }
+    }
+  }
+}
