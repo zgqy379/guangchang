@@ -9,11 +9,24 @@ import { HRPanel } from './components/HRPanel'
 import { schrodingerCapNote } from './components/SchrodingerBills'
 import { fictionalCompanies, companyById } from './data/fictional-companies'
 
-function Scene({ name, params }: { name: string; params: CompanyParams }) {
+function Scene({
+  name,
+  params,
+  growthKey,
+}: {
+  name: string
+  params: CompanyParams
+  growthKey: number
+}) {
   return (
     <Canvas dpr={[1, 2]} camera={{ position: [4.5, 3.2, 7.5], fov: 45 }}>
       <WorkdaySky offworkHour={params.offworkTime} />
-      <CompanyPlot position={[0, 0, 0]} name={name} params={params} />
+      <CompanyPlot
+        position={[0, 0, 0]}
+        name={name}
+        params={params}
+        growthKey={growthKey}
+      />
       <OrbitControls target={[0, 0.6, 0]} maxPolarAngle={Math.PI / 2.1} />
     </Canvas>
   )
@@ -24,6 +37,7 @@ export default function App() {
   const [paramsA, setParamsA] = useState<CompanyParams>(defaultParams())
   const [presetB, setPresetB] = useState('nebula')
   const [companyB, setCompanyB] = useState(companyById('nebula'))
+  const [growthKey, setGrowthKey] = useState(0)
 
   const capNote = schrodingerCapNote({
     equityYuan: paramsA.equityValue,
@@ -42,6 +56,9 @@ export default function App() {
           </button>
           <button className={mode === 'compare' ? 'active' : ''} onClick={() => setMode('compare')}>
             A/B 对比
+          </button>
+          <button className="replay" onClick={() => setGrowthKey((k) => k + 1)}>
+            ▶ 生长动画
           </button>
         </div>
       </header>
@@ -116,11 +133,11 @@ export default function App() {
 
         <section className={mode === 'compare' ? 'scenes compare' : 'scenes'}>
           {mode === 'single' ? (
-            <Scene name="自定义空间" params={paramsA} />
+            <Scene name="自定义空间" params={paramsA} growthKey={growthKey} />
           ) : (
             <>
-              <Scene name="A · 我的山" params={paramsA} />
-              <Scene name={`B · ${companyB.name}`} params={companyB.params} />
+              <Scene name="A · 我的山" params={paramsA} growthKey={growthKey} />
+              <Scene name={`B · ${companyB.name}`} params={companyB.params} growthKey={growthKey} />
             </>
           )}
         </section>

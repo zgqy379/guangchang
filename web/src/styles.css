@@ -45,6 +45,10 @@ header h1 span {
   background: #c23a2b;
   border-color: #c23a2b;
 }
+.mode-switch button.replay {
+  color: #4ade80;
+  border-color: #14532d;
+}
 
 main {
   flex: 1;

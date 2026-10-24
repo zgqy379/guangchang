@@ -1,0 +1,12 @@
+{
+  "id": "avatar-v1",
+  "prompt": "A stylized young office worker avatar, full body, standing, T-pose, cartoon style, big head small body proportion, big expressive eyes, clean silhouette, single character, mobile game asset, no background, short black hair, wearing a light blue hoodie and jeans",
+  "params": {
+    "mode": "G1-Turbo",
+    "style": "cartoon"
+  },
+  "result": "success",
+  "elapsedSeconds": 91.4,
+  "glbUrl": "https://qhsmodel.kujiale.com/genesis3d/inference/20261024/2a1e4adc00384ffb9946c7350e47987a/results/results.zip",
+  "rawOutputs": "{'zip': 'https://qhsmodel.kujiale.com/genesis3d/inference/20261024/2a1e4adc00384ffb9946c7350e47987a/results/results.zip'}"
+}
