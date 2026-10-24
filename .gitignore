@@ -3,6 +3,10 @@ web/dist/
 web/node_modules/
 .mimosa/
 tools/Aholo-Lux3D/
+# 用户提供的私人照片素材（不上传）
+办公室内景招聘/
+办公室外景照片/
+用于生成有趣的3D形象的照片/
 docs/iterations/**/output/
 *.local
 .env
