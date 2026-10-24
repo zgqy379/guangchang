@@ -6,7 +6,7 @@ import sys
 import time
 from pathlib import Path
 
-sys.path.insert(0, r"E:\guangchang\tools\Aholo-Lux3D\plugins\common\aholo-lux3d\core\runtime")
+sys.path.insert(0, r"C:\Users\dqy\tools\Aholo-Lux3D\plugins\common\aholo-lux3d\core\runtime")
 
 from lux3d_client import generate_text_to_3d  # noqa: E402
 
