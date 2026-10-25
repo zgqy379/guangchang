@@ -366,6 +366,16 @@ main {
   padding: 6px 14px;
   white-space: nowrap;
 }
+.peak-tag {
+  background: rgba(13, 17, 23, 0.85);
+  border: 1px solid #f0883e;
+  border-radius: 999px;
+  color: #f0883e;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 3px 12px;
+  white-space: nowrap;
+}
 
 .office-viewer {
   position: relative;

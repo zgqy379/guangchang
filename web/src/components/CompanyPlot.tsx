@@ -1,9 +1,18 @@
 // 公司展台：钞票山 + 薛定谔钞票 + 五险切口 + 发光地砖路 + Avatar 漫游
 // A/B 对比模式（project.md 4.4，Demo P0）：对比才有叙事——左山矮但夕阳，右山高但凌晨月亮
+import { useMemo } from 'react'
 import { Html } from '@react-three/drei'
 import * as THREE from 'three'
 import type { ThreeEvent } from '@react-three/fiber'
-import { CompanyParams, incrementPackage } from '../engine/params'
+import {
+  BILL,
+  CompanyParams,
+  incrementPackage,
+  layerLayout,
+  MOUNTAIN_HEIGHT_SCALE,
+  totalPackage,
+  yuanToStacks,
+} from '../engine/params'
 import { MoneyMountain } from './MoneyMountain'
 import { SchrodingerBills } from './SchrodingerBills'
 import { GlowPath } from './GlowPath'
@@ -35,6 +44,15 @@ export function CompanyPlot({
       onGroundClick({ x: e.point.x, y: e.point.y, z: e.point.z })
     }
   }
+
+  // 山顶数据浮标：层数与渲染同源（引擎公式），高度 = 层数 × 层高 × 感知增强
+  const mountainH = useMemo(() => {
+    const baseL = layerLayout(yuanToStacks(params.annualBaseSalary), 0)
+    const inc = incrementPackage(params)
+    const incL = layerLayout(yuanToStacks(inc), baseL.length ? baseL[baseL.length - 1].layer + 1 : 0)
+    const layers = baseL.length + (inc > 0 ? incL.length : 0)
+    return layers * BILL.stackH * MOUNTAIN_HEIGHT_SCALE
+  }, [params])
 
   return (
     <group position={position}>
@@ -79,6 +97,14 @@ export function CompanyPlot({
       <Html position={[0, 2.6, -2.2]} center distanceFactor={12}>
         <div className="plot-label">{name}</div>
       </Html>
+      {/* 山顶数据浮标：核心金额直接钉在山上（盲审：数据只藏在角落小字） */}
+      {!roam && (
+        <Html position={[-0.5, mountainH + 0.55, -1.5]} center distanceFactor={13}>
+          <div className="peak-tag">
+            ¥{Math.round(totalPackage(params) / 10000)}万 · {params.salaryStructure}薪
+          </div>
+        </Html>
+      )}
     </group>
   )
 }

@@ -1,5 +1,5 @@
 // 招聘街区场景：十字路口 + 四大领域街区 + 玩家漫游 + 就近名片（project.md v1.2 P0）
-import { useMemo, useRef, useState } from 'react'
+import { Suspense, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { Canvas, ThreeEvent } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
@@ -8,6 +8,7 @@ import { WorkdaySky } from '../WorkdaySky'
 import { AvatarActor, RoamRefs } from '../AvatarActor'
 import { RoamCamera } from '../RoamCamera'
 import { HRStand } from './HRStand'
+import { NPC } from './NPC'
 import { INDUSTRIES, Lot, placeLots, STREET_BOUNDS } from '../../data/street-companies'
 import { totalPackage } from '../../engine/params'
 
@@ -96,6 +97,53 @@ function StreetLamps() {
         <meshStandardMaterial color="#ffd9a0" emissive="#ffc46b" emissiveIntensity={2.2} />
       </instancedMesh>
     </>
+  )
+}
+
+// ---------- 区域入口牌坊（两级导航第二级）：跨街立柱 + 发光区名 ----------
+function labelTexture(text: string, color: string) {
+  const c = document.createElement('canvas')
+  c.width = 512
+  c.height = 96
+  const ctx = c.getContext('2d')!
+  ctx.fillStyle = 'rgba(10,14,26,0.92)'
+  ctx.fillRect(0, 0, 512, 96)
+  ctx.strokeStyle = color
+  ctx.lineWidth = 5
+  ctx.strokeRect(6, 6, 500, 84)
+  ctx.fillStyle = color
+  ctx.font = '700 44px "Microsoft YaHei", sans-serif'
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText(text, 256, 50)
+  const t = new THREE.CanvasTexture(c)
+  t.colorSpace = THREE.SRGBColorSpace
+  return t
+}
+
+function ArchWay({ industry, axisX, sign }: { industry: keyof typeof INDUSTRIES; axisX: boolean; sign: 1 | -1 }) {
+  const tex = useMemo(() => labelTexture(INDUSTRIES[industry].label, INDUSTRIES[industry].color), [industry])
+  return (
+    <group rotation={[0, axisX ? 0 : Math.PI / 2, 0]} position={[axisX ? sign * 12 : 0, 0, axisX ? 0 : sign * 12]}>
+      {[-4.8, 4.8].map((x) => (
+        <mesh key={x} position={[x, 2.75, 0]}>
+          <boxGeometry args={[0.55, 5.5, 0.55]} />
+          <meshStandardMaterial color="#2c343d" roughness={0.85} />
+        </mesh>
+      ))}
+      <mesh position={[0, 5.75, 0]}>
+        <boxGeometry args={[10.4, 1.0, 0.6]} />
+        <meshStandardMaterial color="#2c343d" roughness={0.85} />
+      </mesh>
+      <mesh position={[0, 5.75, 0.34]}>
+        <planeGeometry args={[9.2, 0.82]} />
+        <meshBasicMaterial map={tex} />
+      </mesh>
+      <mesh position={[0, 5.75, -0.34]} rotation={[0, Math.PI, 0]}>
+        <planeGeometry args={[9.2, 0.82]} />
+        <meshBasicMaterial map={tex} />
+      </mesh>
+    </group>
   )
 }
 
@@ -217,6 +265,17 @@ export function StreetScene({
       <directionalLight position={[12, 14, 8]} color="#8fa8ff" intensity={0.65} />
       <Roads />
       <StreetLamps />
+      <ArchWay industry="internet" axisX sign={1} />
+      <ArchWay industry="finance" axisX sign={-1} />
+      <ArchWay industry="manufacturing" axisX={false} sign={1} />
+      <ArchWay industry="culture" axisX={false} sign={-1} />
+      {/* NPC 求职者闲逛（人行道往返，街区人气） */}
+      <Suspense fallback={null}>
+        <NPC a={[12, 4.2]} b={[30, 4.2]} />
+        <NPC a={[-12, -4.2]} b={[-30, -4.2]} />
+        <NPC a={[4.2, 12]} b={[4.2, 30]} />
+        <NPC a={[-4.2, -12]} b={[-4.2, -30]} />
+      </Suspense>
       {/* 地面引导带：四街区域色（动线可读性，盲审修复） */}
       {placed.length > 0 &&
         (['internet', 'finance', 'manufacturing', 'culture'] as const).map((ind, i) => {
