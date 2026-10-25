@@ -75,3 +75,17 @@
 修复：①vite base 改用非路径令牌（`VITE_BASE_TOKEN=ghpages`）②新增 `engine/asset.ts` 的 `assetUrl()` 统一拼接 `import.meta.env.BASE_URL`，替换全部硬编码。复验：React 挂载 ✓ canvas ✓ 零异常 ✓ 四模式按钮渲染 ✓。
 
 教训：**"curl 根路径 200"≠"应用能跑"**——部署后必须做完整启动验收（DOM 挂载+canvas+无异常）；这条已加入部署 checklist。也解释了为何"视频验收"时录屏正常（录的是本地 dev 版）而线上一直坏：**本地 dev 的 base 是 `/`，两个坑都踩不中**。
+
+## 附三：2026-10-25 深度审查轮（egolite 实测 + 根因修复 + 魔搭上线）
+
+用户交办"深度全面分析测试验收审查 + 视觉/功能/交互深度审查 + 持续迭代"。egolite 对线上 Demo 全模式实测（功能全通过、零 console error），视觉审查发现：
+
+- **C1 根因级：钞票山永远单层平铺**——`pyramidLayout` 的 `ceil(sqrt(N))` 恒有 `ceil(sqrt(N))²≥N`，任何金额只堆一层：15万不可见、100万是一块"红地毯"。核心意象"山"在渲染中不存在。[已修]：`layerLayout` 每层 3×3=9 沓 + 逐层居中 + 锥度 + 高度感知增强 16×（角标声明）；15万→可见红堆，58.3万→层叠山，116.7万→带橙色增量帽的钱塔，A/B 对比叙事成立
+- **C2 "天空细线"之谜**：展台描边 `lineSegments` 忘加 -π/2 旋转，6×6 方框直立如透明墙（二分法定位）。[已修]
+- **C3 办公室怼墙**：SPZ 尺度不可控，人工位姿盲调全黑。[已修]：`SplatOperator + computeDenseBox(0.9)` 算包围盒 → 数学推导 Dollhouse 角视角
+- C4 诚实标注场景内 Html 挡漫游相机 + 对比模式×2 裁切。[已修]：改固定 DOM 角标
+- C5 Avatar 暗衣隐于暗地板 + 初始 T-pose。[已修]：展台暖色 pointLight + 挂载即播 IDLE + 移入默认取景
+- C6 大地板 90×90 消除悬空、footer 评审化、细滚动条、薛定谔高度抬升、增量幽灵实例清除、名牌上移、办公室操作提示。[已修]
+- 已知遗留：Avatar 头顶悬浮帽饰（GLB 资产自身）；移动端真机帧率待测 [待W4]
+
+**魔搭创空间上线**（官方"优先"项）：sdk=static，ms.show 根域名托管（首版 /studios/ 前缀致 iframe 白屏已修）；git http 认证不可用（SDK 令牌被拒），改走 modelscope SDK `upload_folder(repo_type='studio')` + 写权限令牌（.env）。https://modelscope.cn/studios/zgqy379/guangchang3d ✅ 运行中
