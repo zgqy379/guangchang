@@ -6,12 +6,19 @@ export interface CompanyParams {
   salaryStructure: number
   equityValue: number
   offworkTime: number
+  socialInsuranceBaseRatio: string
 }
 
 function sliderDefault(id: string): number {
   const e = entry(id)
   if (e.input.type !== 'slider') throw new Error(`${id} 不是滑杆词条`)
   return e.input.default
+}
+
+function selectDefault(id: string): string {
+  const e = entry(id)
+  if (e.input.type !== 'select') throw new Error(`${id} 不是下拉词条`)
+  return String(e.input.default)
 }
 
 export const defaultParams = (): CompanyParams => {
@@ -22,6 +29,7 @@ export const defaultParams = (): CompanyParams => {
       structure.type === 'select' ? (structure.default as number) : 12,
     equityValue: sliderDefault('equity_value'),
     offworkTime: sliderDefault('offwork_time'),
+    socialInsuranceBaseRatio: selectDefault('social_insurance_base_ratio'),
   }
 }
 

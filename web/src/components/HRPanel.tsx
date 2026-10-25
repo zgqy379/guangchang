@@ -9,22 +9,25 @@ interface Props {
   onChange: (patch: Partial<CompanyParams>) => void
 }
 
-const editableIds: (keyof CompanyParams)[] = [
-  'annualBaseSalary',
-  'salaryStructure',
-  'equityValue',
-  'offworkTime',
-]
+// 词典词条 id → CompanyParams 字段名
+const FIELD_BY_ID: Record<string, keyof CompanyParams> = {
+  annual_base_salary: 'annualBaseSalary',
+  salary_structure: 'salaryStructure',
+  equity_value: 'equityValue',
+  offwork_time: 'offworkTime',
+  social_insurance_base_ratio: 'socialInsuranceBaseRatio',
+}
 
 export function HRPanel({ title, params, onChange }: Props) {
   return (
     <div className="panel">
       <h2>{title}</h2>
       {hrDictionary.entries
-        .filter((e) => editableIds.includes(e.id as keyof CompanyParams))
+        .filter((e) => e.id in FIELD_BY_ID)
         .map((e) => {
+          const field = FIELD_BY_ID[e.id]
           if (e.input.type === 'slider') {
-            const value = params[e.id as keyof CompanyParams] as number
+            const value = params[field] as number
             return (
               <label key={e.id} className="field">
                 <span className="field-label">
@@ -37,24 +40,20 @@ export function HRPanel({ title, params, onChange }: Props) {
                   max={e.input.max}
                   step={e.input.step}
                   value={value}
-                  onChange={(ev) =>
-                    onChange({ [e.id]: Number(ev.target.value) } as Partial<CompanyParams>)
-                  }
+                  onChange={(ev) => onChange({ [field]: Number(ev.target.value) } as Partial<CompanyParams>)}
                 />
                 <small className="perception">{e.perception}</small>
               </label>
             )
           }
           if (e.input.type === 'select') {
-            const value = params[e.id as keyof CompanyParams] as number
+            const value = params[field] as string
             return (
               <label key={e.id} className="field">
                 <span className="field-label">{e.label}</span>
                 <select
                   value={value}
-                  onChange={(ev) =>
-                    onChange({ [e.id]: Number(ev.target.value) } as Partial<CompanyParams>)
-                  }
+                  onChange={(ev) => onChange({ [field]: ev.target.value } as Partial<CompanyParams>)}
                 >
                   {e.input.options.map((o) => (
                     <option key={String(o.value)} value={o.value}>
@@ -71,7 +70,7 @@ export function HRPanel({ title, params, onChange }: Props) {
       <div className="planned">
         <h3>词典中更多参数（接入渲染管线中）</h3>
         {hrDictionary.entries
-          .filter((e) => e.implementation === 'planned')
+          .filter((e) => e.implementation === 'planned' && !(e.id in FIELD_BY_ID))
           .map((e) => (
             <span key={e.id} className="chip">
               {e.label}

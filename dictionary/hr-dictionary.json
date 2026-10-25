@@ -25,7 +25,10 @@
         "params": {
           "billDenominationYuan": 100,
           "billsPerStack": 50,
-          "billFootprint": [0.155, 0.077],
+          "billFootprint": [
+            0.155,
+            0.077
+          ],
           "stackHeight": 0.005,
           "layerRole": "base"
         }
@@ -33,11 +36,19 @@
       "antiGaming": [
         {
           "rule": "山体分层强制可见：base/绩效/期权三色分垒，禁止渲染成混合山",
-          "params": { "layerColors": { "base": "#c23a2b", "increment": "#d98e32", "equity": "#8fb4d9" } }
+          "params": {
+            "layerColors": {
+              "base": "#c23a2b",
+              "increment": "#d98e32",
+              "equity": "#8fb4d9"
+            }
+          }
         },
         {
           "rule": "低区间（<30 万）附加等身刻度人偶，解决低端分辨率",
-          "params": { "rulerThreshold": 300000 }
+          "params": {
+            "rulerThreshold": 300000
+          }
         }
       ]
     },
@@ -51,10 +62,22 @@
       "input": {
         "type": "select",
         "options": [
-          { "value": 12, "label": "12 薪" },
-          { "value": 13, "label": "13 薪" },
-          { "value": 14, "label": "14 薪" },
-          { "value": 16, "label": "16 薪" }
+          {
+            "value": 12,
+            "label": "12 薪"
+          },
+          {
+            "value": 13,
+            "label": "13 薪"
+          },
+          {
+            "value": 14,
+            "label": "14 薪"
+          },
+          {
+            "value": 16,
+            "label": "16 薪"
+          }
         ],
         "default": 12
       },
@@ -67,7 +90,9 @@
         }
       },
       "antiGaming": [
-        { "rule": "用总包混淆 base：增量层必须异色堆叠在 base 层之上，不允许并入 base 色" }
+        {
+          "rule": "用总包混淆 base：增量层必须异色堆叠在 base 层之上，不允许并入 base 色"
+        }
       ]
     },
     {
@@ -75,15 +100,27 @@
       "label": "五险一金缴费基数",
       "side": "hr",
       "priority": "P0",
-      "implementation": "planned",
+      "implementation": "implemented",
       "perception": "到手前损耗的真实差距",
       "input": {
         "type": "select",
         "options": [
-          { "value": "full", "label": "全额缴纳" },
-          { "value": "0.8", "label": "80% 基数" },
-          { "value": "0.6", "label": "60% 基数" },
-          { "value": "min", "label": "最低基数" }
+          {
+            "value": "full",
+            "label": "全额缴纳"
+          },
+          {
+            "value": "0.8",
+            "label": "80% 基数"
+          },
+          {
+            "value": "0.6",
+            "label": "60% 基数"
+          },
+          {
+            "value": "min",
+            "label": "最低基数"
+          }
         ],
         "default": "full"
       },
@@ -91,12 +128,19 @@
         "type": "moneyMountain",
         "params": {
           "carvedZone": true,
-          "carveScale": { "full": 0.1, "0.8": 0.4, "0.6": 0.7, "min": 1.0 },
+          "carveScale": {
+            "full": 0.1,
+            "0.8": 0.4,
+            "0.6": 0.7,
+            "min": 1.0
+          },
           "carvedLabel": "被切走的部分（按基数比例缩放）"
         }
       },
       "antiGaming": [
-        { "rule": "切口大小按基数比例映射，全额=完整小切口，60%=明显大切口" }
+        {
+          "rule": "切口大小按基数比例映射，全额=完整小切口，60%=明显大切口"
+        }
       ]
     },
     {
@@ -120,22 +164,31 @@
         "params": {
           "billDenominationYuan": 100,
           "billsPerStack": 50,
-          "floatHeight": [0.4, 1.2],
+          "floatHeight": [
+            0.4,
+            1.2
+          ],
           "color": "#8fb4d9"
         }
       },
       "antiGaming": [
         {
           "rule": "透明度上限 45%：半透明渲染，视觉体积天然打折",
-          "params": { "maxOpacity": 0.45 }
+          "params": {
+            "maxOpacity": 0.45
+          }
         },
         {
           "rule": "缩放系数 0.5：同等面额只渲染一半体积",
-          "params": { "scaleFactor": 0.5 }
+          "params": {
+            "scaleFactor": 0.5
+          }
         },
         {
           "rule": "期权视觉体积上限 = base 山体积 × 2，超出部分不渲染并挂标签「按规则隐藏」",
-          "params": { "capRatioOfBase": 2 }
+          "params": {
+            "capRatioOfBase": 2
+          }
         }
       ]
     },
@@ -164,7 +217,9 @@
         }
       },
       "antiGaming": [
-        { "rule": "「弹性」不可作为自由文本声明：必须绑定 flexible_hours 开关（时间环可拖动验证）" }
+        {
+          "rule": "「弹性」不可作为自由文本声明：必须绑定 flexible_hours 开关（时间环可拖动验证）"
+        }
       ]
     },
     {
@@ -174,8 +229,16 @@
       "priority": "P1",
       "implementation": "planned",
       "perception": "弹不弹性，拖一下就知道",
-      "input": { "type": "toggle", "default": false },
-      "mapping": { "type": "timeRing", "params": { "draggable": true } }
+      "input": {
+        "type": "toggle",
+        "default": false
+      },
+      "mapping": {
+        "type": "timeRing",
+        "params": {
+          "draggable": true
+        }
+      }
     },
     {
       "id": "weekend_policy",
@@ -187,13 +250,25 @@
       "input": {
         "type": "select",
         "options": [
-          { "value": "double", "label": "双休" },
-          { "value": "alternate", "label": "大小周" },
-          { "value": "single", "label": "单休" }
+          {
+            "value": "double",
+            "label": "双休"
+          },
+          {
+            "value": "alternate",
+            "label": "大小周"
+          },
+          {
+            "value": "single",
+            "label": "单休"
+          }
         ],
         "default": "double"
       },
-      "mapping": { "type": "calendarWall", "params": {} }
+      "mapping": {
+        "type": "calendarWall",
+        "params": {}
+      }
     },
     {
       "id": "overtime_paid",
@@ -205,12 +280,24 @@
       "input": {
         "type": "select",
         "options": [
-          { "value": "paid", "label": "有偿/调休" },
-          { "value": "free", "label": "无偿" }
+          {
+            "value": "paid",
+            "label": "有偿/调休"
+          },
+          {
+            "value": "free",
+            "label": "无偿"
+          }
         ],
         "default": "paid"
       },
-      "mapping": { "type": "noticeBoardLight", "params": { "green": "paid", "red": "free" } }
+      "mapping": {
+        "type": "noticeBoardLight",
+        "params": {
+          "green": "paid",
+          "red": "free"
+        }
+      }
     },
     {
       "id": "work_mode",
@@ -222,9 +309,18 @@
       "input": {
         "type": "select",
         "options": [
-          { "value": "onsite", "label": "坐班" },
-          { "value": "hybrid", "label": "混合" },
-          { "value": "remote", "label": "远程" }
+          {
+            "value": "onsite",
+            "label": "坐班"
+          },
+          {
+            "value": "hybrid",
+            "label": "混合"
+          },
+          {
+            "value": "remote",
+            "label": "远程"
+          }
         ],
         "default": "onsite"
       },
@@ -247,12 +343,30 @@
       "input": {
         "type": "select",
         "options": [
-          { "value": "angel", "label": "天使轮" },
-          { "value": "a", "label": "A 轮" },
-          { "value": "b", "label": "B 轮" },
-          { "value": "c", "label": "C 轮" },
-          { "value": "d", "label": "D 轮" },
-          { "value": "listed", "label": "已上市" }
+          {
+            "value": "angel",
+            "label": "天使轮"
+          },
+          {
+            "value": "a",
+            "label": "A 轮"
+          },
+          {
+            "value": "b",
+            "label": "B 轮"
+          },
+          {
+            "value": "c",
+            "label": "C 轮"
+          },
+          {
+            "value": "d",
+            "label": "D 轮"
+          },
+          {
+            "value": "listed",
+            "label": "已上市"
+          }
         ],
         "default": "a"
       },
@@ -281,7 +395,12 @@
         "unit": "人",
         "format": "plain"
       },
-      "mapping": { "type": "npcDensity", "params": { "logScale": true } }
+      "mapping": {
+        "type": "npcDensity",
+        "params": {
+          "logScale": true
+        }
+      }
     },
     {
       "id": "benefits",
@@ -290,10 +409,20 @@
       "priority": "P1",
       "implementation": "planned",
       "perception": "福利好感知",
-      "input": { "type": "toggle", "default": false },
-      "mapping": { "type": "lifeZone", "params": { "zone": "空间边缘生活区" } },
+      "input": {
+        "type": "toggle",
+        "default": false
+      },
+      "mapping": {
+        "type": "lifeZone",
+        "params": {
+          "zone": "空间边缘生活区"
+        }
+      },
       "antiGaming": [
-        { "rule": "福利渲染在空间边缘「生活区」，与核心三景观物理隔离，防止福利淹没薪酬主线" }
+        {
+          "rule": "福利渲染在空间边缘「生活区」，与核心三景观物理隔离，防止福利淹没薪酬主线"
+        }
       ]
     },
     {
@@ -305,10 +434,20 @@
       "perception": "通勤体感",
       "input": {
         "type": "select",
-        "options": [{ "value": "demo-city", "label": "示例城市（Demo）" }],
+        "options": [
+          {
+            "value": "demo-city",
+            "label": "示例城市（Demo）"
+          }
+        ],
         "default": "demo-city"
       },
-      "mapping": { "type": "commuteMap", "params": { "map": "mapbox-fill-extrusion" } }
+      "mapping": {
+        "type": "commuteMap",
+        "params": {
+          "map": "mapbox-fill-extrusion"
+        }
+      }
     },
     {
       "id": "non_compete",
@@ -320,16 +459,34 @@
       "input": {
         "type": "select",
         "options": [
-          { "value": "none", "label": "无" },
-          { "value": "6m", "label": "6 个月" },
-          { "value": "1y", "label": "1 年" },
-          { "value": "2y", "label": "2 年" }
+          {
+            "value": "none",
+            "label": "无"
+          },
+          {
+            "value": "6m",
+            "label": "6 个月"
+          },
+          {
+            "value": "1y",
+            "label": "1 年"
+          },
+          {
+            "value": "2y",
+            "label": "2 年"
+          }
         ],
         "default": "none"
       },
-      "mapping": { "type": "exitGate", "params": { "none": "开放出口", "default": "旋转门", "2y": "铁栅栏" } }
-    }
-    ,
+      "mapping": {
+        "type": "exitGate",
+        "params": {
+          "none": "开放出口",
+          "default": "旋转门",
+          "2y": "铁栅栏"
+        }
+      }
+    },
     {
       "id": "team_age_vibe",
       "label": "团队画风",
@@ -340,12 +497,23 @@
       "input": {
         "type": "select",
         "options": [
-          { "value": "cyber", "label": "赛博霓虹（年轻）" },
-          { "value": "wood", "label": "原木商务（沉稳）" }
+          {
+            "value": "cyber",
+            "label": "赛博霓虹（年轻）"
+          },
+          {
+            "value": "wood",
+            "label": "原木商务（沉稳）"
+          }
         ],
         "default": "cyber"
       },
-      "mapping": { "type": "nameplate", "params": { "affects": "空间整体画风" } }
+      "mapping": {
+        "type": "nameplate",
+        "params": {
+          "affects": "空间整体画风"
+        }
+      }
     }
   ]
 }

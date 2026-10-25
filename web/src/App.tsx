@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { lazy, Suspense, useMemo, useRef, useState } from 'react'
+import * as THREE from 'three'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import { CompanyParams, defaultParams, totalPackage } from './engine/params'
@@ -7,18 +8,33 @@ import { WorkdaySky } from './components/WorkdaySky'
 import { CompanyPlot } from './components/CompanyPlot'
 import { HRPanel } from './components/HRPanel'
 import { schrodingerCapNote } from './components/SchrodingerBills'
-import { OfficeViewer } from './components/OfficeViewer'
+import { RoamCamera } from './components/RoamCamera'
+import type { RoamRefs } from './components/AvatarActor'
+
+// Aholo Viewer 体积大（3DGS 渲染器），仅办公室模式按需加载
+const OfficeViewer = lazy(() =>
+  import('./components/OfficeViewer').then((m) => ({ default: m.OfficeViewer }))
+)
 import { fictionalCompanies, companyById } from './data/fictional-companies'
 
 function Scene({
   name,
   params,
   growthKey,
+  roam = false,
 }: {
   name: string
   params: CompanyParams
   growthKey: number
+  roam?: boolean
 }) {
+  // 漫游共享状态：Avatar 位置 + 点击目标（相机/演员/地面点击三方共用）
+  const positionRef = useRef(new THREE.Vector3(-1.9, 0, 3.4))
+  const targetRef = useRef<THREE.Vector3 | null>(null)
+  const roamRefs = useMemo<RoamRefs>(
+    () => ({ position: positionRef, target: targetRef }),
+    []
+  )
   return (
     <Canvas dpr={[1, 2]} camera={{ position: [2.6, 1.7, 3.4], fov: 45 }}>
       <WorkdaySky offworkHour={params.offworkTime} />
@@ -27,8 +43,21 @@ function Scene({
         name={name}
         params={params}
         growthKey={growthKey}
+        roam={roam}
+        roamRefs={roamRefs}
+        onGroundClick={
+          roam
+            ? (p) => {
+                targetRef.current = new THREE.Vector3(p.x, p.y, p.z)
+              }
+            : undefined
+        }
       />
-      <OrbitControls target={[0, 0.45, 0]} maxPolarAngle={Math.PI / 2.1} />
+      {roam ? (
+        <RoamCamera enabled refs={roamRefs} />
+      ) : (
+        <OrbitControls target={[0, 0.45, 0]} maxPolarAngle={Math.PI / 2.1} />
+      )}
     </Canvas>
   )
 }
@@ -36,10 +65,11 @@ function Scene({
 export default function App() {
   const [mode, setMode] = useState<'single' | 'compare' | 'office'>('single')
   const [paramsA, setParamsA] = useState<CompanyParams>(defaultParams())
+  const [paramsB, setParamsB] = useState<CompanyParams>(companyById('nebula').params)
   const [presetB, setPresetB] = useState('nebula')
-  const [companyB, setCompanyB] = useState(companyById('nebula'))
   const [growthKey, setGrowthKey] = useState(0)
   const [officeScene, setOfficeScene] = useState('/assets/office/office-promptonly.spz')
+  const [roam, setRoam] = useState(false)
 
   const capNote = schrodingerCapNote({
     equityYuan: paramsA.equityValue,
@@ -68,6 +98,14 @@ export default function App() {
           <button className="replay" onClick={() => setGrowthKey((k) => k + 1)}>
             ▶ 生长动画
           </button>
+          {mode === 'single' && (
+            <button
+              className={roam ? 'active' : 'roam-btn'}
+              onClick={() => setRoam((r) => !r)}
+            >
+              {roam ? '🚶 漫游中（点击地面行走 / WASD）' : '🚶 漫游模式'}
+            </button>
+          )}
           {mode === 'office' && (
             <select
               className="office-select"
@@ -77,9 +115,12 @@ export default function App() {
               <option value="/assets/office/office-promptonly.spz">
                 AI 生成办公室（World · SPZ 4.1MB）
               </option>
-              <option value="/assets/office/interiorgs-0024.ply">
-                真实扫描办公室（InteriorGS 0024 · PLY 57MB）
-              </option>
+              {/* InteriorGS 数据集为受限授权（HF gated），公开部署不携带该资产 */}
+              {!import.meta.env.VITE_PUBLIC_DEPLOY && (
+                <option value="/assets/office/interiorgs-0024.ply">
+                  真实扫描办公室（InteriorGS 0024 · PLY 57MB，仅本地版）
+                </option>
+              )}
             </select>
           )}
         </div>
@@ -131,37 +172,54 @@ export default function App() {
           </div>
 
           {mode === 'compare' && (
-            <div className="preset-b">
-              <label>
-                对比对象：
-                <select
-                  value={presetB}
-                  onChange={(e) => {
-                    setPresetB(e.target.value)
-                    setCompanyB(companyById(e.target.value))
-                  }}
-                >
-                  {fictionalCompanies.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <p className="tagline">{companyB.tagline}</p>
+            <div className="panel-b">
+              <h2>B 侧参数（实时同步右屏）</h2>
+              <div className="preset-row">
+                {fictionalCompanies.map((c) => (
+                  <button
+                    key={c.id}
+                    className={`chip-btn ${presetB === c.id ? 'active' : ''}`}
+                    onClick={() => {
+                      setPresetB(c.id)
+                      setParamsB(c.id === 'custom' ? defaultParams() : { ...c.params })
+                    }}
+                    title={c.tagline}
+                  >
+                    {c.name}
+                  </button>
+                ))}
+              </div>
+              <HRPanel
+                title="B · HR 参数面板"
+                params={paramsB}
+                onChange={(patch) => {
+                  setPresetB('custom')
+                  setParamsB((p) => ({ ...p, ...patch }))
+                }}
+              />
             </div>
           )}
         </aside>
 
         <section className={mode === 'compare' ? 'scenes compare' : 'scenes'}>
           {mode === 'office' ? (
-            <OfficeViewer url={officeScene} />
+            <Suspense
+              fallback={
+                <div className="office-loading">3DGS 渲染引擎加载中…</div>
+              }
+            >
+              <OfficeViewer url={officeScene} />
+            </Suspense>
           ) : mode === 'single' ? (
-            <Scene name="自定义空间" params={paramsA} growthKey={growthKey} />
+            <Scene name="自定义空间" params={paramsA} growthKey={growthKey} roam={roam} />
           ) : (
             <>
               <Scene name="A · 我的山" params={paramsA} growthKey={growthKey} />
-              <Scene name={`B · ${companyB.name}`} params={companyB.params} growthKey={growthKey} />
+              <Scene
+                name={`B · ${fictionalCompanies.find((c) => c.id === presetB)?.name ?? '自定义'}`}
+                params={paramsB}
+                growthKey={growthKey}
+              />
             </>
           )}
         </section>
