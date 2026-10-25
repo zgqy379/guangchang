@@ -68,11 +68,11 @@ def caption(img, text):
 
 
 captions = {
-    "params": "年薪变山：15万 → 100万，钱一层层砌成塔",
-    "growth": "生长动画重播：凌晨的月亮只挂在加班的人头上",
-    "roam": "漫游模式：点击地面行走 · WASD · 第三人称",
-    "compare": "A/B 对比：100万·凌晨月亮 vs 15万·准点夕阳",
-    "office": "办公室漫游：Aholo World 生成 · 3DGS 实时渲染",
+    "street": "逛厂招聘街区：十字路口四大领域 · 64 个招聘摊位",
+    "roam": "点击落地 · 走近摊位 · 投出简历",
+    "basket": "加入对比篮 · 一键看两座山并排",
+    "office": "进办公室参观：SpatialGen 生成的行业空间",
+    "tour": "四区巡游：智造 · 金融 · 文创 · 互联网",
 }
 CAP_FRAMES = int(1.8 * FPS)
 

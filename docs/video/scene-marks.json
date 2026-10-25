@@ -4,15 +4,19 @@
   "label": "street"
  },
  {
-  "frameIndex": 108,
+  "frameIndex": 55,
+  "label": "roam"
+ },
+ {
+  "frameIndex": 98,
   "label": "basket"
  },
  {
-  "frameIndex": 148,
+  "frameIndex": 138,
   "label": "office"
  },
  {
-  "frameIndex": 233,
+  "frameIndex": 188,
   "label": "tour"
  }
 ]
