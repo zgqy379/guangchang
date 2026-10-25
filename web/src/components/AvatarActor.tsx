@@ -17,15 +17,21 @@ export interface RoamRefs {
   target: React.MutableRefObject<THREE.Vector3 | null>
   /** 传送指令（外部写入目标点，Actor 应用后置 null）——街区导航柱用 */
   teleportTo?: React.MutableRefObject<THREE.Vector3 | null>
+  /** 朝向角（弧度，随移动方向更新）——第三人称相机拖尾用 */
+  heading?: React.MutableRefObject<number>
+  /** 就近摊位（静止时相机切 3/4 特写） */
+  focus?: React.MutableRefObject<THREE.Vector3 | null>
 }
 
 export function AvatarActor({
   position = [-1.9, 0, 2.0] as [number, number, number],
+  facing = 0.35,
   roam = false,
   refs,
   bounds = 2.8,
 }: {
   position?: [number, number, number]
+  facing?: number
   roam?: boolean
   refs?: RoamRefs
   /** 漫游边界 clamp（默认单街区展台 ±2.8m；街区模式传更大值） */
@@ -145,7 +151,10 @@ export function AvatarActor({
       while (diff < -Math.PI) diff += Math.PI * 2
       g.rotation.y += diff * Math.min(1, dt * 10)
     }
-    if (refs) refs.position.current.copy(g.position)
+    if (refs) {
+      refs.position.current.copy(g.position)
+      if (refs.heading) refs.heading.current = g.rotation.y
+    }
 
     // 动画切换（0.25s 交叉淡化）
     const want = moving ? 'WALK' : 'IDLE'
@@ -157,7 +166,11 @@ export function AvatarActor({
   })
 
   return (
-    <group ref={root} position={position} rotation-y={0.35}>
+    <group ref={root} position={position} rotation-y={facing}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]}>
+        <circleGeometry args={[0.42, 24]} />
+        <meshBasicMaterial color="#000000" transparent opacity={0.32} depthWrite={false} />
+      </mesh>
       <group ref={inner}>
         <primitive object={idleScene} />
       </group>

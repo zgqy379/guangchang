@@ -2,29 +2,69 @@
 //（钱袋层数∝总包 / 五险切口牌 / 头顶日月）③身后办公空间门面（点击进 3DGS）
 import { Suspense, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
-import { useAnimations, useGLTF } from '@react-three/drei'
+import { useGLTF } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
 import { clone as skeletonClone } from 'three/examples/jsm/utils/SkeletonUtils.js'
 import type { Lot } from '../../data/street-companies'
 import { INDUSTRIES } from '../../data/street-companies'
 import { totalPackage } from '../../engine/params'
 import { assetUrl } from '../../engine/asset'
+import {
+  ColorSceneBillOrange,
+  ColorSceneBillRed,
+  ColorSceneBooth,
+  ColorSceneFacade,
+  ColorSceneGate,
+  ColorSceneGlass,
+  ColorSceneGlassLit,
+  ColorSceneMoon,
+  ColorSceneSkin,
+  ColorSceneSun,
+  ColorSceneWindow,
+  ColorSceneWindowDim,
+  ColorStateInfo,
+} from '../../../generated/design-tokens.output.mjs'
 
 const DRACO_PATH = 'https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/libs/draco/gltf/'
 const HR_POOL = [
   'hr-f01', 'hr-f02', 'hr-f03', 'hr-f04', 'hr-f05',
   'hr-m01', 'hr-m02', 'hr-m03', 'hr-m04',
 ]
-const NEAR = 18
+const NEAR = 0 // 真 HR GLB 近景姿态异常（横躺 T-pose，2026-10-26 诊断），修复前用占位形象
 const FAR = 26
 
-// 真 HR 形象：SkeletonUtils 克隆共享场景（保蒙皮）+ 播放 Idle（重定向产物），身高归一 1.6m
+// 占位 HR 的西装色池（按 hrIndex 分配，避免 64 个摊位同色）
+const OUTFITS = ['#3d4c63', '#4a3b52', '#2f4a45', '#5a4038', '#33465e', '#4a4230', '#3b3b46', '#533a44', '#304c58']
+const HAIRS = ['#1b1b22', '#2a1d18', '#20262f', '#3a2a22', '#151a20']
+
+// 真 HR 形象：SkeletonUtils 克隆共享场景（保蒙皮）+ 手动 AnimationMixer 播 Idle，身高归一 1.6m
 function RealHR({ hrIndex }: { hrIndex: number }) {
   const file = HR_POOL[hrIndex % HR_POOL.length]
   const { scene, animations } = useGLTF(assetUrl(`/assets/hr/${file}-idle.glb`), DRACO_PATH)
   const ref = useRef<THREE.Group>(null)
-  const clone = useMemo(() => skeletonClone(scene), [scene])
-  const { actions } = useAnimations(animations, ref)
+  const clone = useMemo(() => {
+    const c = skeletonClone(scene)
+    c.traverse((o) => {
+      const mesh = o as THREE.Mesh
+      if (!mesh.isMesh) return
+      mesh.frustumCulled = false
+      // 夜色里深色材质会糊成黑块：给一点自发光抬暗部
+      if (mesh.material) {
+        const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
+        const lifted = mats.map((m) => {
+          const mat = m.clone() as THREE.MeshStandardMaterial
+          if (mat.emissive) {
+            mat.emissive.set('#1b2635')
+            mat.emissiveIntensity = 0.4
+          }
+          return mat
+        })
+        mesh.material = Array.isArray(mesh.material) ? lifted : lifted[0]
+      }
+    })
+    return c
+  }, [scene])
+  const mixer = useMemo(() => new THREE.AnimationMixer(clone), [clone])
 
   useLayoutEffect(() => {
     const g = ref.current
@@ -34,12 +74,13 @@ function RealHR({ hrIndex }: { hrIndex: number }) {
     const s = 1.6 / (size.y || 1)
     g.scale.setScalar(s)
     g.position.y = -box.min.y * s
-    const clip = Object.keys(actions)[0]
-    actions[clip]?.reset().fadeIn(0.3).play()
+    const clip = animations[0]
+    if (clip) mixer.clipAction(clip).reset().play()
     return () => {
-      actions[clip]?.stop()
+      mixer.stopAllAction()
     }
-  }, [actions, clone])
+  }, [animations, clone, mixer])
+  useFrame((_, dt) => mixer.update(dt))
 
   return (
     <group ref={ref} dispose={null}>
@@ -48,25 +89,60 @@ function RealHR({ hrIndex }: { hrIndex: number }) {
   )
 }
 
-// 占位形象（远景/加载中）：低模色块人
-function PlaceholderHR({ color, night }: { color: string; night: boolean }) {
+// 占位形象（远景/加载中/真 GLB 未修好前）：低模人形，按 hrIndex 换西装与发型
+function PlaceholderHR({
+  color,
+  night,
+  hrIndex,
+}: {
+  color: string
+  night: boolean
+  hrIndex: number
+}) {
+  const outfit = OUTFITS[hrIndex % OUTFITS.length]
+  const hair = HAIRS[hrIndex % HAIRS.length]
+  const h = 0.96 + (hrIndex % 5) * 0.015
   return (
-    <group>
+    <group scale={[1, h, 1]}>
+      <mesh position={[-0.22, 0.88, 0]} rotation={[0, 0, 0.16]}>
+        <capsuleGeometry args={[0.055, 0.42, 4, 8]} />
+        <meshStandardMaterial color={outfit} roughness={0.8} />
+      </mesh>
+      <mesh position={[0.22, 0.88, 0]} rotation={[0, 0, -0.16]}>
+        <capsuleGeometry args={[0.055, 0.42, 4, 8]} />
+        <meshStandardMaterial color={outfit} roughness={0.8} />
+      </mesh>
       <mesh position={[0, 0.62, 0]}>
         <capsuleGeometry args={[0.22, 0.62, 4, 10]} />
-        <meshStandardMaterial color={color} roughness={0.75} />
+        <meshStandardMaterial color={outfit} roughness={0.75} />
       </mesh>
-      <mesh position={[0, 1.28, 0]}>
-        <sphereGeometry args={[0.19, 16, 14]} />
-        <meshStandardMaterial color="#e8b98a" roughness={0.6} />
+      <mesh position={[0, 1.24, 0]}>
+        <sphereGeometry args={[0.185, 16, 14]} />
+        <meshStandardMaterial color={ColorSceneSkin} roughness={0.6} />
+      </mesh>
+      <mesh position={[0, 1.32, -0.01]}>
+        <sphereGeometry args={[0.19, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2]} />
+        <meshStandardMaterial color={hair} roughness={0.9} />
+      </mesh>
+      <mesh position={[-0.062, 1.27, 0.165]}>
+        <sphereGeometry args={[0.022, 8, 8]} />
+        <meshBasicMaterial color="#1b1b22" />
+      </mesh>
+      <mesh position={[0.062, 1.27, 0.165]}>
+        <sphereGeometry args={[0.022, 8, 8]} />
+        <meshBasicMaterial color="#1b1b22" />
+      </mesh>
+      <mesh position={[0, 1.195, 0.176]}>
+        <boxGeometry args={[0.055, 0.012, 0.01]} />
+        <meshBasicMaterial color="#7a4a3a" />
       </mesh>
       <mesh position={[0, 0.78, 0.2]}>
         <boxGeometry args={[0.12, 0.16, 0.02]} />
-        <meshStandardMaterial color="#e6edf3" />
+        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.4} />
       </mesh>
-      <mesh position={[0, 1.75, 0]}>
+      <mesh position={[0, 1.72, 0]}>
         <sphereGeometry args={[0.1, 12, 10]} />
-        <meshBasicMaterial color={night ? '#e8edf5' : '#ffd4b0'} />
+        <meshBasicMaterial color={night ? ColorSceneMoon : ColorSceneSun} />
       </mesh>
     </group>
   )
@@ -124,42 +200,42 @@ export function HRStand({ lot, onEnterOffice }: { lot: Lot; onEnterOffice: (lot:
       {/* 摊位台 */}
       <mesh position={[0, 0.07, 0]} receiveShadow>
         <boxGeometry args={[2.2, 0.14, 2.2]} />
-        <meshStandardMaterial color="#2a3138" roughness={0.9} />
+        <meshStandardMaterial color={ColorSceneBooth} roughness={0.9} />
       </mesh>
       {/* HR 形象（near 时真 GLB，Suspense 加载期回退占位） */}
       <group position={[0, 0.14, 0]}>
         {near ? (
-          <Suspense fallback={<PlaceholderHR color={color} night={night} />}>
+          <Suspense fallback={<PlaceholderHR color={color} night={night} hrIndex={lot.hrIndex} />}>
             <RealHR hrIndex={lot.hrIndex} />
           </Suspense>
         ) : (
-          <PlaceholderHR color={color} night={night} />
+          <PlaceholderHR color={color} night={night} hrIndex={lot.hrIndex} />
         )}
       </group>
       {/* 名牌 */}
-      <sprite position={[0, 2.35, 0]} scale={[1.3, 0.33, 1]}>
+      <sprite position={[0, 2.7, 0]} scale={[1.3, 0.33, 1]}>
         <spriteMaterial map={nameTex} transparent />
       </sprite>
       {/* 参数具象化：总包钱袋堆 + 五险切口牌 */}
       <group position={[0.62, 0.14, 0.55]}>
         {Array.from({ length: layers }).map((_, i) => (
-          <mesh key={i} position={[0, 0.04 + i * 0.075, 0]}>
-            <boxGeometry args={[0.34, 0.07, 0.22]} />
+          <mesh key={i} position={[0, 0.06 + i * 0.12, 0]}>
+            <boxGeometry args={[0.5, 0.115, 0.32]} />
             <meshStandardMaterial
-              color={i === layers - 1 && lot.params.salaryStructure > 12 ? '#d98e32' : '#c23a2b'}
-              emissive={i === layers - 1 && lot.params.salaryStructure > 12 ? '#d98e32' : '#c23a2b'}
+              color={i === layers - 1 && lot.params.salaryStructure > 12 ? ColorSceneBillOrange : ColorSceneBillRed}
+              emissive={i === layers - 1 && lot.params.salaryStructure > 12 ? ColorSceneBillOrange : ColorSceneBillRed}
               emissiveIntensity={0.25}
             />
           </mesh>
         ))}
       </group>
       <group position={[-0.62, 0.14, 0.55]}>
-        <mesh position={[0, 0.16, 0]}>
-          <boxGeometry args={[0.3, 0.32, 0.06]} />
+        <mesh position={[0, 0.24, 0]}>
+          <boxGeometry args={[0.42, 0.48, 0.08]} />
           <meshStandardMaterial color="#3d4650" />
         </mesh>
-        <mesh position={[0, 0.16 + (lot.params.socialInsuranceBaseRatio === 'full' ? 0.12 : 0.05), 0.031]}>
-          <boxGeometry args={[0.24, lot.params.socialInsuranceBaseRatio === 'full' ? 0.08 : 0.22, 0.01]} />
+        <mesh position={[0, 0.24 + (lot.params.socialInsuranceBaseRatio === 'full' ? 0.18 : 0.08), 0.041]}>
+          <boxGeometry args={[0.34, lot.params.socialInsuranceBaseRatio === 'full' ? 0.12 : 0.34, 0.02]} />
           <meshStandardMaterial color="#8b949e" />
         </mesh>
       </group>
@@ -201,24 +277,24 @@ export function HRStand({ lot, onEnterOffice }: { lot: Lot; onEnterOffice: (lot:
             <>
               <mesh position={[0, h / 2, 0]}>
                 <boxGeometry args={[6.4, h, 5.2]} />
-                <meshStandardMaterial color="#272f3a" roughness={0.9} emissive="#0d1117" emissiveIntensity={0.5} />
+                <meshStandardMaterial color={ColorSceneFacade} roughness={0.9} emissive="#0d1117" emissiveIntensity={0.5} />
               </mesh>
               {/* 底层玻璃幕墙 */}
-              <mesh position={[0, 1.15, 2.62]}>
+              <mesh position={[0, 1.15, 2.66]}>
                 <planeGeometry args={[5.8, 2.1]} />
-                <meshStandardMaterial color="#12314e" emissive="#1b4a78" emissiveIntensity={0.55} metalness={0.4} roughness={0.25} />
+                <meshStandardMaterial color={ColorSceneGlass} emissive={ColorSceneGlassLit} emissiveIntensity={0.55} metalness={0.4} roughness={0.25} />
               </mesh>
               {/* 门楣 LED（公司名条，行业色发光） */}
-              <mesh position={[0, 2.62, 2.66]}>
+              <mesh position={[0, 2.62, 2.70]}>
                 <boxGeometry args={[2.9, 0.42, 0.1]} />
                 <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.85} />
               </mesh>
               {/* 楼层灯带（高层建筑） */}
               {h > 6 &&
                 [3.6, 5.2, 6.8, 8.4].filter((y) => y < h - 0.6).map((y) => (
-                  <mesh key={y} position={[0, y, 2.63]}>
+                  <mesh key={y} position={[0, y, 2.74]}>
                     <planeGeometry args={[6.1, 0.09]} />
-                    <meshStandardMaterial color="#ffd28a" emissive="#ffc46b" emissiveIntensity={0.8} />
+                    <meshBasicMaterial color={ColorSceneWindow} />
                   </mesh>
                 ))}
               {/* 屋顶：互联网平顶广告牌 / 金融尖顶 / 智造水塔 / 文创坡顶 */}
@@ -231,18 +307,18 @@ export function HRStand({ lot, onEnterOffice }: { lot: Lot; onEnterOffice: (lot:
               {lot.industry === 'finance' && (
                 <mesh position={[0, h + 1.2, 0]}>
                   <coneGeometry args={[1.1, 2.4, 4]} />
-                  <meshStandardMaterial color="#3a4450" metalness={0.5} roughness={0.35} />
+                  <meshStandardMaterial color={ColorSceneGate} metalness={0.5} roughness={0.35} />
                 </mesh>
               )}
               {lot.industry === 'manufacturing' && (
                 <group position={[2.1, h + 0.9, 0.9]}>
                   <mesh position={[0, 0.5, 0]}>
                     <cylinderGeometry args={[0.55, 0.62, 1.8, 10]} />
-                    <meshStandardMaterial color="#39424c" roughness={0.85} />
+                    <meshStandardMaterial color={ColorSceneGate} roughness={0.85} />
                   </mesh>
                   <mesh position={[0, 1.5, 0]}>
                     <sphereGeometry args={[0.55, 12, 10]} />
-                    <meshStandardMaterial color="#39424c" roughness={0.85} />
+                    <meshStandardMaterial color={ColorSceneGate} roughness={0.85} />
                   </mesh>
                 </group>
               )}
@@ -258,22 +334,20 @@ export function HRStand({ lot, onEnterOffice }: { lot: Lot; onEnterOffice: (lot:
         {/* 发光窗（仅低层保留，高层用灯带替代） */}
         {[-2.2, -0.9, 0.9, 2.2].map((wx, i) =>
           [1.4, 2.9].map((wy, j) => (
-            <mesh key={`${i}-${j}`} position={[wx, wy, 2.62]}>
+            <mesh key={`${i}-${j}`} position={[wx, wy, 2.78]}>
               <planeGeometry args={[0.9, 0.8]} />
-              <meshStandardMaterial
-                color={(i + j) % 3 === 0 ? '#ffd28a' : '#22303c'}
-                emissive={(i + j) % 3 === 0 ? '#ffb45e' : '#0a121a'}
-                emissiveIntensity={(i + j) % 3 === 0 ? 0.9 : 0.15}
+              <meshBasicMaterial
+                color={(i + j) % 3 === 0 ? ColorSceneWindow : ColorSceneWindowDim}
               />
             </mesh>
           ))
         )}
-        <mesh position={[0, 1.05, 2.66]}>
+        <mesh position={[0, 1.05, 2.82]}>
           <planeGeometry args={[1.1, 2.1]} />
-          <meshStandardMaterial color="#0e2740" emissive="#1f5a96" emissiveIntensity={0.5} />
+          <meshStandardMaterial color={ColorSceneGlass} emissive={ColorSceneGlassLit} emissiveIntensity={0.5} />
         </mesh>
         <mesh
-          position={[0, 2.35, 2.68]}
+          position={[0, 2.35, 2.86]}
           onClick={(e) => {
             e.stopPropagation()
             onEnterOffice(lot)
@@ -282,7 +356,7 @@ export function HRStand({ lot, onEnterOffice }: { lot: Lot; onEnterOffice: (lot:
           onPointerOut={() => (document.body.style.cursor = 'default')}
         >
           <planeGeometry args={[1.6, 0.42]} />
-          <meshBasicMaterial color="#58a6ff" transparent opacity={0.92} />
+          <meshBasicMaterial color={ColorStateInfo} transparent opacity={0.92} />
         </mesh>
       </group>
     </group>

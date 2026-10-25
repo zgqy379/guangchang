@@ -276,6 +276,7 @@ export default function App() {
                 offworkHour={paramsA.offworkTime}
                 onEnterOffice={enterOfficeFromStreet}
                 onAddBasket={addBasket}
+                basketIds={basket.map((b) => b.id)}
               />
             </Suspense>
           ) : mode === 'office' ? (
@@ -323,6 +324,7 @@ function StreetSceneLoader(props: {
   onEnterOffice: (lot: { industry: string }) => void
   offworkHour: number
   onAddBasket: (lot: Lot) => void
+  basketIds: string[]
 }) {
   const [ready, setReady] = useState(false)
   useEffect(() => {

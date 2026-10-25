@@ -24,10 +24,12 @@ export function WorkdaySky({
     const r = parseInt(hex.slice(0, 2), 16)
     const g = parseInt(hex.slice(2, 4), 16)
     const b = parseInt(hex.slice(4, 6), 16)
-    const top = `rgb(${Math.round(r * 0.42)},${Math.round(g * 0.42)},${Math.round(b * 0.5)})`
+    const top = `rgb(${Math.round(r * 0.28 + 18)},${Math.round(g * 0.28 + 22)},${Math.round(b * 0.28 + 40)})`
+    const horizon = `rgb(${Math.min(255, Math.round(r * 1.12))},${Math.min(255, Math.round(g * 1.08))},${Math.min(255, Math.round(b * 1.02))})`
     const grad = ctx.createLinearGradient(0, 0, 0, 256)
     grad.addColorStop(0, top)
-    grad.addColorStop(0.6, sky.bg)
+    grad.addColorStop(0.44, sky.bg)
+    grad.addColorStop(0.55, horizon)
     grad.addColorStop(1, sky.bg)
     ctx.fillStyle = grad
     ctx.fillRect(0, 0, 4, 256)

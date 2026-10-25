@@ -1,6 +1,12 @@
 // 招聘街区数据：四大领域 × 每街两侧 16 个摊位 = 64 lot
 // 参数范围按行业差异化（词典字段），确定性伪随机保证构建稳定（录屏一致）
 import type { CompanyParams } from '../engine/params'
+import {
+  ColorIndustryCulture,
+  ColorIndustryFinance,
+  ColorIndustryInternet,
+  ColorIndustryManufacturing,
+} from '../../generated/design-tokens.output.mjs'
 
 export type Industry = 'internet' | 'finance' | 'manufacturing' | 'culture'
 
@@ -15,10 +21,10 @@ export interface Lot {
 }
 
 export const INDUSTRIES: Record<Industry, { label: string; color: string }> = {
-  internet: { label: '互联网区', color: '#4a9eff' },
-  finance: { label: '金融区', color: '#d4a72c' },
-  manufacturing: { label: '智造区', color: '#f0883e' },
-  culture: { label: '文创区', color: '#c678dd' },
+  internet: { label: '互联网区', color: ColorIndustryInternet },
+  finance: { label: '金融区', color: ColorIndustryFinance },
+  manufacturing: { label: '智造区', color: ColorIndustryManufacturing },
+  culture: { label: '文创区', color: ColorIndustryCulture },
 }
 
 const NAMES: Record<Industry, string[]> = {
@@ -110,7 +116,8 @@ export interface LotPlacement {
   side: 1 | -1
 }
 
-const SLOT_GAP = 4.2
+const SLOT_GAP = 3.6
+const START_ALONG = 14 // 街角留出广场，避免相邻街办公体块互相穿插
 const LOT_OFFSET = 7.4 // 摊位中心到街道中心线的距离
 
 export function placeLots(): LotPlacement[] {
@@ -133,7 +140,7 @@ export function placeLots(): LotPlacement[] {
     lots.forEach((lot, i) => {
       const side: 1 | -1 = i < 8 ? 1 : -1
       const slot = i % 8
-      const along = 10 + slot * SLOT_GAP
+      const along = START_ALONG + slot * SLOT_GAP
       const across = side * LOT_OFFSET
       const position: [number, number, number] =
         axis === 'x' ? [sign * along, 0, across] : [across, 0, sign * along]

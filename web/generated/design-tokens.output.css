@@ -1,0 +1,68 @@
+/**
+ * Do not edit directly, this file was auto-generated.
+ */
+
+:root {
+  --color-neutral-0: #0b0e1a;
+  --color-neutral-1: #0d1117;
+  --color-neutral-2: #11151c;
+  --color-neutral-3: #161b22;
+  --color-neutral-4: #1b2129;
+  --color-neutral-5: #21262d;
+  --color-border-subtle: #262c36;
+  --color-border-strong: #30363d;
+  --color-text-primary: #e6edf3;
+  --color-text-secondary: #8b949e;
+  --color-text-muted: #6e7681;
+  --color-brand-red: #ff5a3c;
+  --color-brand-red-deep: #c23a2b;
+  --color-brand-gold: #ffd24a;
+  --color-brand-orange: #f0883e;
+  --color-state-success: #3ddc97;
+  --color-state-info: #58a6ff;
+  --color-state-warning: #d4a72c;
+  --color-industry-internet: #4a9eff;
+  --color-industry-finance: #d4a72c;
+  --color-industry-manufacturing: #f0883e;
+  --color-industry-culture: #c678dd;
+  --color-scene-bill-red: #c23a2b;
+  --color-scene-bill-red-dark: #7d1f14;
+  --color-scene-bill-orange: #d98e32;
+  --color-scene-bill-orange-dark: #8a5312;
+  --color-scene-booth: #2a3138;
+  --color-scene-road: #343d48;
+  --color-scene-floor: #1e2530;
+  --color-scene-gate: #3a4552;
+  --color-scene-gate-dark: #2c343d;
+  --color-scene-lamp: #ffc46b;
+  --color-scene-facade: #272f3a;
+  --color-scene-glass: #12314e;
+  --color-scene-glass-lit: #1b4a78;
+  --color-scene-window: #ffd28a;
+  --color-scene-window-dim: #22303c;
+  --color-scene-skin: #e8b98a;
+  --color-scene-sun: #ffd4b0;
+  --color-scene-moon: #e8edf5;
+  --font-size-xs: 11px;
+  --font-size-sm: 12px;
+  --font-size-md: 13px;
+  --font-size-lg: 15px;
+  --font-size-xl: 20px;
+  --font-size-display: 30px;
+  --font-size-2xl: 24px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-pill: 999px;
+  --motion-fast: 0.12s;
+  --motion-base: 0.2s;
+  --game-xp-per-delivery: 10;
+  --game-xp-per-visit: 5;
+  --game-xp-per-level: 50;
+  --game-xp-rarity-s-salary: 800000;
+  --game-xp-rarity-a-salary: 400000;
+}

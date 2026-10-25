@@ -11,6 +11,12 @@ import {
   layerLayout,
   yuanToStacks,
 } from '../engine/params'
+import {
+  ColorSceneBillOrange,
+  ColorSceneBillOrangeDark,
+  ColorSceneBillRed,
+  ColorSceneBillRedDark,
+} from '../../generated/design-tokens.output.mjs'
 
 const easeOutCubic = (k: number) => 1 - Math.pow(1 - k, 3)
 
@@ -133,8 +139,8 @@ export function MoneyMountain({
 
   const textures = useMemo(
     () => ({
-      base: billTexture('#c23a2b', '#7d1f14'),
-      inc: billTexture('#d98e32', '#8a5312'),
+      base: billTexture(ColorSceneBillRed, ColorSceneBillRedDark),
+      inc: billTexture(ColorSceneBillOrange, ColorSceneBillOrangeDark),
     }),
     []
   )
