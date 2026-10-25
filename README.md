@@ -4,6 +4,8 @@
 
 **▶ 在线 Demo：<https://zgqy379.github.io/guangchang/>**（单人漫游 · A/B 对比 · 办公室 3DGS 漫游 · 生长动画）
 
+**▶ Demo 视频：<https://zgqy379.github.io/guangchang/demo-video.mp4>**（32s 实机录屏）
+
 - **唯一权威文档**：[`project.md`](./project.md)（v1.1）——所有决策以它最新版为准
 - **项目报告书**：[`docs/report.pdf`](./docs/report.pdf)（源稿 `report.typ`）
 - **提交截止**：2026-11-19 19:00

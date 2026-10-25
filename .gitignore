@@ -26,3 +26,5 @@ assets/interiorgs-0024/
 web/public/assets/office/*.ply
 web/public/assets/office/*.ply
 .zcode/
+docs/video/frames/
+docs/video/*.mp4
