@@ -10,6 +10,7 @@ import { GlowPath } from './GlowPath'
 import { AssetProp } from './AssetProp'
 import { AvatarActor, RoamRefs } from './AvatarActor'
 import { CarvedZone } from './CarvedZone'
+import { assetUrl } from '../engine/asset'
 
 export function CompanyPlot({
   position,
@@ -65,7 +66,7 @@ export function CompanyPlot({
         />
         <GlowPath />
         {/* 首个 Aholo 真实资产：逛厂币捆（Lux3D 生成 → Draco 压缩 2.2MB） */}
-        <AssetProp url="/assets/money/gc-bill-bundle.glb" position={[1.7, 0, 1.1]} targetSize={0.55} />
+        <AssetProp url={assetUrl("/assets/money/gc-bill-bundle.glb")} position={[1.7, 0, 1.1]} targetSize={0.55} />
       </group>
       {/* Avatar 演员：文生3D→绑骨→动画重定向→压缩 3.1MB，站在地砖路起点 */}
       <AvatarActor

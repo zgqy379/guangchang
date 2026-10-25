@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef } from 'react'
 import * as THREE from 'three'
 import { useGLTF } from '@react-three/drei'
+import { assetUrl } from '../engine/asset'
 
 // Aholo 生成资产道具：首个真实 Lux3D 产物（逛厂币捆）进 Demo 场景
 // 21MB 原始 GLB 经 gltf-transform（Draco+WebP）压到 2.2MB
@@ -41,4 +42,4 @@ export function AssetProp({
   )
 }
 
-useGLTF.preload('/assets/money/gc-bill-bundle.glb', DRACO_PATH)
+useGLTF.preload(assetUrl('/assets/money/gc-bill-bundle.glb'), DRACO_PATH)

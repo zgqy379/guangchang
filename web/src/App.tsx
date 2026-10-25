@@ -16,6 +16,7 @@ const OfficeViewer = lazy(() =>
   import('./components/OfficeViewer').then((m) => ({ default: m.OfficeViewer }))
 )
 import { fictionalCompanies, companyById } from './data/fictional-companies'
+import { assetUrl } from './engine/asset'
 
 function Scene({
   name,
@@ -69,7 +70,7 @@ export default function App() {
   const [paramsB, setParamsB] = useState<CompanyParams>(companyById('nebula').params)
   const [presetB, setPresetB] = useState('nebula')
   const [growthKey, setGrowthKey] = useState(0)
-  const [officeScene, setOfficeScene] = useState('/assets/office/office-promptonly.spz')
+  const [officeScene, setOfficeScene] = useState(assetUrl('/assets/office/office-promptonly.spz'))
   const [roam, setRoam] = useState(false)
 
   const capNote = schrodingerCapNote({
@@ -113,12 +114,12 @@ export default function App() {
               value={officeScene}
               onChange={(e) => setOfficeScene(e.target.value)}
             >
-              <option value="/assets/office/office-promptonly.spz">
+              <option value={assetUrl("/assets/office/office-promptonly.spz")}>
                 AI 生成办公室（World · SPZ 4.1MB）
               </option>
               {/* InteriorGS 数据集为受限授权（HF gated），公开部署不携带该资产 */}
               {!import.meta.env.VITE_PUBLIC_DEPLOY && (
-                <option value="/assets/office/interiorgs-0024.ply">
+                <option value={assetUrl("/assets/office/interiorgs-0024.ply")}>
                   真实扫描办公室（InteriorGS 0024 · PLY 57MB，仅本地版）
                 </option>
               )}

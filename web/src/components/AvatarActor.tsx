@@ -4,6 +4,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { useAnimations, useGLTF } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
+import { assetUrl } from '../engine/asset'
 
 const DRACO_PATH = 'https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/libs/draco/gltf/'
 const SPEED = 1.35 // m/s，自然步速
@@ -30,10 +31,10 @@ export function AvatarActor({
   const camera = useThree((s) => s.camera)
 
   const { scene: idleScene, animations: idleAnims } = useGLTF(
-    '/assets/avatar/avatar-idle.glb',
+    assetUrl('/assets/avatar/avatar-idle.glb'),
     DRACO_PATH
   )
-  const { animations: walkAnims } = useGLTF('/assets/avatar/avatar-walk.glb', DRACO_PATH)
+  const { animations: walkAnims } = useGLTF(assetUrl('/assets/avatar/avatar-walk.glb'), DRACO_PATH)
 
   // 合并两份动画并重命名，避免同名冲突：IDLE / WALK
   const clips = useMemo(() => {
@@ -145,5 +146,5 @@ export function AvatarActor({
   )
 }
 
-useGLTF.preload('/assets/avatar/avatar-idle.glb', DRACO_PATH)
+useGLTF.preload(assetUrl('/assets/avatar/avatar-idle.glb'), DRACO_PATH)
 // walk 动画不预加载：仅在漫游模式（useGLTF 实际引用）时拉取，省 3.1MB 首屏流量

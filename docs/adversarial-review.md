@@ -65,3 +65,13 @@
 - 影响：资产在公开 URL 上可访问约数分钟
 - 处置：①文件移出 `web/public/`（根源修复，`.gitignore` 加规则）②干净重建 + force push gh-pages ③验证：PLY URL 已 404、站点 200 ④确认 main 分支历史从未包含该文件（`git log --all -- <file>` 为空）
 - 教训：**合规清理必须堵源头（构建输入），不能只删产物（构建输出）**；已写入部署 checklist（project.md 9.4 注记）
+
+## 附二：T8 白屏事故（10.27，用户发现，已修复并复验）
+
+用户报告线上 Demo 电脑/平板均白屏。排查发现**两个叠加根因**：
+1. **MSYS 路径转换**：Git Bash 下 `VITE_BASE=/guangchang/` 这类路径形态的环境变量被自动改写为 `C:/Program Files/Git/guangchang/`，线上 index.html 的脚本 src 变成 `/Program Files/Git/guangchang/assets/...` → 404
+2. **资产绝对路径不吃 base**：`useGLTF('/assets/...')` 硬编码路径不含 `/guangchang` 前缀 → 404 → drei 的模块级 `preload` 抛错 → **整个应用挂载失败**
+
+修复：①vite base 改用非路径令牌（`VITE_BASE_TOKEN=ghpages`）②新增 `engine/asset.ts` 的 `assetUrl()` 统一拼接 `import.meta.env.BASE_URL`，替换全部硬编码。复验：React 挂载 ✓ canvas ✓ 零异常 ✓ 四模式按钮渲染 ✓。
+
+教训：**"curl 根路径 200"≠"应用能跑"**——部署后必须做完整启动验收（DOM 挂载+canvas+无异常）；这条已加入部署 checklist。也解释了为何"视频验收"时录屏正常（录的是本地 dev 版）而线上一直坏：**本地 dev 的 base 是 `/`，两个坑都踩不中**。
