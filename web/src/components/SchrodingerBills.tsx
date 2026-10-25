@@ -46,8 +46,8 @@ export function SchrodingerBills({
     const out: [number, number, number][] = []
     for (let i = 0; i < effStacks; i++) {
       const a = rand() * Math.PI * 2
-      const r = 0.6 + rand() * 1.6
-      out.push([Math.cos(a) * r, 0.8 + rand() * 1.4, Math.sin(a) * r])
+      const r = 1.0 + rand() * 1.4
+      out.push([Math.cos(a) * r, 1.6 + rand() * 1.6, Math.sin(a) * r])
     }
     return out
   }, [equityYuan, baseYuan, ag])

@@ -6,7 +6,8 @@ public class Win {
   [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr h);
 }
 "@
-Get-Process | Where-Object { $_.MainWindowHandle -ne 0 -and $_.MainWindowTitle -match 'ego' } | ForEach-Object {
+# 按进程名匹配（窗口标题会随任务空间变化，不可靠）
+Get-Process -Name 'ego' -ErrorAction SilentlyContinue | Where-Object { $_.MainWindowHandle -ne 0 } | ForEach-Object {
   Write-Host "$($_.ProcessName) : $($_.MainWindowTitle)"
   [Win]::ShowWindow($_.MainWindowHandle, 9) | Out-Null
   [Win]::SetForegroundWindow($_.MainWindowHandle) | Out-Null

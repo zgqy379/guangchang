@@ -45,10 +45,31 @@ export function OfficeViewer({ url }: { url: string }) {
         if (stopped) return
 
         // 3DGS 为 OpenCV 坐标系（-Y 朝上）
-        // 审美修订：人视高 1.4m + 斜向切入，视线落在工位区而非走廊尽头
+        // 自动取景：按 splat 内容包围盒推导 Dollhouse 角视角（SPZ/PLY 尺度不可控，
+        // 人工位姿会怼墙——2026-10-25 审查修复）
         camera.up.set(0, -1, 0)
-        camera.position.set(-3.4, -1.4, 2.2)
-        camera.lookAt(new Vector3(-0.5, -0.2, -0.8))
+        try {
+          const operator = new SplatUtils.SplatOperator(splat, data)
+          const { boxMin, boxMax } = SplatUtils.computeDenseBox(operator, 0.9)
+          const c = [
+            (boxMin[0] + boxMax[0]) / 2,
+            (boxMin[1] + boxMax[1]) / 2,
+            (boxMin[2] + boxMax[2]) / 2,
+          ]
+          const s = Math.max(
+            boxMax[0] - boxMin[0],
+            boxMax[1] - boxMin[1],
+            boxMax[2] - boxMin[2]
+          )
+          const d = Math.max(2.5, s * 1.15)
+          camera.position.set(c[0] + d * 0.72, c[1] - d * 0.5, c[2] + d * 0.72)
+          camera.lookAt(new Vector3(c[0], c[1], c[2]))
+          console.log('[office] dense box', { boxMin, boxMax, center: c, size: s })
+        } catch {
+          // 兜底：人工位姿
+          camera.position.set(-3.4, -1.4, 2.2)
+          camera.lookAt(new Vector3(-0.5, -0.2, -0.8))
+        }
         viewer.getScene().add(splat)
         viewer.setCamera(camera)
         setViewerConfig(viewer, {
@@ -85,6 +106,7 @@ export function OfficeViewer({ url }: { url: string }) {
     <div className="office-viewer">
       <div ref={hostRef} className="office-host" />
       <div className="office-status">{status}</div>
+      <div className="office-hint">左键拖拽旋转 · 滚轮缩放 · 右键平移</div>
     </div>
   )
 }

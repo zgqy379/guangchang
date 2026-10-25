@@ -30,15 +30,20 @@ function Scene({
   roam?: boolean
 }) {
   // 漫游共享状态：Avatar 位置 + 点击目标（相机/演员/地面点击三方共用）
-  const positionRef = useRef(new THREE.Vector3(-1.9, 0, 3.4))
+  const positionRef = useRef(new THREE.Vector3(-1.9, 0, 2.0))
   const targetRef = useRef<THREE.Vector3 | null>(null)
   const roamRefs = useMemo<RoamRefs>(
     () => ({ position: positionRef, target: targetRef }),
     []
   )
   return (
-    <Canvas dpr={[1, 2]} camera={{ position: [2.6, 1.7, 3.4], fov: 45 }}>
+    <Canvas dpr={[1, 2]} camera={{ position: [3.1, 2.1, 4.3], fov: 45 }}>
       <WorkdaySky offworkHour={params.offworkTime} />
+      {/* 大地板：让展台坐在"地面"上而非悬空，地砖路可延伸向远方 */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.02, 0]}>
+        <planeGeometry args={[90, 90]} />
+        <meshStandardMaterial color="#10141a" roughness={1} />
+      </mesh>
       <CompanyPlot
         position={[0, 0, 0]}
         name={name}
@@ -57,7 +62,7 @@ function Scene({
       {roam ? (
         <RoamCamera enabled refs={roamRefs} />
       ) : (
-        <OrbitControls target={[0, 0.45, 0]} maxPolarAngle={Math.PI / 2.1} />
+        <OrbitControls target={[-0.4, 0.7, 0]} maxPolarAngle={Math.PI / 2.1} />
       )}
     </Canvas>
   )
@@ -210,6 +215,11 @@ export default function App() {
         </aside>
 
         <section className={mode === 'compare' ? 'scenes compare' : 'scenes'}>
+          {mode !== 'office' && (
+            <div className="scale-note scale-note--overlay">
+              钞票山 水平等比放大 2.5× · 高度做感知增强 · 公司间比例真实（换算见报告附录A）
+            </div>
+          )}
           {mode === 'office' ? (
             <Suspense
               fallback={
@@ -239,8 +249,8 @@ export default function App() {
       </main>
 
       <footer>
-        Aholo 全球 3D AI 黑客松 · 演示脚手架 v0.1 · 词典引擎 / 钞票山 / 薛定谔钞票 / 工时天空 /
-        A-B 对比 已通 · Avatar 与办公空间管线见 docs/w1-api-test-checklist.md
+        Aholo 全球 3D AI 黑客松参赛作品 · 逛厂 GuǎngChǎng · 数据为演示样例 ·
+        源码与报告见 github.com/zgqy379/guangchang
       </footer>
     </div>
   )

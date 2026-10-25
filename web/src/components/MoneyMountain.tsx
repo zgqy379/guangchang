@@ -1,35 +1,16 @@
 // 薪酬钞票山：Instanced Mesh + 逐层隆起生长动画（M3 关键帧 A/D）
-// v1.1 修复：实例数由参数实际算出（旧版固定 10000，低年薪时
-// 未设置的实例全部堆在原点形成"幽灵柱"）
+// 2026-10-25 重构：固定 3×3 层叠布局（金额差 = 高度差，真"山"）；
+// 旧版 sqrt 布局任何金额都只堆一层（15万不可见 / 100万是地毯）
 import { useFrame } from '@react-three/fiber'
 import { useLayoutEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
-import { BILL, MOUNTAIN_SCALE, yuanToStacks } from '../engine/params'
-
-interface StackPos {
-  pos: [number, number, number]
-  layer: number
-}
-
-// 金字塔堆叠：逐层收窄的正方形层；y 为该层中心（层高 5mm = 50 张一沓）
-function pyramidLayout(stacks: number, startLayer: number): StackPos[] {
-  const positions: StackPos[] = []
-  let remaining = stacks
-  let layer = startLayer
-  while (remaining > 0) {
-    const side = Math.ceil(Math.sqrt(remaining))
-    for (let x = 0; x < side && remaining > 0; x++)
-      for (let z = 0; z < side && remaining > 0; z++) {
-        positions.push({
-          pos: [x * BILL.w, (layer + 0.5) * BILL.stackH, z * BILL.d],
-          layer,
-        })
-        remaining--
-      }
-    layer++
-  }
-  return positions
-}
+import {
+  BILL,
+  MOUNTAIN_HEIGHT_SCALE,
+  MOUNTAIN_SCALE,
+  layerLayout,
+  yuanToStacks,
+} from '../engine/params'
 
 const easeOutCubic = (k: number) => 1 - Math.pow(1 - k, 3)
 
@@ -37,7 +18,7 @@ function InstancedBundles({
   positions,
   color,
 }: {
-  positions: StackPos[]
+  positions: ReturnType<typeof layerLayout>
   color: string
 }) {
   const ref = useRef<THREE.InstancedMesh>(null)
@@ -69,10 +50,13 @@ function InstancedBundles({
   useLayoutEffect(() => {
     const mesh = ref.current
     if (!mesh) return
-    // 居中：让每层绕原点对齐，并应用感知放大系数
-    mesh.position.set(-2, 0, -1)
-    mesh.scale.setScalar(MOUNTAIN_SCALE)
+    // 布局已逐层居中；水平 2.5× 感知放大 + 高度感知增强（见场景内声明）
+    mesh.position.set(-0.5, 0, -1.5)
+    mesh.scale.set(MOUNTAIN_SCALE, MOUNTAIN_HEIGHT_SCALE, MOUNTAIN_SCALE)
   }, [positions])
+
+  // 12 薪等场景无增量层：不渲染实例（count=1 的 identity 实例会在山脚留幽灵块）
+  if (positions.length === 0) return null
 
   return (
     <instancedMesh
@@ -103,9 +87,9 @@ export function MoneyMountain({
   const { base, increment } = useMemo(() => {
     const baseStacks = yuanToStacks(baseYuan)
     const incStacks = yuanToStacks(incrementYuan)
-    const baseL = pyramidLayout(baseStacks, 0)
-    const incL = pyramidLayout(incStacks, baseL.length ? Math.max(...baseL.map((p) => p.layer)) + 1 : 0)
-    return { base: baseL, increment: incStacks > 0 ? incL : [] }
+    const baseL = layerLayout(baseStacks, 0)
+    const topLayer = baseL.length ? baseL[baseL.length - 1].layer + 1 : 0
+    return { base: baseL, increment: incStacks > 0 ? layerLayout(incStacks, topLayer) : [] }
   }, [baseYuan, incrementYuan])
 
   return (

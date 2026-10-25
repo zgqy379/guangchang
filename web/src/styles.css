@@ -244,6 +244,55 @@ main {
   text-align: center;
   white-space: nowrap;
 }
+/* 诚实声明改为固定角标：不进 3D 场景（旧版在漫游模式挡相机、对比模式被裁切） */
+.scale-note--overlay {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  z-index: 5;
+  pointer-events: none;
+  white-space: normal;
+  max-width: 320px;
+  text-align: right;
+}
+
+/* 细滚动条：对比模式侧栏滚动条不再穿帮成"白色竖条" */
+.controls::-webkit-scrollbar {
+  width: 6px;
+}
+.controls::-webkit-scrollbar-thumb {
+  background: #2a3038;
+  border-radius: 3px;
+}
+.controls::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.office-hint {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  color: #8b949e;
+  font-size: 12px;
+  background: rgba(13, 17, 23, 0.7);
+  border-radius: 4px;
+  padding: 3px 8px;
+  pointer-events: none;
+}
+
+/* 窄屏：控制面板收窄，词典扩展参数收纳（真机待测，先保证可用） */
+@media (max-width: 860px) {
+  .controls {
+    width: 250px;
+    padding: 10px;
+  }
+  .planned {
+    display: none;
+  }
+  .office-select {
+    max-width: 150px;
+  }
+}
 
 .office-viewer {
   position: relative;

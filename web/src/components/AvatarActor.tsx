@@ -47,6 +47,14 @@ export function AvatarActor({
 
   const { actions } = useAnimations(clips, root)
 
+  // 初始就播 IDLE：否则停在绑定姿势（T-pose）直到第一次状态切换
+  useEffect(() => {
+    actions['IDLE']?.reset().fadeIn(0.2).play()
+    return () => {
+      actions['IDLE']?.stop()
+    }
+  }, [actions])
+
   // 模型尺寸归一化：目标身高 1.6m，脚底贴地
   useLayoutEffect(() => {
     const g = inner.current

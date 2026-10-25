@@ -38,6 +38,8 @@ export function CompanyPlot({
 
   return (
     <group position={position}>
+      {/* 展台补光：夜色下把 Avatar/山体从暗地板上托出来 */}
+      <pointLight position={[0, 4.2, 1.5]} intensity={9} distance={11} decay={2} color="#ffe2c4" />
       {/* 地基：每家公司一块 6×6m 的展台（漫游模式下点击=走过去） */}
       <mesh
         rotation={[-Math.PI / 2, 0, 0]}
@@ -48,8 +50,8 @@ export function CompanyPlot({
         <planeGeometry args={[6, 6]} />
         <meshStandardMaterial color="#252b32" roughness={1} />
       </mesh>
-      {/* 展台描边：视觉上框住舞台，避免大面积死黑 */}
-      <lineSegments position={[0, 0.002, 0]}>
+      {/* 展台描边：视觉上框住舞台，避免大面积死黑（必须与地面同角度平铺） */}
+      <lineSegments rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.002, 0]}>
         <edgesGeometry args={[new THREE.PlaneGeometry(6, 6)]} />
         <lineBasicMaterial color="#3d4650" />
       </lineSegments>
@@ -68,18 +70,14 @@ export function CompanyPlot({
         {/* 首个 Aholo 真实资产：逛厂币捆（Lux3D 生成 → Draco 压缩 2.2MB） */}
         <AssetProp url={assetUrl("/assets/money/gc-bill-bundle.glb")} position={[1.7, 0, 1.1]} targetSize={0.55} />
       </group>
-      {/* Avatar 演员：文生3D→绑骨→动画重定向→压缩 3.1MB，站在地砖路起点 */}
+      {/* Avatar 演员：文生3D→绑骨→动画重定向→压缩 3.1MB，站在地砖路上（默认取景内） */}
       <AvatarActor
-        position={[-1.9, 0, 3.4]}
+        position={[-1.9, 0, 2.0]}
         roam={roam}
         refs={roamRefs}
       />
-      <Html position={[0, 0.1, 2.6]} center distanceFactor={10}>
+      <Html position={[0, 2.6, -2.2]} center distanceFactor={12}>
         <div className="plot-label">{name}</div>
-      </Html>
-      {/* 诚实声明：感知放大系数（对抗审查 P2） */}
-      <Html position={[-1.35, 0.7, 0.6]} center distanceFactor={12}>
-        <div className="scale-note">钞票山等比放大 2.5× 展示<br />比例关系不变 · 真实换算见附录A</div>
       </Html>
     </group>
   )
