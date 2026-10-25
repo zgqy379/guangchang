@@ -1,18 +1,18 @@
 [
  {
-  "frameIndex": 1,
+  "frameIndex": 9,
   "label": "street"
  },
  {
-  "frameIndex": 1,
+  "frameIndex": 108,
   "label": "basket"
  },
  {
-  "frameIndex": 1,
+  "frameIndex": 148,
   "label": "office"
  },
  {
-  "frameIndex": 1,
+  "frameIndex": 233,
   "label": "tour"
  }
 ]

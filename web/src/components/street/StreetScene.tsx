@@ -247,7 +247,7 @@ function NearestLotCard({
 }
 
 // ---------- 中央导航柱：点击传送 ----------
-function NavPillar({ refs }: { refs: RoamRefs }) {
+function NavPillar({ refs, onInteract }: { refs: RoamRefs; onInteract: () => void }) {
   return (
     <group>
       <mesh position={[0, 1.1, 0]}>
@@ -269,6 +269,7 @@ function NavPillar({ refs }: { refs: RoamRefs }) {
                     0,
                     pl.position[2] * 0.4
                   )
+                  onInteract()
                 }
               }}
             >
@@ -298,6 +299,9 @@ export function StreetScene({
     () => ({ position: positionRef, target: targetRef, teleportTo: teleportRef }),
     []
   )
+  // 相机两段式（用户规格）：初始=鸟瞰全景（避免初始机位落进建筑内部），
+  // 首次交互（点击地面/导航柱）后切换为第三人称跟随
+  const [follow, setFollow] = useState(false)
   const [deliveries, setDeliveries] = useState<
     { id: number; from: [number, number]; to: [number, number] }[]
   >([])
@@ -314,15 +318,18 @@ export function StreetScene({
 
   const handleGround = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation()
+    setFollow(true)
     targetRef.current = new THREE.Vector3(e.point.x, 0, e.point.z)
   }
 
   return (
     <Canvas
       dpr={[1, 2]}
-      camera={{ position: [13, 4.5, 9], fov: 50 }}
+      camera={{ position: [0, 34, 26], fov: 50 }}
       gl={{ toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.15 }}
-      onCreated={() => {
+      onCreated={({ camera }) => {
+        // 初始鸟瞰：俯瞰十字路口全景（用户规格——原初始机位落在 lot0 建筑内部=全黑）
+        camera.lookAt(0, 0, 0)
         // 首帧编译完成后再撤加载遮罩（避免黑屏窗口期）
         requestAnimationFrame(() =>
           requestAnimationFrame(() => window.dispatchEvent(new Event('street-ready')))
@@ -377,8 +384,9 @@ export function StreetScene({
         <planeGeometry args={[STREET_BOUNDS * 2, STREET_BOUNDS * 2]} />
         <meshBasicMaterial transparent opacity={0} depthWrite={false} />
       </mesh>
-      <AvatarActor position={[0, 0, 4.5]} roam refs={refs} bounds={STREET_BOUNDS} />
-      <RoamCamera enabled refs={refs} />
+      <AvatarActor position={[8, 0, 2.6]} roam refs={refs} bounds={STREET_BOUNDS} />
+      {/* 第三人称跟随：首次交互后才启用（相机从鸟瞰平滑俯冲入场） */}
+      <RoamCamera enabled={follow} refs={refs} />
       <NearestLotCard
         refs={refs}
         onEnterOffice={onEnterOffice}
@@ -389,7 +397,7 @@ export function StreetScene({
       {deliveries.map((d) => (
         <DeliveryFX key={d.id} d={d} onDone={() => setDeliveries((l) => l.filter((x) => x.id !== d.id))} />
       ))}
-      <NavPillar refs={refs} />
+      <NavPillar refs={refs} onInteract={() => setFollow(true)} />
       {/* 街区提示 */}
       <Html position={[0, 4.1, 0]} center distanceFactor={16}>
         <div className="street-banner">
