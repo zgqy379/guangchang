@@ -1,22 +1,18 @@
 [
  {
-  "frameIndex": 9,
-  "label": "params"
+  "frameIndex": 1,
+  "label": "street"
  },
  {
-  "frameIndex": 144,
-  "label": "growth"
+  "frameIndex": 1,
+  "label": "basket"
  },
  {
-  "frameIndex": 180,
-  "label": "roam"
- },
- {
-  "frameIndex": 249,
-  "label": "compare"
- },
- {
-  "frameIndex": 297,
+  "frameIndex": 1,
   "label": "office"
+ },
+ {
+  "frameIndex": 1,
+  "label": "tour"
  }
 ]
