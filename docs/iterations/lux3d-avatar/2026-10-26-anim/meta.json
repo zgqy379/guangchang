@@ -1,0 +1,34 @@
+{
+  "pipeline": "lux3d",
+  "assetLine": "avatar-anim",
+  "date": "2026-10-26T10:30:00+08:00",
+  "rigModelUrl": "https://maas-cos.kujiale.com/ai-render/output/202610250147032621a167642a4316-0-014703-84db_MaaSReportFile-3ccd01b27196e5b851f83ab8b31431a8.glb",
+  "animationIds": [
+    "Idle_Loop",
+    "Walk_Loop",
+    "Idle_Talking_Loop"
+  ],
+  "attempts": [
+    {
+      "attempt": 1,
+      "taskId": "4357101"
+    },
+    {
+      "attempt": 1,
+      "error": "ChunkedEncodingError: ('Connection broken: IncompleteRead(910631 bytes read, 42273521 more expected)', IncompleteRead(910631 bytes read, 42273521 more expected))"
+    },
+    {
+      "attempt": 2,
+      "taskId": "4357166"
+    }
+  ],
+  "result": "success",
+  "elapsedSeconds": 15.6,
+  "outputs": "{'actions': [{'animation_id': 'Idle_Loop', 'status': 'success', 'animationGlbUrl': 'https://qhsmodel.kujiale.com/ha/open/v1/2704c072-2c40-449e-851c-facba1c045b7/animation.glb'}, {'animation_id': 'Walk_Loop', 'status': 'success', 'animationGlbUrl': 'https://qhsmodel.kujiale.com/ha/open/v1/d4888719-f955-428c-b5d7-8f6044908ad8/animation.glb'}, {'animation_id': 'Idle_Talking_Loop', 'status': 'success', 'animationGlbUrl': 'https://qhsmodel.kujiale.com/ha/open/v1/3aabaf3f-1dad-4c68-96b9-194e3162009b/animation.glb'}]}",
+  "glbUrls": [
+    "https://qhsmodel.kujiale.com/ha/open/v1/2704c072-2c40-449e-851c-facba1c045b7/animation.glb",
+    "https://qhsmodel.kujiale.com/ha/open/v1/d4888719-f955-428c-b5d7-8f6044908ad8/animation.glb",
+    "https://qhsmodel.kujiale.com/ha/open/v1/3aabaf3f-1dad-4c68-96b9-194e3162009b/animation.glb"
+  ],
+  "error": "ChunkedEncodingError: ('Connection broken: IncompleteRead(910631 bytes read, 42273521 more expected)', IncompleteRead(910631 bytes read, 42273521 more expected))"
+}

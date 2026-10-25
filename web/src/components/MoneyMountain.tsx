@@ -4,7 +4,7 @@
 import { useFrame } from '@react-three/fiber'
 import { useLayoutEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
-import { BILL, yuanToStacks } from '../engine/params'
+import { BILL, MOUNTAIN_SCALE, yuanToStacks } from '../engine/params'
 
 interface StackPos {
   pos: [number, number, number]
@@ -69,8 +69,9 @@ function InstancedBundles({
   useLayoutEffect(() => {
     const mesh = ref.current
     if (!mesh) return
-    // 居中：让每层绕原点对齐
+    // 居中：让每层绕原点对齐，并应用感知放大系数
     mesh.position.set(-2, 0, -1)
+    mesh.scale.setScalar(MOUNTAIN_SCALE)
   }, [positions])
 
   return (

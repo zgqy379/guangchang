@@ -34,3 +34,7 @@ export const incrementPackage = (p: CompanyParams) =>
 // 钞票山几何换算（附录A：百元钞 155×77×0.1mm，50 张一沓高 5mm）
 export const BILL = { w: 0.155, d: 0.077, stackH: 0.005, yuanPerStack: 5000 }
 export const yuanToStacks = (yuan: number) => Math.max(0, Math.floor(yuan / BILL.yuanPerStack))
+// 感知放大系数：真实比例下 15 万年薪只有 15cm 高，在米级场景中不可感知。
+// 渲染时整体放大 MOUNTAIN_SCALE 倍（比例关系不变：15万仍是100万的15%），
+// Demo 声明"等比放大展示，真实换算见附录A"。
+export const MOUNTAIN_SCALE = 2.5

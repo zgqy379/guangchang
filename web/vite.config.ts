@@ -9,4 +9,6 @@ export default defineConfig({
   plugins: [react()],
   // 词典 JSON 在仓库根 /dictionary，开发时放行 fs 访问
   server: { fs: { allow: [repoRoot] } },
+  // aholo-viewer 自带 worker（splat-worker.js），依赖预打包会丢失它
+  optimizeDeps: { exclude: ['@manycore/aholo-viewer'] },
 })

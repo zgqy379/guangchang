@@ -7,6 +7,7 @@ import { WorkdaySky } from './components/WorkdaySky'
 import { CompanyPlot } from './components/CompanyPlot'
 import { HRPanel } from './components/HRPanel'
 import { schrodingerCapNote } from './components/SchrodingerBills'
+import { OfficeViewer } from './components/OfficeViewer'
 import { fictionalCompanies, companyById } from './data/fictional-companies'
 
 function Scene({
@@ -19,7 +20,7 @@ function Scene({
   growthKey: number
 }) {
   return (
-    <Canvas dpr={[1, 2]} camera={{ position: [4.5, 3.2, 7.5], fov: 45 }}>
+    <Canvas dpr={[1, 2]} camera={{ position: [2.6, 1.7, 3.4], fov: 45 }}>
       <WorkdaySky offworkHour={params.offworkTime} />
       <CompanyPlot
         position={[0, 0, 0]}
@@ -27,13 +28,13 @@ function Scene({
         params={params}
         growthKey={growthKey}
       />
-      <OrbitControls target={[0, 0.6, 0]} maxPolarAngle={Math.PI / 2.1} />
+      <OrbitControls target={[0, 0.45, 0]} maxPolarAngle={Math.PI / 2.1} />
     </Canvas>
   )
 }
 
 export default function App() {
-  const [mode, setMode] = useState<'single' | 'compare'>('single')
+  const [mode, setMode] = useState<'single' | 'compare' | 'office'>('single')
   const [paramsA, setParamsA] = useState<CompanyParams>(defaultParams())
   const [presetB, setPresetB] = useState('nebula')
   const [companyB, setCompanyB] = useState(companyById('nebula'))
@@ -56,6 +57,12 @@ export default function App() {
           </button>
           <button className={mode === 'compare' ? 'active' : ''} onClick={() => setMode('compare')}>
             A/B 对比
+          </button>
+          <button
+            className={mode === 'office' ? 'active' : ''}
+            onClick={() => setMode('office')}
+          >
+            办公室漫游
           </button>
           <button className="replay" onClick={() => setGrowthKey((k) => k + 1)}>
             ▶ 生长动画
@@ -132,7 +139,9 @@ export default function App() {
         </aside>
 
         <section className={mode === 'compare' ? 'scenes compare' : 'scenes'}>
-          {mode === 'single' ? (
+          {mode === 'office' ? (
+            <OfficeViewer url="/assets/office/office-promptonly.spz" />
+          ) : mode === 'single' ? (
             <Scene name="自定义空间" params={paramsA} growthKey={growthKey} />
           ) : (
             <>

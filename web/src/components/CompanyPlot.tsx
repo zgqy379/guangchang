@@ -6,6 +6,7 @@ import { MoneyMountain } from './MoneyMountain'
 import { SchrodingerBills } from './SchrodingerBills'
 import { GlowPath } from './GlowPath'
 import { AssetProp } from './AssetProp'
+import { AvatarActor } from './AvatarActor'
 
 export function CompanyPlot({
   position,
@@ -37,7 +38,9 @@ export function CompanyPlot({
         />
         <GlowPath />
         {/* 首个 Aholo 真实资产：逛厂币捆（Lux3D 生成 → Draco 压缩 2.2MB） */}
-        <AssetProp url="/assets/money/gc-bill-bundle.glb" position={[1.7, 0, 0.9]} scale={1.4} />
+        <AssetProp url="/assets/money/gc-bill-bundle.glb" position={[1.7, 0, 1.1]} targetSize={0.55} />
+        {/* Avatar 演员：文生3D→绑骨→动画重定向→压缩 3.1MB，站在地砖路起点 */}
+        <AvatarActor position={[-1.9, 0, 3.4]} rotationY={0.35} />
       </group>
       <Html position={[0, 0.1, 2.6]} center distanceFactor={10}>
         <div className="plot-label">{name}</div>

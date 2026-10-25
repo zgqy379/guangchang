@@ -24,7 +24,7 @@
 | 1.2 | 同一输入生成 3 次 | 3 次结果风格一致（人眼判断"像同一个产品线"） | ✅ **10.26 视觉验收通过**：三款截图齐（preview.png），v2 抽查确认——Q版卡通、结构完整无破面、单变量"眼镜"精确生效、模板服饰一致（风格锚定成立） |
 | 1.3 | 文生 3D：Avatar ×3（同模板改单变量） | ≥3 款可用，风格统一 | ✅ **10.26 通过：v1/v2/v3 全部成功，76–91s/个**（G1-Turbo + cartoon） |
 | 1.4 | **风格锚定测试**：固定 prompt 模板改单变量 | 输出风格方差可接受 | ✅ **10.26 通过**（见 1.2 验收结论） |
-| 1.5 | 人物自动绑骨 + 待机动画 | 导出后动画在 R3F 中可播放 | ✅ **10.26 通过：文生 Avatar GLB→OUS 上传→auto-rig→43MB 带骨骼 GLB（magic 校验有效）**。注：首次失败 provider status=4 为偶发，同 URL 重试即成功；**待 R3F 载入播动画做最终验收**。重定向动画（retarget）待测 |
+| 1.5 | 人物自动绑骨 + 待机动画 | 导出后动画在 R3F 中可播放 | ✅✅ **10.26 全通**：绑骨成功 → **动画重定向成功**（Idle_Loop/Walk_Loop/Idle_Talking_Loop 三动画，43MB/个 → Draco 压至 3.08MB）→ **待机动画已在 Demo 场景实播**（实拍验收 single-mode-v2.png 确认 Q 版角色站姿自然）。重试机制已验证（首次下载断流，重试即过） |
 | 1.5b | **OUS 资产上传**（本地文件→公开直链） | 返回可访问 https URL | ✅ 通过（`asset_uploader.upload_file`，19.6MB GLB → holo-cos 直链） |
 
 ## 2. Lux3D：文生 3D（参数资产路径）
@@ -49,7 +49,7 @@
 |---|--------|---------|------|
 | 4.1 | 文案生成空间 | 能走、不穿模、比例正常 | ✅ **10.26 通过：纯文案生成 SUCCEEDED（652s）**，产物 spz/ply 已存档。⚠ **带参考图模式（图+prompt）两次一致失败（42–47s FAILED）**——服务端问题，记录待官方修复或换图再试 |
 | 4.2 | 布局语义输出 | 能否拿到"工位×N/会议室×N"类结构化信息（三档管线的关键） | ◐ retrieve 返回 semanticsMetadata（当前仅 upAxis），语义结构待深挖 |
-| 4.3 | 与 Lux3D 资产拼装 | 生成空间里能否替换/摆放 Lux3D 物件 | ☐（W2：SPZ 载入 Aholo Viewer + Mesh 混合场景） |
+| 4.3 | 与 Lux3D 资产拼装 | 生成空间里能否替换/摆放 Lux3D 物件 | ◐ **10.26 已达第一步：Aholo Viewer（npm `@manycore/aholo-viewer`）在 React Demo 中成功渲染 SPZ 办公室**（实拍验收 office-mode-v2.png：现代开放式办公区、画质清晰）。坑：vite 需 `optimizeDeps.exclude` 该包（worker 兼容）。Mesh 混合摆放待做 |
 
 ## 5. LuxReal：视频（M5 才深度用，W1 只验通路）
 
