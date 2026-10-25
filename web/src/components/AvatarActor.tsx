@@ -15,16 +15,21 @@ export interface RoamRefs {
   position: React.MutableRefObject<THREE.Vector3>
   /** 行走目标点（null = 站定）；地面点击写入 */
   target: React.MutableRefObject<THREE.Vector3 | null>
+  /** 传送指令（外部写入目标点，Actor 应用后置 null）——街区导航柱用 */
+  teleportTo?: React.MutableRefObject<THREE.Vector3 | null>
 }
 
 export function AvatarActor({
-  position = [-1.9, 0, 3.4] as [number, number, number],
+  position = [-1.9, 0, 2.0] as [number, number, number],
   roam = false,
   refs,
+  bounds = 2.8,
 }: {
   position?: [number, number, number]
   roam?: boolean
   refs?: RoamRefs
+  /** 漫游边界 clamp（默认单街区展台 ±2.8m；街区模式传更大值） */
+  bounds?: number
 }) {
   const root = useRef<THREE.Group>(null)
   const inner = useRef<THREE.Group>(null)
@@ -93,6 +98,12 @@ export function AvatarActor({
 
     if (roam) {
       const k = keys.current
+      // 传送指令优先：直接落位（导航柱等场景导航用）
+      if (refs?.teleportTo?.current) {
+        g.position.copy(refs.teleportTo.current)
+        refs.target.current = null
+        refs.teleportTo.current = null
+      }
       const cameraForward = new THREE.Vector3()
       camera.getWorldDirection(cameraForward)
       cameraForward.y = 0
@@ -124,9 +135,9 @@ export function AvatarActor({
     if (moving) {
       dir.normalize()
       g.position.addScaledVector(dir, SPEED * dt)
-      // 展台边界 clamp（6×6m 地台，留 0.2m 余量）——防止走出展台
-      g.position.x = THREE.MathUtils.clamp(g.position.x, -2.8, 2.8)
-      g.position.z = THREE.MathUtils.clamp(g.position.z, -2.8, 2.8)
+      // 边界 clamp（单街区 ±2.8m / 街区模式 ±STREET_BOUNDS）——防走出场景
+      g.position.x = THREE.MathUtils.clamp(g.position.x, -bounds, bounds)
+      g.position.z = THREE.MathUtils.clamp(g.position.z, -bounds, bounds)
       // 平滑转向移动方向
       const targetRot = Math.atan2(dir.x, dir.z)
       let diff = targetRot - g.rotation.y

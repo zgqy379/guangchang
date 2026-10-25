@@ -3,12 +3,20 @@ import { useMemo } from 'react'
 import { Stars } from '@react-three/drei'
 import { skyFromOffworkHour } from '../engine/sky'
 
-export function WorkdaySky({ offworkHour }: { offworkHour: number }) {
+export function WorkdaySky({
+  offworkHour,
+  fogNear = 18,
+  fogFar = 60,
+}: {
+  offworkHour: number
+  fogNear?: number
+  fogFar?: number
+}) {
   const sky = useMemo(() => skyFromOffworkHour(offworkHour), [offworkHour])
   return (
     <>
       <color attach="background" args={[sky.bg]} />
-      <fog attach="fog" args={[sky.fog, 18, 60]} />
+      <fog attach="fog" args={[sky.fog, fogNear, fogFar]} />
       <ambientLight intensity={sky.ambient} />
       <directionalLight
         position={sky.night ? sky.moonPos : sky.sunPos}

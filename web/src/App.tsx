@@ -15,6 +15,10 @@ import type { RoamRefs } from './components/AvatarActor'
 const OfficeViewer = lazy(() =>
   import('./components/OfficeViewer').then((m) => ({ default: m.OfficeViewer }))
 )
+// 街区场景（v1.2）：十字路口四大领域招聘街区
+const StreetScene = lazy(() =>
+  import('./components/street/StreetScene').then((m) => ({ default: m.StreetScene }))
+)
 import { fictionalCompanies, companyById } from './data/fictional-companies'
 import { assetUrl } from './engine/asset'
 
@@ -69,7 +73,7 @@ function Scene({
 }
 
 export default function App() {
-  const [mode, setMode] = useState<'single' | 'compare' | 'office'>('single')
+  const [mode, setMode] = useState<'single' | 'compare' | 'office' | 'street'>('single')
   const [paramsA, setParamsA] = useState<CompanyParams>(defaultParams())
   const [presetA, setPresetA] = useState('custom')
   const [paramsB, setParamsB] = useState<CompanyParams>(companyById('nebula').params)
@@ -77,6 +81,12 @@ export default function App() {
   const [growthKey, setGrowthKey] = useState(0)
   const [officeScene, setOfficeScene] = useState(assetUrl('/assets/office/office-promptonly.spz'))
   const [roam, setRoam] = useState(false)
+
+  // 街区名片 → 进办公室参观（v1.2：V2-1 暂统一进互联网空间，V2-2 按行业切换生成资产）
+  const enterOfficeFromStreet = () => {
+    setOfficeScene(assetUrl('/assets/office/office-promptonly.spz'))
+    setMode('office')
+  }
 
   const capNote = schrodingerCapNote({
     equityYuan: paramsA.equityValue,
@@ -102,9 +112,17 @@ export default function App() {
           >
             办公室漫游
           </button>
-          <button className="replay" onClick={() => setGrowthKey((k) => k + 1)}>
-            ▶ 生长动画
+          <button
+            className={mode === 'street' ? 'active' : ''}
+            onClick={() => setMode('street')}
+          >
+            🏙️ 招聘街区
           </button>
+          {mode !== 'street' && mode !== 'office' && (
+            <button className="replay" onClick={() => setGrowthKey((k) => k + 1)}>
+              ▶ 生长动画
+            </button>
+          )}
           {mode === 'single' && (
             <button
               className={roam ? 'active' : 'roam-btn'}
@@ -134,7 +152,8 @@ export default function App() {
       </header>
 
       <main>
-        <aside className="controls">
+        {mode !== 'street' && (
+          <aside className="controls">
           <div className="preset-row">
             {fictionalCompanies.map((c) => (
               <button
@@ -213,14 +232,19 @@ export default function App() {
             </div>
           )}
         </aside>
+        )}
 
         <section className={mode === 'compare' ? 'scenes compare' : 'scenes'}>
-          {mode !== 'office' && (
+          {mode !== 'office' && mode !== 'street' && (
             <div className="scale-note scale-note--overlay">
               钞票山 水平等比放大 2.5× · 高度做感知增强 · 公司间比例真实（换算见报告附录A）
             </div>
           )}
-          {mode === 'office' ? (
+          {mode === 'street' ? (
+            <Suspense fallback={<div className="office-loading">招聘街区加载中…</div>}>
+              <StreetScene offworkHour={paramsA.offworkTime} onEnterOffice={enterOfficeFromStreet} />
+            </Suspense>
+          ) : mode === 'office' ? (
             <Suspense
               fallback={
                 <div className="office-loading">3DGS 渲染引擎加载中…</div>
