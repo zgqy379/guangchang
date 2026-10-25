@@ -1,0 +1,15 @@
+{
+  "id": "finance",
+  "prompt": "现代金融公司交易大厅办公室，弧形数据大屏，深色木纹与金属质感，多个交易工位，冷色照明，精致专业",
+  "steps": {
+    "create": {
+      "worldId": "3FO4K4QG5H3L"
+    },
+    "spzPath": {
+      "file": "office.spz",
+      "bytes": 5054890
+    }
+  },
+  "result": "success",
+  "elapsedSeconds": 787.8
+}

@@ -1,0 +1,15 @@
+{
+  "id": "manufacturing",
+  "prompt": "智能制造企业展厅与办公区，工业风金属结构，机械臂展示台，暖色工矿灯，安全整洁，科技感",
+  "steps": {
+    "create": {
+      "worldId": "3FO4K4QG5AEJ"
+    },
+    "spzPath": {
+      "file": "office.spz",
+      "bytes": 3964955
+    }
+  },
+  "result": "success",
+  "elapsedSeconds": 704.9
+}

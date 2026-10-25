@@ -1,0 +1,25 @@
+{
+  "id": "hr-m02",
+  "prompt": "A stylized HR recruiter character, full body, standing, T-pose, cartoon style, big head small body proportion, big expressive eyes, clean silhouette, single character, mobile game asset, no background, male HR, light grey dress shirt with dark vest, tidy beard, holding resume folder",
+  "steps": {
+    "gen": {
+      "taskId": "4365468",
+      "elapsed": 76.4
+    },
+    "rawGlb": {
+      "bytes": 18602092
+    },
+    "upload": {
+      "bytes": 18602092
+    },
+    "rig": {
+      "elapsed": 106.6
+    },
+    "idleGlb": {
+      "file": "hr-m02-idle.glb",
+      "bytes": 40471600
+    }
+  },
+  "result": "success",
+  "elapsedSeconds": 205.8
+}

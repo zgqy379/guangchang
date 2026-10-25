@@ -1,0 +1,25 @@
+{
+  "id": "hr-f03",
+  "prompt": "A stylized HR recruiter character, full body, standing, T-pose, cartoon style, big head small body proportion, big expressive eyes, clean silhouette, single character, mobile game asset, no background, female creative-industry HR, modern qipao-inspired dress, artistic earrings, side braid",
+  "steps": {
+    "gen": {
+      "taskId": "4365255",
+      "recovered": true
+    },
+    "rawGlb": {
+      "bytes": 19034796
+    },
+    "upload": {
+      "bytes": 19034796
+    },
+    "rig": {
+      "elapsed": 111.8
+    },
+    "idleGlb": {
+      "file": "hr-f03-idle.glb",
+      "bytes": 41661332
+    }
+  },
+  "result": "success",
+  "elapsedSeconds": 136.1
+}

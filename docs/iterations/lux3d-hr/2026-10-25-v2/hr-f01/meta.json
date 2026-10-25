@@ -1,0 +1,25 @@
+{
+  "id": "hr-f01",
+  "prompt": "A stylized HR recruiter character, full body, standing, T-pose, cartoon style, big head small body proportion, big expressive eyes, clean silhouette, single character, mobile game asset, no background, female HR recruiter, navy business blazer and white blouse, shoulder-length hair, warm smile, holding a tablet",
+  "steps": {
+    "gen": {
+      "taskId": "4365124",
+      "recovered": true
+    },
+    "rawGlb": {
+      "bytes": 19082420
+    },
+    "upload": {
+      "bytes": 19082420
+    },
+    "rig": {
+      "elapsed": 121.9
+    },
+    "idleGlb": {
+      "file": "hr-f01-idle.glb",
+      "bytes": 41926672
+    }
+  },
+  "result": "success",
+  "elapsedSeconds": 144.5
+}

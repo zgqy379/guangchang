@@ -1,0 +1,25 @@
+{
+  "id": "hr-f04",
+  "prompt": "A stylized HR recruiter character, full body, standing, T-pose, cartoon style, big head small body proportion, big expressive eyes, clean silhouette, single character, mobile game asset, no background, female finance HR, pinstripe business suit, neat bun hairstyle, pearl earrings",
+  "steps": {
+    "gen": {
+      "taskId": "4365309",
+      "recovered": true
+    },
+    "rawGlb": {
+      "bytes": 19135704
+    },
+    "upload": {
+      "bytes": 19135704
+    },
+    "rig": {
+      "elapsed": 258.2
+    },
+    "idleGlb": {
+      "file": "hr-f04-idle.glb",
+      "bytes": 41740952
+    }
+  },
+  "result": "success",
+  "elapsedSeconds": 280.8
+}

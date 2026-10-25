@@ -82,9 +82,13 @@ export default function App() {
   const [officeScene, setOfficeScene] = useState(assetUrl('/assets/office/office-promptonly.spz'))
   const [roam, setRoam] = useState(false)
 
-  // 街区名片 → 进办公室参观（v1.2：V2-1 暂统一进互联网空间，V2-2 按行业切换生成资产）
-  const enterOfficeFromStreet = () => {
-    setOfficeScene(assetUrl('/assets/office/office-promptonly.spz'))
+  // 街区名片 → 进办公室参观（v1.2：按行业切换对应 SpatialGen 生成空间）
+  const enterOfficeFromStreet = (lot: { industry: string }) => {
+    const file =
+      lot.industry === 'internet'
+        ? 'office-promptonly.spz'
+        : `${lot.industry}.spz`
+    setOfficeScene(assetUrl(`/assets/office/${file}`))
     setMode('office')
   }
 

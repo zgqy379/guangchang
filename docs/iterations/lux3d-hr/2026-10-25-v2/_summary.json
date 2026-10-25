@@ -1,0 +1,58 @@
+{
+  "hr": [
+    {
+      "id": "hr-f01",
+      "result": "success"
+    },
+    {
+      "id": "hr-m01",
+      "result": "failed"
+    },
+    {
+      "id": "hr-f02",
+      "result": "success"
+    },
+    {
+      "id": "hr-m02",
+      "result": "success"
+    },
+    {
+      "id": "hr-f03",
+      "result": "success"
+    },
+    {
+      "id": "hr-m03",
+      "result": "success"
+    },
+    {
+      "id": "hr-f04",
+      "result": "success"
+    },
+    {
+      "id": "hr-m04",
+      "result": "success"
+    },
+    {
+      "id": "hr-f05",
+      "result": "success"
+    },
+    {
+      "id": "hr-m05",
+      "result": "failed"
+    }
+  ],
+  "world": [
+    {
+      "id": "finance",
+      "result": "success"
+    },
+    {
+      "id": "manufacturing",
+      "result": "success"
+    },
+    {
+      "id": "culture",
+      "result": "success"
+    }
+  ]
+}

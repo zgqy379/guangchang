@@ -1,0 +1,28 @@
+{
+  "id": "hr-m01",
+  "prompt": "A stylized HR recruiter character, full body, standing, T-pose, cartoon style, big head small body proportion, big expressive eyes, clean silhouette, single character, mobile game asset, no background, male HR manager, charcoal business suit, glasses, short hair, confident stance",
+  "steps": {
+    "gen": {
+      "taskId": "4365169",
+      "recovered": true
+    },
+    "rawGlb": {
+      "bytes": 18700396
+    },
+    "upload": {
+      "url": "https://holo-cos.aholo3d.cn/resource/platform/temp/2026/10/25/NLO6NOAKTLGAMAABAAAAADI8.glb",
+      "bytes": 18700396,
+      "reuploaded": true
+    },
+    "rig": {
+      "retried": true
+    },
+    "idleGlb": {
+      "file": "hr-m01-idle.glb",
+      "bytes": 40842832
+    }
+  },
+  "result": "success",
+  "error": "RuntimeError: rig: TaskTerminalError: Task failed: provider status=4",
+  "elapsedSeconds": 153.9
+}

@@ -1,0 +1,21 @@
+{
+  "id": "hr-m05",
+  "prompt": "A stylized HR recruiter character, full body, standing, T-pose, cartoon style, big head small body proportion, big expressive eyes, clean silhouette, single character, mobile game asset, no background, male senior HR director, double-breasted suit, silver hair, arms crossed",
+  "steps": {
+    "gen": {
+      "taskId": "4365865",
+      "elapsed": 106.6
+    },
+    "rawGlb": {
+      "bytes": 20750792
+    },
+    "upload": {
+      "url": "https://holo-cos.aholo3d.cn/resource/platform/temp/2026/10/25/NLO6ZKQKTLGAMAABAAAAAAA8.glb",
+      "bytes": 20750792,
+      "reuploaded": true
+    }
+  },
+  "result": "failed",
+  "error": "AssertionError: rig failed after retries",
+  "elapsedSeconds": 167.6
+}

@@ -1,0 +1,15 @@
+{
+  "id": "culture",
+  "prompt": "文化创意公司开放式工作室， Loft 风格红砖墙，画板与创意物料，原木家具，暖色射灯，轻松有艺术气息",
+  "steps": {
+    "create": {
+      "worldId": "3FO4K4QG5DQK"
+    },
+    "spzPath": {
+      "file": "office.spz",
+      "bytes": 3851864
+    }
+  },
+  "result": "success",
+  "elapsedSeconds": 1243.4
+}
