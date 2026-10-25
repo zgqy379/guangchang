@@ -25,3 +25,4 @@ docs/iterations/**/*.spz
 assets/interiorgs-0024/
 web/public/assets/office/*.ply
 web/public/assets/office/*.ply
+.zcode/
