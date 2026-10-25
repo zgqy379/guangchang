@@ -115,6 +115,9 @@ export function AvatarActor({
     if (moving) {
       dir.normalize()
       g.position.addScaledVector(dir, SPEED * dt)
+      // 展台边界 clamp（6×6m 地台，留 0.2m 余量）——防止走出展台
+      g.position.x = THREE.MathUtils.clamp(g.position.x, -2.8, 2.8)
+      g.position.z = THREE.MathUtils.clamp(g.position.z, -2.8, 2.8)
       // 平滑转向移动方向
       const targetRot = Math.atan2(dir.x, dir.z)
       let diff = targetRot - g.rotation.y

@@ -81,7 +81,13 @@ function InstancedBundles({
       args={[undefined, undefined, Math.max(1, positions.length)]}
     >
       <boxGeometry args={[BILL.w, BILL.stackH, BILL.d]} />
-      <meshStandardMaterial color={color} roughness={0.85} />
+      <meshStandardMaterial
+        color={color}
+        roughness={0.72}
+        metalness={0.08}
+        emissive={color}
+        emissiveIntensity={0.22}
+      />
     </instancedMesh>
   )
 }

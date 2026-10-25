@@ -679,7 +679,7 @@ API实测(今起) │           │           │ 提交 11.19 19:00
 
 | 提交物 | 性质 | 状态 |
 |--|--|--|
-| **可运行 Demo 链接** | 必交 | ✅ **https://zgqy379.github.io/guangchang/**（四模式：单人漫游/A-B双面板/办公室双来源/生长动画）；魔搭版待账号 |
+| **可运行 Demo 链接** | 必交 | ✅ **https://zgqy379.github.io/guangchang/**（四模式+审美修订版）；魔搭版待账号。**部署 checklist：受限资产禁止放 `web/public/`（构建输入），重新部署前确认 dist 内无 `*.ply`（10.26 T7 事故教训）** |
 | 项目报告书（PDF/PPT 或链接） | 必交 | ◐ 草稿 v0.3 已成（`docs/report-draft.md`），按官方表单要求填充（问题概要/资产迭代对比/KPI）；待补视频与真机数据 |
 | 小红书发布链接 | 加分 | ⏳ 推迟中 |
 | 项目源代码 | 加分 | ✅ github.com/zgqy379/guangchang（**已转公开**——Pages 免费额度需要；InteriorGS 受限资产未进公开部署，合规） |

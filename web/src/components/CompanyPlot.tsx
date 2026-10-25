@@ -1,6 +1,7 @@
 // 公司展台：钞票山 + 薛定谔钞票 + 五险切口 + 发光地砖路 + Avatar 漫游
 // A/B 对比模式（project.md 4.4，Demo P0）：对比才有叙事——左山矮但夕阳，右山高但凌晨月亮
 import { Html } from '@react-three/drei'
+import * as THREE from 'three'
 import type { ThreeEvent } from '@react-three/fiber'
 import { CompanyParams, incrementPackage } from '../engine/params'
 import { MoneyMountain } from './MoneyMountain'
@@ -44,8 +45,13 @@ export function CompanyPlot({
         onClick={roam ? handleGround : undefined}
       >
         <planeGeometry args={[6, 6]} />
-        <meshStandardMaterial color="#1c2126" roughness={1} />
+        <meshStandardMaterial color="#252b32" roughness={1} />
       </mesh>
+      {/* 展台描边：视觉上框住舞台，避免大面积死黑 */}
+      <lineSegments position={[0, 0.002, 0]}>
+        <edgesGeometry args={[new THREE.PlaneGeometry(6, 6)]} />
+        <lineBasicMaterial color="#3d4650" />
+      </lineSegments>
       {/* key 换值 = 整组重挂载 = 生长动画重播 */}
       <group key={growthKey}>
         <MoneyMountain
@@ -69,6 +75,10 @@ export function CompanyPlot({
       />
       <Html position={[0, 0.1, 2.6]} center distanceFactor={10}>
         <div className="plot-label">{name}</div>
+      </Html>
+      {/* 诚实声明：感知放大系数（对抗审查 P2） */}
+      <Html position={[-1.35, 0.7, 0.6]} center distanceFactor={12}>
+        <div className="scale-note">钞票山等比放大 2.5× 展示<br />比例关系不变 · 真实换算见附录A</div>
       </Html>
     </group>
   )

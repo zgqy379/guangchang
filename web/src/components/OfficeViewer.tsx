@@ -45,9 +45,10 @@ export function OfficeViewer({ url }: { url: string }) {
         if (stopped) return
 
         // 3DGS 为 OpenCV 坐标系（-Y 朝上）
+        // 审美修订：人视高 1.4m + 斜向切入，视线落在工位区而非走廊尽头
         camera.up.set(0, -1, 0)
-        camera.position.set(-2.5, -1.5, 0.5)
-        camera.lookAt(new Vector3(0, 0, 0))
+        camera.position.set(-3.4, -1.4, 2.2)
+        camera.lookAt(new Vector3(-0.5, -0.2, -0.8))
         viewer.getScene().add(splat)
         viewer.setCamera(camera)
         setViewerConfig(viewer, {

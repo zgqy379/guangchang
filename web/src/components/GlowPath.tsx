@@ -23,9 +23,9 @@ function heatmap(n: number, seed = 7): number[] {
 
 const LEVELS = [
   { color: '#123524', emissive: '#0a1f16', intensity: 0.1 }, // 0 断档
-  { color: '#14532d', emissive: '#166534', intensity: 0.5 }, // 1 稀疏
-  { color: '#16a34a', emissive: '#22c55e', intensity: 1.2 }, // 2 密集
-  { color: '#4ade80', emissive: '#4ade80', intensity: 2.2 }, // 3 高亮
+  { color: '#14532d', emissive: '#166534', intensity: 0.35 }, // 1 稀疏
+  { color: '#16a34a', emissive: '#22c55e', intensity: 0.9 }, // 2 密集
+  { color: '#34d399', emissive: '#34d399', intensity: 1.5 }, // 3 高亮（审美修订：降饱和，不抢山的主体）
 ]
 
 const easeOutBack = (k: number) => {

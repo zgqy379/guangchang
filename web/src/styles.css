@@ -233,6 +233,17 @@ main {
   font-size: 13px;
   white-space: nowrap;
 }
+.scale-note {
+  background: rgba(13, 17, 23, 0.72);
+  border: 1px solid #2a3038;
+  border-radius: 6px;
+  color: #8b949e;
+  padding: 3px 8px;
+  font-size: 10px;
+  line-height: 1.5;
+  text-align: center;
+  white-space: nowrap;
+}
 
 .office-viewer {
   position: relative;

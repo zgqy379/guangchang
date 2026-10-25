@@ -65,6 +65,7 @@ function Scene({
 export default function App() {
   const [mode, setMode] = useState<'single' | 'compare' | 'office'>('single')
   const [paramsA, setParamsA] = useState<CompanyParams>(defaultParams())
+  const [presetA, setPresetA] = useState('custom')
   const [paramsB, setParamsB] = useState<CompanyParams>(companyById('nebula').params)
   const [presetB, setPresetB] = useState('nebula')
   const [growthKey, setGrowthKey] = useState(0)
@@ -132,8 +133,11 @@ export default function App() {
             {fictionalCompanies.map((c) => (
               <button
                 key={c.id}
-                className="chip-btn"
-                onClick={() => setParamsA(c.id === 'custom' ? defaultParams() : { ...c.params })}
+                className={`chip-btn ${presetA === c.id ? 'active' : ''}`}
+                onClick={() => {
+                  setPresetA(c.id)
+                  setParamsA(c.id === 'custom' ? defaultParams() : { ...c.params })
+                }}
                 title={c.tagline}
               >
                 {c.name}
@@ -143,7 +147,10 @@ export default function App() {
           <HRPanel
             title="HR 参数面板（由词典 JSON 自动生成）"
             params={paramsA}
-            onChange={(patch) => setParamsA((p) => ({ ...p, ...patch }))}
+            onChange={(patch) => {
+              setPresetA('custom')
+              setParamsA((p) => ({ ...p, ...patch }))
+            }}
           />
           <div className="readout">
             <div>
@@ -211,7 +218,12 @@ export default function App() {
               <OfficeViewer url={officeScene} />
             </Suspense>
           ) : mode === 'single' ? (
-            <Scene name="自定义空间" params={paramsA} growthKey={growthKey} roam={roam} />
+            <Scene
+              name={fictionalCompanies.find((c) => c.id === presetA)?.name ?? '自定义空间'}
+              params={paramsA}
+              growthKey={growthKey}
+              roam={roam}
+            />
           ) : (
             <>
               <Scene name="A · 我的山" params={paramsA} growthKey={growthKey} />

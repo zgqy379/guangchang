@@ -1,0 +1,9 @@
+{
+  "pipeline": "lux3d",
+  "assetLine": "avatar-anim",
+  "note": "Walk_Loop animateInPlace=true 重制",
+  "result": "success",
+  "elapsedSeconds": 17.2,
+  "file": "avatar-walk-inplace.glb",
+  "bytes": 43184152
+}

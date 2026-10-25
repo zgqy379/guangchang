@@ -25,7 +25,8 @@ export function skyFromOffworkHour(h: number): SkyState {
   const night = h >= 20
 
   const day = [0x87, 0xce, 0xeb]
-  const sunset = [0xff, 0x9a, 0x56]
+  // 审美修订：夕阳→暮色压暗一档，拉开钞票山（暗红发光）与背景的明暗对比，主体才跳得出来
+  const sunset = [0xd9, 0x6e, 0x3f]
   const nightC = [0x0b, 0x10, 0x2a]
   const bg =
     dusk < 0.5
