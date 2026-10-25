@@ -572,6 +572,13 @@ button:disabled {
 .district-pips .pip.on {
   box-shadow: 0 0 3px rgba(255, 255, 255, 0.25);
 }
+.game-hud-legend {
+  margin-top: 7px;
+  padding-top: 6px;
+  border-top: 1px solid var(--color-border-subtle);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
 .rarity-chip {
   display: inline-block;
   color: var(--color-neutral-1);

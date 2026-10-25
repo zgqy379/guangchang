@@ -22,8 +22,10 @@ import {
   ColorSceneLamp,
   ColorSceneRoad,
   ColorStateInfo,
+  ColorStateSuccess,
   ColorTextPrimary,
   ColorTextSecondary,
+  ColorSceneWindowDim,
 } from '../../../generated/design-tokens.output.mjs'
 
 const placed = placeLots()
@@ -60,6 +62,103 @@ function Roads() {
         <cylinderGeometry args={[3.4, 3.6, 0.12, 32]} />
         <meshStandardMaterial color={ColorSceneGateDark} roughness={0.9} />
       </mesh>
+    </group>
+  )
+}
+
+// 参数碑：碑高=总包、5 灯条=五险、顶灯=下班时间（4 个 InstancedMesh）
+function ParamSteles() {
+  const body = useRef<THREE.InstancedMesh>(null)
+  const band = useRef<THREE.InstancedMesh>(null)
+  const bars = useRef<THREE.InstancedMesh>(null)
+  const lamps = useRef<THREE.InstancedMesh>(null)
+  const data = useMemo(
+    () =>
+      placed.map((p) => {
+        const total = totalPackage(p.lot.params)
+        const height = Math.min(2.6, 0.7 + (total / 1_000_000) * 1.7)
+        const ratio = p.lot.params.socialInsuranceBaseRatio
+        const lit = ratio === 'full' ? 5 : ratio === '0.8' ? 4 : 3
+        const off = p.lot.params.offworkTime
+        const lamp = off < 19 ? '#ffc46b' : off < 20 ? '#ff9a6a' : '#8fa8ff'
+        return { pl: p, height, lit, lamp }
+      }),
+    []
+  )
+  useLayoutEffect(() => {
+    const b = body.current
+    const bd = band.current
+    const br = bars.current
+    const lp = lamps.current
+    if (!b || !bd || !br || !lp) return
+    const o = new THREE.Object3D()
+    const col = new THREE.Color()
+    const cos = Math.cos, sin = Math.sin
+    let barIndex = 0
+    data.forEach((d, i) => {
+      const { pl, height, lit, lamp } = d
+      const rot = pl.rotationY
+      const c = cos(rot)
+      const s = sin(rot)
+      const lx = -1.05
+      const lz = -0.55
+      const wx = pl.position[0] + lx * c + lz * s
+      const wz = pl.position[2] - lx * s + lz * c
+      // 碑体
+      o.position.set(wx, height / 2, wz)
+      o.rotation.set(0, rot, 0)
+      o.scale.set(0.3, height, 0.22)
+      o.updateMatrix()
+      b.setMatrixAt(i, o.matrix)
+      // 顶部金带
+      o.position.set(wx, height - 0.04, wz)
+      o.scale.set(0.34, 0.04, 0.26)
+      o.updateMatrix()
+      bd.setMatrixAt(i, o.matrix)
+      // 五险灯条（碑面）
+      for (let j = 0; j < 5; j++) {
+        const ly = 0.3 + (j * (height - 0.55)) / 5
+        o.position.set(wx + 0 * c + 0.12 * s, ly, wz - 0 * s + 0.12 * c)
+        o.scale.set(0.18, 0.06, 0.02)
+        o.updateMatrix()
+        br.setMatrixAt(barIndex, o.matrix)
+        br.setColorAt(barIndex, col.set(j < lit ? ColorStateSuccess : ColorSceneWindowDim))
+        barIndex++
+      }
+      // 顶灯
+      o.position.set(wx, height + 0.12, wz)
+      o.scale.set(1, 1, 1)
+      o.updateMatrix()
+      lp.setMatrixAt(i, o.matrix)
+      lp.setColorAt(i, col.set(lamp))
+    })
+    b.instanceMatrix.needsUpdate = true
+    bd.instanceMatrix.needsUpdate = true
+    br.instanceMatrix.needsUpdate = true
+    if (br.instanceColor) br.instanceColor.needsUpdate = true
+    lp.instanceMatrix.needsUpdate = true
+    if (lp.instanceColor) lp.instanceColor.needsUpdate = true
+    ;(br.material as THREE.MeshBasicMaterial).needsUpdate = true
+    ;(lp.material as THREE.MeshBasicMaterial).needsUpdate = true
+  }, [data])
+  return (
+    <group>
+      <instancedMesh ref={body} args={[undefined, undefined, data.length]}>
+        <boxGeometry args={[1, 1, 1]} />
+        <meshStandardMaterial color={ColorSceneGateDark} roughness={0.85} />
+      </instancedMesh>
+      <instancedMesh ref={band} args={[undefined, undefined, data.length]}>
+        <boxGeometry args={[1, 1, 1]} />
+        <meshBasicMaterial color={ColorBrandGold} />
+      </instancedMesh>
+      <instancedMesh ref={bars} args={[undefined, undefined, data.length * 5]}>
+        <boxGeometry args={[1, 1, 1]} />
+        <meshBasicMaterial />
+      </instancedMesh>
+      <instancedMesh ref={lamps} args={[undefined, undefined, data.length]}>
+        <sphereGeometry args={[0.09, 8, 8]} />
+        <meshBasicMaterial />
+      </instancedMesh>
     </group>
   )
 }
@@ -802,6 +901,7 @@ export function StreetScene({
           <HRStand lot={pl.lot} onEnterOffice={onEnterOffice} />
         </group>
       ))}
+      <ParamSteles />
       <RarityGems />
       {/* 点击地面行走（透明事件面） */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]} onClick={handleGround}>

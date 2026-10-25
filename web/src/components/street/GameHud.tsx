@@ -81,6 +81,7 @@ export function GameHud({ state }: { state: HudState }) {
           </div>
         ))}
       </div>
+      <div className="game-hud-legend">碑高=总包 · 灯条=五险 · 顶灯=下班</div>
     </div>
   )
 }
