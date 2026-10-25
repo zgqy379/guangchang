@@ -44,6 +44,7 @@
 
 - **T7**：受限资产二次泄露（数分钟窗口）——根源修复+404 验证；教训→铁律 1
 - **T8**：线上白屏（MSYS 路径转换 + 资产路径不吃 base）——双根源修复+线上复验；教训→铁律 2/3/4
+- **T9 "街区黑屏"**：初进街区全黑。排查弯路：怀疑渲染管线/ack/资源——**真相是初始相机 [13,4.5,9] 落在 lot0 办公楼包围盒内部**（黑盒内部特写=全黑），用户一句"点一下鼠标走出来就有画面"破案。双重教训：①**相机初始位必须对场景所有建筑包围盒做相交验证**（现采用两段式：初始鸟瞰全景 (0,34,26)→首次交互后第三人称跟随）；②**用户的一次真实观察胜过 Agent 的十轮工具推理**——早问用户能省一半排查时间。诊断工具链留存：场景图 dump（Canvas onCreated 挂 `window.__st`）+ 逐组件隐藏二分 + 包围球统计
 
 ## 五、工作流纪律
 
@@ -64,3 +65,42 @@
 | Lux3D 官方 skill 仓库 | `C:\Users\dqy\tools\Aholo-Lux3D\`（项目外） |
 | API key | `.env`（gitignored；`LUX3D_CN_API_KEY` 与 `AHOLO_API_KEY` 同值） |
 | 生成/部署脚本 | `tools/gen_*.py`、`tools/make_video*.py`、`tools/restore-ego.ps1` |
+
+## 七、街区版新增沉淀（10.25-10.26 第二轮）
+
+### 7.1 场景/渲染
+
+| 事项 | 结论 |
+|---|---|
+| 相机两段式 | 初始鸟瞰全景 `(0,34,26)+lookAt(0,0,0)` → 首次交互（点地面/导航柱）后启用跟随相机——既避免初始机位落进建筑，又自带"俯冲入场"运镜；**spawn 必须与跟随参考位一致**（曾出现 prop 与 ref 不一致导致跟随错位） |
+| InstancedMesh 山体 | 每帧写矩阵的生长动画与逐实例旋转抖动可共存；**`ceil(sqrt(N))` 式布局有数学陷阱**（`ceil(sqrt(N))²≥N` 恒成立→任何量都只堆一层）——层数换算要用**固定层容量**（3×3=9），金额差才变成高度差 |
+| 纸币质感 | canvas 生成贴图（纹样+¥+字样）+ `map`+`emissiveMap` 同图 + 逐实例 ±1.5° 旋转抖动，41MB→2MB 级后仍有"成捆钞票"读感 |
+| 大屏 VideoTexture | `document.createElement('video')` 不进 DOM 也可作纹理源（muted+playsInline+loop）；egolite 环境渲染不了（见 7.3），真实浏览器正常 |
+| 挂载安全 | **任何会在挂载后被对齐/缩放的 GLB 组件，加载期必须有用 Suspense 包裹的占位**；近景 LOD（18/26m 滞回切换）兼顾性能与观感 |
+
+### 7.2 批量生成脚本（gen_v2_batch.py 模式）
+
+1. **先 `mkdir` 再写文件**——首轮因此报废 3 次文生（各 ~90s API 配额）
+2. **失败任务的 taskId 落盘后可恢复**：重查 query_task_status 拿产物 URL，不必重新生成（省 76-108s/次）
+3. meta.json 的 upload 步骤**必须把 url 存下来**（只存 bytes 会导致补跑时重新上传）
+4. provider status=4 偶发：生成/绑骨/重定向全链路每步 3 次重试 + 8s 退避；仍失败的单独补跑脚本（gen_hr_rig_retry.py 从本地 raw GLB 重传）
+5. 纹理压缩加 `--texture-size 1024`（默认 2048 的 9 个 GLB 会把显存吃穿）
+
+### 7.3 egolite 边界（重要）
+
+- **egolite 渲染不了街区级 WebGL 场景**（2136 draw call）：canvas 出黑帧、页面 rAF 假活（fps 数字是页面级不是 canvas 级）、零 console 报错、context 未丢失——**误判为"渲染 bug"排查了数轮**。街区块验收/录屏改用：用户浏览器（实测正常）/ headless Edge（注意其 WebGL 截图受虚拟时间限制，不可靠）/ 相机修复后 egolite 重试
+- egolite 被用户接管时（`Control of this task space is with the user`）命令全部暂停——**测试前先确认用户没在用**；任务空间会被回收，脚本要能新建空间自愈
+- CDP screencast "只捕 1 帧" 的红鲱鱼：不是 ack 问题——是黑相机视图没有画面变化，CDP 按损伤发送自然只有 1 帧。**相机修好后同款代码 270 帧正常**
+
+### 7.4 ModelScope 创空间部署
+
+- git http 推送对 SDK 令牌一律 Access denied（写权限令牌也不行）——**正确通道 = modelscope Python SDK**：`HubApi.login(token)` + `upload_folder(repo_id, repo_type='studio', folder_path)`（pip install modelscope）
+- 令牌要用**"写权限令牌"**类型（新建访问令牌下拉选择）；API 建令牌：POST `/api/v1/users/tokens` body=`{TokenName}`（需页面 cookie）；令牌明文在 `/api/v1/users/tokens/list` 可读
+- static 空间经 `<user>-<space>.ms.show` **根域名** iframe 托管——vite base 必须是 `/`（按 `/studios/...` 前缀构建会白屏）
+- 文件更新后需 UI"重新部署→确认部署"才生效；状态轮询 `GET /api/v1/studio/{owner}/{name}/status`
+
+### 7.5 多 Agent 协作纪律
+
+- **同一工作区禁止两个 Agent 会话同时运行**（本会话与另一会话在 StreetScene.tsx 上冲突三次、git stash 还把对方未提交工作一并卷走）——一个窗口收尾后再开下一个
+- 跨会话交接靠两层：仓库文档（本文件）+ Agent 记忆（`~/.zcode/cli/memories/`，含未入档的调试线索）
+- 设计评审用**独立盲审 Agent**（只看截图不知实现），上线门禁 ≥7/10；规格必须绑定截图证据
