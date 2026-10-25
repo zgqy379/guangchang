@@ -322,6 +322,12 @@ export function StreetScene({
       dpr={[1, 2]}
       camera={{ position: [13, 4.5, 9], fov: 50 }}
       gl={{ toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.15 }}
+      onCreated={() => {
+        // 首帧编译完成后再撤加载遮罩（避免黑屏窗口期）
+        requestAnimationFrame(() =>
+          requestAnimationFrame(() => window.dispatchEvent(new Event('street-ready')))
+        )
+      }}
     >
       <WorkdaySky offworkHour={offworkHour} fogNear={30} fogFar={170} />
       {/* 商业级光照基线：天光半球 + 月光平行光（盲审修复：黑地亮天断裂） */}

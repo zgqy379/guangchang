@@ -1,4 +1,4 @@
-import { lazy, Suspense, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
@@ -272,7 +272,7 @@ export default function App() {
           )}
           {mode === 'street' ? (
             <Suspense fallback={<div className="office-loading">招聘街区加载中…</div>}>
-              <StreetScene
+              <StreetSceneLoader
                 offworkHour={paramsA.offworkTime}
                 onEnterOffice={enterOfficeFromStreet}
                 onAddBasket={addBasket}
@@ -314,6 +314,50 @@ export default function App() {
         Aholo 全球 3D AI 黑客松参赛作品 · 逛厂 GuǎngChǎng · 数据为演示样例 ·
         源码与报告见 github.com/zgqy379/guangchang
       </footer>
+    </div>
+  )
+}
+
+// 街区加载遮罩：监听首帧事件，加载期显示品牌化加载态（消除黑屏窗口期）
+function StreetSceneLoader(props: {
+  onEnterOffice: (lot: { industry: string }) => void
+  offworkHour: number
+  onAddBasket: (lot: Lot) => void
+}) {
+  const [ready, setReady] = useState(false)
+  useEffect(() => {
+    const h = () => setReady(true)
+    window.addEventListener('street-ready', h)
+    // 兜底：即便首帧事件因竞态丢失，12s 后也撤遮罩
+    const t = setTimeout(h, 12000)
+    return () => {
+      window.removeEventListener('street-ready', h)
+      clearTimeout(t)
+    }
+  }, [])
+  return (
+    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+      <StreetScene {...props} />
+      {!ready && (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: '#0d1117',
+            zIndex: 20,
+            color: '#8b949e',
+            fontSize: 14,
+            flexDirection: 'column',
+            gap: 12,
+          }}
+        >
+          <div style={{ fontSize: 30, fontWeight: 800, color: '#c23a2b' }}>逛厂</div>
+          <div>招聘街区搭建中，即将开门…</div>
+        </div>
+      )}
     </div>
   )
 }
