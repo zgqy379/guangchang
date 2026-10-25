@@ -22,3 +22,5 @@ docs/iterations/**/*.fbx
 docs/iterations/**/*.ply
 docs/iterations/**/*.zip
 docs/iterations/**/*.spz
+assets/interiorgs-0024/
+web/public/assets/office/*.ply

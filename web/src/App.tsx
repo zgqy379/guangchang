@@ -39,6 +39,7 @@ export default function App() {
   const [presetB, setPresetB] = useState('nebula')
   const [companyB, setCompanyB] = useState(companyById('nebula'))
   const [growthKey, setGrowthKey] = useState(0)
+  const [officeScene, setOfficeScene] = useState('/assets/office/office-promptonly.spz')
 
   const capNote = schrodingerCapNote({
     equityYuan: paramsA.equityValue,
@@ -67,6 +68,20 @@ export default function App() {
           <button className="replay" onClick={() => setGrowthKey((k) => k + 1)}>
             ▶ 生长动画
           </button>
+          {mode === 'office' && (
+            <select
+              className="office-select"
+              value={officeScene}
+              onChange={(e) => setOfficeScene(e.target.value)}
+            >
+              <option value="/assets/office/office-promptonly.spz">
+                AI 生成办公室（World · SPZ 4.1MB）
+              </option>
+              <option value="/assets/office/interiorgs-0024.ply">
+                真实扫描办公室（InteriorGS 0024 · PLY 57MB）
+              </option>
+            </select>
+          )}
         </div>
       </header>
 
@@ -140,7 +155,7 @@ export default function App() {
 
         <section className={mode === 'compare' ? 'scenes compare' : 'scenes'}>
           {mode === 'office' ? (
-            <OfficeViewer url="/assets/office/office-promptonly.spz" />
+            <OfficeViewer url={officeScene} />
           ) : mode === 'single' ? (
             <Scene name="自定义空间" params={paramsA} growthKey={growthKey} />
           ) : (

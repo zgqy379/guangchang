@@ -33,8 +33,11 @@ export function OfficeViewer({ url }: { url: string }) {
         const resp = await fetch(url)
         if (!resp.ok) throw new Error(`fetch ${resp.status}`)
         const buffer = await resp.arrayBuffer()
+        const fileType = url.toLowerCase().endsWith('.ply')
+          ? SplatLoader.SplatFileType.PLY
+          : SplatLoader.SplatFileType.SPZ
         const data = await SplatLoader.parseSplatData(
-          SplatLoader.SplatFileType.SPZ,
+          fileType,
           new Uint8Array(buffer),
           SplatLoader.SplatPackType.Compressed
         )
@@ -66,7 +69,7 @@ export function OfficeViewer({ url }: { url: string }) {
         }
         viewer.requestRenderHandler = () => requestAnimationFrame(render)
         requestAnimationFrame(render)
-        setStatus(`就绪（${(buffer.byteLength / 1e6).toFixed(1)}MB SPZ · Aholo Viewer）`)
+        setStatus(`就绪（${(buffer.byteLength / 1e6).toFixed(1)}MB · ${fileType === SplatLoader.SplatFileType.PLY ? 'PLY' : 'SPZ'} · Aholo Viewer）`)
       } catch (e) {
         setStatus('加载失败: ' + (e instanceof Error ? e.message : String(e)))
       }
