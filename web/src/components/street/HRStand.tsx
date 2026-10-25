@@ -201,7 +201,7 @@ export function HRStand({ lot, onEnterOffice }: { lot: Lot; onEnterOffice: (lot:
             <>
               <mesh position={[0, h / 2, 0]}>
                 <boxGeometry args={[6.4, h, 5.2]} />
-                <meshStandardMaterial color="#1d232a" roughness={0.95} />
+                <meshStandardMaterial color="#272f3a" roughness={0.9} emissive="#0d1117" emissiveIntensity={0.5} />
               </mesh>
               {/* 底层玻璃幕墙 */}
               <mesh position={[0, 1.15, 2.62]}>

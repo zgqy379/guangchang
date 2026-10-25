@@ -20,6 +20,7 @@ const StreetScene = lazy(() =>
   import('./components/street/StreetScene').then((m) => ({ default: m.StreetScene }))
 )
 import { fictionalCompanies, companyById } from './data/fictional-companies'
+import type { Lot } from './data/street-companies'
 import { assetUrl } from './engine/asset'
 
 function Scene({
@@ -92,6 +93,26 @@ export default function App() {
     setMode('office')
   }
 
+  // 对比篮：街区收两家 → 一键进 A/B（v1.2 新旧模式打通）
+  const [basket, setBasket] = useState<Lot[]>([])
+  const [nameA, setNameA] = useState<string | null>(null)
+  const [nameB, setNameB] = useState<string | null>(null)
+  const addBasket = (lot: Lot) =>
+    setBasket((b) => (b.some((x) => x.id === lot.id) ? b : [...b, lot].slice(-2)))
+  const applyBasketAndCompare = () => {
+    if (basket[0]) {
+      setParamsA(basket[0].params)
+      setPresetA('custom')
+      setNameA(basket[0].name)
+    }
+    if (basket[1]) {
+      setParamsB(basket[1].params)
+      setPresetB('custom')
+      setNameB(basket[1].name)
+    }
+    setMode('compare')
+  }
+
   const capNote = schrodingerCapNote({
     equityYuan: paramsA.equityValue,
     baseYuan: paramsA.annualBaseSalary,
@@ -107,9 +128,14 @@ export default function App() {
           <button className={mode === 'single' ? 'active' : ''} onClick={() => setMode('single')}>
             逛一家
           </button>
-          <button className={mode === 'compare' ? 'active' : ''} onClick={() => setMode('compare')}>
+          <button className={mode === 'compare' ? 'active' : ''} onClick={applyBasketAndCompare}>
             A/B 对比
           </button>
+          {basket.length > 0 && mode !== 'compare' && (
+            <button className="basket-badge" onClick={applyBasketAndCompare}>
+              🧺 对比篮 {basket.length}
+            </button>
+          )}
           <button
             className={mode === 'office' ? 'active' : ''}
             onClick={() => setMode('office')}
@@ -246,7 +272,11 @@ export default function App() {
           )}
           {mode === 'street' ? (
             <Suspense fallback={<div className="office-loading">招聘街区加载中…</div>}>
-              <StreetScene offworkHour={paramsA.offworkTime} onEnterOffice={enterOfficeFromStreet} />
+              <StreetScene
+                offworkHour={paramsA.offworkTime}
+                onEnterOffice={enterOfficeFromStreet}
+                onAddBasket={addBasket}
+              />
             </Suspense>
           ) : mode === 'office' ? (
             <Suspense
@@ -258,16 +288,20 @@ export default function App() {
             </Suspense>
           ) : mode === 'single' ? (
             <Scene
-              name={fictionalCompanies.find((c) => c.id === presetA)?.name ?? '自定义空间'}
+              name={nameA ? `A · ${nameA}` : fictionalCompanies.find((c) => c.id === presetA)?.name ?? '自定义空间'}
               params={paramsA}
               growthKey={growthKey}
               roam={roam}
             />
           ) : (
             <>
-              <Scene name="A · 我的山" params={paramsA} growthKey={growthKey} />
               <Scene
-                name={`B · ${fictionalCompanies.find((c) => c.id === presetB)?.name ?? '自定义'}`}
+                name={nameA ? `A · ${nameA}` : 'A · 我的山'}
+                params={paramsA}
+                growthKey={growthKey}
+              />
+              <Scene
+                name={nameB ? `B · ${nameB}` : `B · ${fictionalCompanies.find((c) => c.id === presetB)?.name ?? '自定义'}`}
                 params={paramsB}
                 growthKey={growthKey}
               />

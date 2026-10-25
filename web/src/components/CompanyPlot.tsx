@@ -97,13 +97,19 @@ export function CompanyPlot({
       <Html position={[0, 2.6, -2.2]} center distanceFactor={12}>
         <div className="plot-label">{name}</div>
       </Html>
-      {/* 山顶数据浮标：核心金额直接钉在山上（盲审：数据只藏在角落小字） */}
+      {/* 山顶数据浮标：核心金额直接钉在山上 + 引线连到山尖（盲审：视线找不到主体） */}
       {!roam && (
-        <Html position={[-0.5, mountainH + 0.55, -1.5]} center distanceFactor={13}>
-          <div className="peak-tag">
-            ¥{Math.round(totalPackage(params) / 10000)}万 · {params.salaryStructure}薪
-          </div>
-        </Html>
+        <>
+          <mesh position={[-0.5, mountainH + 0.27, -1.5]}>
+            <boxGeometry args={[0.014, 0.56, 0.014]} />
+            <meshBasicMaterial color="#f0883e" />
+          </mesh>
+          <Html position={[-0.5, mountainH + 0.58, -1.5]} center distanceFactor={13}>
+            <div className="peak-tag">
+              ¥{Math.round(totalPackage(params) / 10000)}万 · {params.salaryStructure}薪
+            </div>
+          </Html>
+        </>
       )}
     </group>
   )

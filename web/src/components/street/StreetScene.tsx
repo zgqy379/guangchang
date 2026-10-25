@@ -88,13 +88,13 @@ function StreetLamps() {
   return (
     <>
       <instancedMesh ref={ref} args={[undefined, undefined, mats.length]}>
-        <cylinderGeometry args={[0.05, 0.07, 3.6, 6]} />
-        <meshStandardMaterial color="#39424c" />
+        <cylinderGeometry args={[0.035, 0.05, 3.6, 6]} />
+        <meshStandardMaterial color="#414b56" />
       </instancedMesh>
       {/* 灯头发光（盲审：路灯零发光） */}
       <instancedMesh ref={headRef} args={[undefined, undefined, mats.length]}>
-        <sphereGeometry args={[0.14, 10, 8]} />
-        <meshStandardMaterial color="#ffd9a0" emissive="#ffc46b" emissiveIntensity={2.2} />
+        <sphereGeometry args={[0.17, 10, 8]} />
+        <meshStandardMaterial color="#ffd9a0" emissive="#ffc46b" emissiveIntensity={2.6} />
       </instancedMesh>
     </>
   )
@@ -147,13 +147,51 @@ function ArchWay({ industry, axisX, sign }: { industry: keyof typeof INDUSTRIES;
   )
 }
 
+// 投递飞袋：从玩家位置抛物线飞向摊位（投简历动画）
+function DeliveryFX({
+  d,
+  onDone,
+}: {
+  d: { id: number; from: [number, number]; to: [number, number] }
+  onDone: () => void
+}) {
+  const ref = useRef<THREE.Mesh>(null)
+  const t = useRef(0)
+  useFrame((_, dt) => {
+    t.current += dt
+    const k = Math.min(1, t.current / 0.9)
+    const m = ref.current
+    if (m) {
+      m.position.set(
+        d.from[0] + (d.to[0] - d.from[0]) * k,
+        0.8 + Math.sin(k * Math.PI) * 2.4,
+        d.from[1] + (d.to[1] - d.from[1]) * k
+      )
+      m.rotation.y += dt * 9
+    }
+    if (k >= 1) onDone()
+  })
+  return (
+    <mesh ref={ref}>
+      <boxGeometry args={[0.24, 0.09, 0.16]} />
+      <meshStandardMaterial color="#c23a2b" emissive="#c23a2b" emissiveIntensity={0.45} />
+    </mesh>
+  )
+}
+
 // ---------- 就近名片：单实例 Html 跟随最近摊位 ----------
 function NearestLotCard({
   refs,
   onEnterOffice,
+  onDeliver,
+  onAddBasket,
+  delivered,
 }: {
   refs: RoamRefs
   onEnterOffice: (lot: Lot) => void
+  onDeliver: (lot: Lot) => void
+  onAddBasket: (lot: Lot) => void
+  delivered: Set<string>
 }) {
   const [near, setNear] = useState<Lot | null>(null)
   const cooldown = useRef(0)
@@ -190,7 +228,18 @@ function NearestLotCard({
         <div className="lot-card-tag">{near.tagline}</div>
         <div className="lot-card-actions">
           <button onClick={() => onEnterOffice(near)}>🏢 进办公室参观</button>
-          <button className="ghost">📮 投简历</button>
+          {delivered.has(near.id) ? (
+            <button className="ghost" disabled>
+              ✓ 已投递
+            </button>
+          ) : (
+            <button className="ghost" onClick={() => onDeliver(near)}>
+              📮 投简历
+            </button>
+          )}
+          <button className="ghost" onClick={() => onAddBasket(near)}>
+            🧺 对比
+          </button>
         </div>
       </div>
     </Html>
@@ -236,9 +285,11 @@ function NavPillar({ refs }: { refs: RoamRefs }) {
 export function StreetScene({
   offworkHour,
   onEnterOffice,
+  onAddBasket,
 }: {
   offworkHour: number
   onEnterOffice: (lot: Lot) => void
+  onAddBasket: (lot: Lot) => void
 }) {
   const positionRef = useRef(new THREE.Vector3(8, 0, 2.6))
   const targetRef = useRef<THREE.Vector3 | null>(null)
@@ -247,6 +298,19 @@ export function StreetScene({
     () => ({ position: positionRef, target: targetRef, teleportTo: teleportRef }),
     []
   )
+  const [deliveries, setDeliveries] = useState<
+    { id: number; from: [number, number]; to: [number, number] }[]
+  >([])
+  const [delivered, setDelivered] = useState<Set<string>>(new Set())
+
+  const handleDeliver = (lot: Lot) => {
+    if (delivered.has(lot.id)) return
+    const p = positionRef.current
+    const pl = placed.find((x) => x.lot.id === lot.id)
+    const to: [number, number] = pl ? [pl.position[0], pl.position[2]] : [0, 0]
+    setDeliveries((d) => [...d, { id: Date.now(), from: [p.x, p.z], to }])
+    setDelivered((s) => new Set([...s, lot.id]))
+  }
 
   const handleGround = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation()
@@ -262,7 +326,7 @@ export function StreetScene({
       <WorkdaySky offworkHour={offworkHour} fogNear={30} fogFar={170} />
       {/* 商业级光照基线：天光半球 + 月光平行光（盲审修复：黑地亮天断裂） */}
       <hemisphereLight args={['#ffb08a', '#1a2040', 0.5]} />
-      <directionalLight position={[12, 14, 8]} color="#8fa8ff" intensity={0.65} />
+      <directionalLight position={[12, 14, 8]} color="#8fa8ff" intensity={0.75} />
       <Roads />
       <StreetLamps />
       <ArchWay industry="internet" axisX sign={1} />
@@ -290,9 +354,9 @@ export function StreetScene({
               <meshStandardMaterial
                 color={INDUSTRIES[ind].color}
                 emissive={INDUSTRIES[ind].color}
-                emissiveIntensity={0.45}
+                emissiveIntensity={0.22}
                 transparent
-                opacity={0.55}
+                opacity={0.32}
               />
             </mesh>
           )
@@ -309,7 +373,16 @@ export function StreetScene({
       </mesh>
       <AvatarActor position={[0, 0, 4.5]} roam refs={refs} bounds={STREET_BOUNDS} />
       <RoamCamera enabled refs={refs} />
-      <NearestLotCard refs={refs} onEnterOffice={onEnterOffice} />
+      <NearestLotCard
+        refs={refs}
+        onEnterOffice={onEnterOffice}
+        onDeliver={handleDeliver}
+        onAddBasket={onAddBasket}
+        delivered={delivered}
+      />
+      {deliveries.map((d) => (
+        <DeliveryFX key={d.id} d={d} onDone={() => setDeliveries((l) => l.filter((x) => x.id !== d.id))} />
+      ))}
       <NavPillar refs={refs} />
       {/* 街区提示 */}
       <Html position={[0, 4.1, 0]} center distanceFactor={16}>
