@@ -61,8 +61,8 @@ export function OfficeViewer({ url }: { url: string }) {
             boxMax[1] - boxMin[1],
             boxMax[2] - boxMin[2]
           )
-          const d = Math.max(2.5, s * 1.15)
-          camera.position.set(c[0] + d * 0.72, c[1] - d * 0.5, c[2] + d * 0.72)
+          const d = Math.max(3.6, s * 1.42)
+          camera.position.set(c[0] + d * 0.78, c[1] - d * 0.42, c[2] + d * 0.78)
           camera.lookAt(new Vector3(c[0], c[1], c[2]))
           console.log('[office] dense box', { boxMin, boxMax, center: c, size: s })
         } catch {

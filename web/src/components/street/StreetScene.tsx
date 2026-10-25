@@ -20,22 +20,22 @@ function Roads() {
     <group>
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.02, 0]} receiveShadow>
         <planeGeometry args={[240, 240]} />
-        <meshStandardMaterial color="#11161c" roughness={1} />
+        <meshStandardMaterial color="#151b22" roughness={1} />
       </mesh>
-      {/* 十字两条路 */}
+      {/* 十字两条路（albedo 提亮一档，盲审：黑地不可读） */}
       {[0, Math.PI / 2].map((rot, i) => (
         <mesh key={i} rotation={[-Math.PI / 2, 0, rot]} position={[0, 0, 0]}>
           <planeGeometry args={[180, 10.4]} />
-          <meshStandardMaterial color="#1a2027" roughness={0.95} />
+          <meshStandardMaterial color="#2b323b" roughness={0.9} />
         </mesh>
       ))}
-      {/* 中央斑马线 */}
+      {/* 中央斑马线（收窄至 0.5m，尺度校正） */}
       {[0, Math.PI / 2].map((rot, i) => (
         <group key={`z${i}`} rotation={[0, rot, 0]}>
-          {[-6.2, -5.6, 5.6, 6.2].map((z) => (
+          {[-6.4, -5.8, -5.2, 5.2, 5.8, 6.4].map((z) => (
             <mesh key={z} rotation={[-Math.PI / 2, 0, 0]} position={[z, 0.005, 0]}>
-              <planeGeometry args={[1.1, 9.6]} />
-              <meshStandardMaterial color="#a8b3bd" opacity={0.4} transparent />
+              <planeGeometry args={[0.5, 9.6]} />
+              <meshStandardMaterial color="#c8d2da" opacity={0.55} transparent />
             </mesh>
           ))}
         </group>
@@ -52,6 +52,7 @@ function Roads() {
 // 路灯（每街两侧 8 盏 × 4 街 = 64，实例化）
 function StreetLamps() {
   const ref = useRef<THREE.InstancedMesh>(null)
+  const headRef = useRef<THREE.InstancedMesh>(null)
   const mats = useMemo(() => {
     const arr: [number, number, number][] = []
     for (const axis of [0, 1]) {
@@ -69,20 +70,32 @@ function StreetLamps() {
   }, [])
   useMemo(() => {
     const m = ref.current
-    if (!m) return
+    const h = headRef.current
+    if (!m || !h) return
     const o = new THREE.Object3D()
     mats.forEach((p, i) => {
       o.position.set(p[0], 1.8, p[2])
       o.updateMatrix()
       m.setMatrixAt(i, o.matrix)
+      o.position.set(p[0], 3.68, p[2])
+      o.updateMatrix()
+      h.setMatrixAt(i, o.matrix)
     })
     m.instanceMatrix.needsUpdate = true
+    h.instanceMatrix.needsUpdate = true
   }, [mats])
   return (
-    <instancedMesh ref={ref} args={[undefined, undefined, mats.length]}>
-      <cylinderGeometry args={[0.05, 0.07, 3.6, 6]} />
-      <meshStandardMaterial color="#39424c" />
-    </instancedMesh>
+    <>
+      <instancedMesh ref={ref} args={[undefined, undefined, mats.length]}>
+        <cylinderGeometry args={[0.05, 0.07, 3.6, 6]} />
+        <meshStandardMaterial color="#39424c" />
+      </instancedMesh>
+      {/* 灯头发光（盲审：路灯零发光） */}
+      <instancedMesh ref={headRef} args={[undefined, undefined, mats.length]}>
+        <sphereGeometry args={[0.14, 10, 8]} />
+        <meshStandardMaterial color="#ffd9a0" emissive="#ffc46b" emissiveIntensity={2.2} />
+      </instancedMesh>
+    </>
   )
 }
 
@@ -193,10 +206,38 @@ export function StreetScene({
   }
 
   return (
-    <Canvas dpr={[1, 2]} camera={{ position: [13, 4.5, 9], fov: 50 }}>
+    <Canvas
+      dpr={[1, 2]}
+      camera={{ position: [13, 4.5, 9], fov: 50 }}
+      gl={{ toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.15 }}
+    >
       <WorkdaySky offworkHour={offworkHour} fogNear={30} fogFar={170} />
+      {/* 商业级光照基线：天光半球 + 月光平行光（盲审修复：黑地亮天断裂） */}
+      <hemisphereLight args={['#ffb08a', '#1a2040', 0.5]} />
+      <directionalLight position={[12, 14, 8]} color="#8fa8ff" intensity={0.65} />
       <Roads />
       <StreetLamps />
+      {/* 地面引导带：四街区域色（动线可读性，盲审修复） */}
+      {placed.length > 0 &&
+        (['internet', 'finance', 'manufacturing', 'culture'] as const).map((ind, i) => {
+          const sign = i < 2 ? 1 : -1
+          const axisX = i % 2 === 0
+          const len = 34
+          const cx = axisX ? (sign * (8 + len / 2)) : 0
+          const cz = axisX ? 0 : sign * (8 + len / 2)
+          return (
+            <mesh key={ind} rotation={[-Math.PI / 2, 0, axisX ? 0 : Math.PI / 2]} position={[cx, 0.02, cz]}>
+              <planeGeometry args={[len, 0.7]} />
+              <meshStandardMaterial
+                color={INDUSTRIES[ind].color}
+                emissive={INDUSTRIES[ind].color}
+                emissiveIntensity={0.45}
+                transparent
+                opacity={0.55}
+              />
+            </mesh>
+          )
+        })}
       {placed.map((pl) => (
         <group key={pl.lot.id} position={pl.position} rotation={[0, pl.rotationY, 0]}>
           <HRStand lot={pl.lot} onEnterOffice={onEnterOffice} />

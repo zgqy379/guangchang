@@ -163,12 +163,99 @@ export function HRStand({ lot, onEnterOffice }: { lot: Lot; onEnterOffice: (lot:
           <meshStandardMaterial color="#8b949e" />
         </mesh>
       </group>
-      {/* 办公空间门面 */}
-      <group position={[0, 0, -3.6]}>
-        <mesh position={[0, 2.5, 0]}>
-          <boxGeometry args={[6.4, 5, 5.2]} />
-          <meshStandardMaterial color="#1d232a" roughness={0.95} />
+      {/* 门前细节（动森式 1m 细节，破同构）：咨询桌 + 地毯 + 区域色侧旗 */}
+      <group position={[1.35, 0, 1.15]}>
+        <mesh position={[0, 0.2, 0]}>
+          <boxGeometry args={[0.95, 0.07, 0.55]} />
+          <meshStandardMaterial color="#3b4450" roughness={0.8} />
         </mesh>
+        <mesh position={[-0.4, 0.1, 0]}>
+          <boxGeometry args={[0.06, 0.2, 0.5]} />
+          <meshStandardMaterial color="#2b323b" />
+        </mesh>
+        <mesh position={[0.4, 0.1, 0]}>
+          <boxGeometry args={[0.06, 0.2, 0.5]} />
+          <meshStandardMaterial color="#2b323b" />
+        </mesh>
+      </group>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0.6, 0.015, 1.9]}>
+        <planeGeometry args={[1.5, 1.0]} />
+        <meshStandardMaterial color={color} roughness={0.95} />
+      </mesh>
+      <group position={[-1.5, 0, -0.4]} rotation={[0, 0, (parseInt(lot.id.slice(-2), 10) % 7) * 0.02 - 0.06]}>
+        <mesh position={[0, 1.55, 0]}>
+          <cylinderGeometry args={[0.03, 0.03, 3.1, 6]} />
+          <meshStandardMaterial color="#39424c" />
+        </mesh>
+        <mesh position={[0.26, 2.5, 0]}>
+          <planeGeometry args={[0.52, 1.5]} />
+          <meshStandardMaterial color={color} side={THREE.DoubleSide} roughness={0.85} />
+        </mesh>
+      </group>
+      {/* 办公空间门面：行业差异化天际线（盲审修复）+ 门楣 LED + 玻璃幕墙 */}
+      <group position={[0, 0, -3.6]}>
+        {(() => {
+          const h =
+            lot.industry === 'internet' ? 8 : lot.industry === 'finance' ? 11.5 : lot.industry === 'manufacturing' ? 4.6 : 4.2
+          return (
+            <>
+              <mesh position={[0, h / 2, 0]}>
+                <boxGeometry args={[6.4, h, 5.2]} />
+                <meshStandardMaterial color="#1d232a" roughness={0.95} />
+              </mesh>
+              {/* 底层玻璃幕墙 */}
+              <mesh position={[0, 1.15, 2.62]}>
+                <planeGeometry args={[5.8, 2.1]} />
+                <meshStandardMaterial color="#12314e" emissive="#1b4a78" emissiveIntensity={0.55} metalness={0.4} roughness={0.25} />
+              </mesh>
+              {/* 门楣 LED（公司名条，行业色发光） */}
+              <mesh position={[0, 2.62, 2.66]}>
+                <boxGeometry args={[2.9, 0.42, 0.1]} />
+                <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.85} />
+              </mesh>
+              {/* 楼层灯带（高层建筑） */}
+              {h > 6 &&
+                [3.6, 5.2, 6.8, 8.4].filter((y) => y < h - 0.6).map((y) => (
+                  <mesh key={y} position={[0, y, 2.63]}>
+                    <planeGeometry args={[6.1, 0.09]} />
+                    <meshStandardMaterial color="#ffd28a" emissive="#ffc46b" emissiveIntensity={0.8} />
+                  </mesh>
+                ))}
+              {/* 屋顶：互联网平顶广告牌 / 金融尖顶 / 智造水塔 / 文创坡顶 */}
+              {lot.industry === 'internet' && (
+                <mesh position={[0, h + 0.6, 0]}>
+                  <boxGeometry args={[3.6, 1.1, 0.3]} />
+                  <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.7} />
+                </mesh>
+              )}
+              {lot.industry === 'finance' && (
+                <mesh position={[0, h + 1.2, 0]}>
+                  <coneGeometry args={[1.1, 2.4, 4]} />
+                  <meshStandardMaterial color="#3a4450" metalness={0.5} roughness={0.35} />
+                </mesh>
+              )}
+              {lot.industry === 'manufacturing' && (
+                <group position={[2.1, h + 0.9, 0.9]}>
+                  <mesh position={[0, 0.5, 0]}>
+                    <cylinderGeometry args={[0.55, 0.62, 1.8, 10]} />
+                    <meshStandardMaterial color="#39424c" roughness={0.85} />
+                  </mesh>
+                  <mesh position={[0, 1.5, 0]}>
+                    <sphereGeometry args={[0.55, 12, 10]} />
+                    <meshStandardMaterial color="#39424c" roughness={0.85} />
+                  </mesh>
+                </group>
+              )}
+              {lot.industry === 'culture' && (
+                <mesh position={[0, h + 0.5, 0]} rotation={[0, Math.PI / 4, 0]}>
+                  <coneGeometry args={[4.6, 1.1, 4]} />
+                  <meshStandardMaterial color="#5a3a3a" roughness={0.9} />
+                </mesh>
+              )}
+            </>
+          )
+        })()}
+        {/* 发光窗（仅低层保留，高层用灯带替代） */}
         {[-2.2, -0.9, 0.9, 2.2].map((wx, i) =>
           [1.4, 2.9].map((wy, j) => (
             <mesh key={`${i}-${j}`} position={[wx, wy, 2.62]}>
@@ -181,12 +268,12 @@ export function HRStand({ lot, onEnterOffice }: { lot: Lot; onEnterOffice: (lot:
             </mesh>
           ))
         )}
-        <mesh position={[0, 1.05, 2.62]}>
+        <mesh position={[0, 1.05, 2.66]}>
           <planeGeometry args={[1.1, 2.1]} />
           <meshStandardMaterial color="#0e2740" emissive="#1f5a96" emissiveIntensity={0.5} />
         </mesh>
         <mesh
-          position={[0, 2.35, 2.64]}
+          position={[0, 2.35, 2.68]}
           onClick={(e) => {
             e.stopPropagation()
             onEnterOffice(lot)
