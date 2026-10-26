@@ -14,9 +14,6 @@ import {
   ColorSceneBooth,
   ColorSceneGate,
   ColorSceneGateDark,
-  ColorSceneMoon,
-  ColorSceneSkin,
-  ColorSceneSun,
   ColorSceneWindow,
   ColorStateInfo,
   ThemeLightGlassHead,
@@ -83,8 +80,8 @@ function applyRimLight(
 }
 
 // 占位 HR 的西装色池（按 hrIndex 分配，避免 64 个摊位同色）
-const OUTFITS = ['#3d4c63', '#4a3b52', '#2f4a45', '#5a4038', '#33465e', '#4a4230', '#3b3b46', '#533a44', '#304c58']
-const HAIRS = ['#1b1b22', '#2a1d18', '#20262f', '#3a2a22', '#151a20']
+export const OUTFITS = ['#3d4c63', '#4a3b52', '#2f4a45', '#5a4038', '#33465e', '#4a4230', '#3b3b46', '#533a44', '#304c58']
+export const HAIRS = ['#1b1b22', '#2a1d18', '#20262f', '#3a2a22', '#151a20']
 
 // 办公楼立面：程序化窗格（同一楼层数 + 同一模式共享纹理，避免 64 份贴图）
 // v4 玻璃数字孪生：mode='day' 画浅色玻璃幕墙（冷白底 + 淡青玻璃 + 结构线框）
@@ -412,64 +409,9 @@ function RealHR({ hrIndex }: { hrIndex: number }) {
   )
 }
 
-// 占位形象（远景/加载中/真 GLB 未修好前）：低模人形，按 hrIndex 换西装与发型
-function PlaceholderHR({
-  color,
-  night,
-  hrIndex,
-}: {
-  color: string
-  night: boolean
-  hrIndex: number
-}) {
-  const outfit = OUTFITS[hrIndex % OUTFITS.length]
-  const hair = HAIRS[hrIndex % HAIRS.length]
-  const h = 0.96 + (hrIndex % 5) * 0.015
-  return (
-    <group scale={[1, h, 1]}>
-      <mesh position={[-0.22, 0.88, 0]} rotation={[0, 0, 0.16]}>
-        <capsuleGeometry args={[0.055, 0.42, 4, 8]} />
-        <meshStandardMaterial color={outfit} roughness={0.8} />
-      </mesh>
-      <mesh position={[0.22, 0.88, 0]} rotation={[0, 0, -0.16]}>
-        <capsuleGeometry args={[0.055, 0.42, 4, 8]} />
-        <meshStandardMaterial color={outfit} roughness={0.8} />
-      </mesh>
-      <mesh position={[0, 0.62, 0]}>
-        <capsuleGeometry args={[0.22, 0.62, 4, 10]} />
-        <meshStandardMaterial color={outfit} roughness={0.75} />
-      </mesh>
-      <mesh position={[0, 1.24, 0]}>
-        <sphereGeometry args={[0.185, 16, 14]} />
-        <meshStandardMaterial color={ColorSceneSkin} roughness={0.6} />
-      </mesh>
-      <mesh position={[0, 1.32, -0.01]}>
-        <sphereGeometry args={[0.19, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2]} />
-        <meshStandardMaterial color={hair} roughness={0.9} />
-      </mesh>
-      <mesh position={[-0.062, 1.27, 0.165]}>
-        <sphereGeometry args={[0.022, 8, 8]} />
-        <meshBasicMaterial color="#1b1b22" />
-      </mesh>
-      <mesh position={[0.062, 1.27, 0.165]}>
-        <sphereGeometry args={[0.022, 8, 8]} />
-        <meshBasicMaterial color="#1b1b22" />
-      </mesh>
-      <mesh position={[0, 1.195, 0.176]}>
-        <boxGeometry args={[0.055, 0.012, 0.01]} />
-        <meshBasicMaterial color="#7a4a3a" />
-      </mesh>
-      <mesh position={[0, 0.78, 0.2]}>
-        <boxGeometry args={[0.12, 0.16, 0.02]} />
-        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.4} />
-      </mesh>
-      <mesh position={[0, 1.72, 0]}>
-        <sphereGeometry args={[0.1, 12, 10]} />
-        <meshBasicMaterial color={night ? ColorSceneMoon : ColorSceneSun} />
-      </mesh>
-    </group>
-  )
-}
+// 占位形象（远景/加载中/真 GLB 未修好前）：已迁至 PlaceholderHRs.tsx（InstancedMesh 池，M6a）。
+// 原 PlaceholderHR 每个摊位 11 个独立 mesh（64 摊位 = 704 draw call），现合并为 5 个 InstancedMesh（5 draw call）。
+// 本文件不再直接渲染 PlaceholderHR；远景由 StreetScene 中的 <PlaceholderHRs /> 统一绘制。
 
 // 孪生体玻璃材质缓存：同一 (楼层数, 主题) 共用一个材质实例
 // —— 64 栋楼只占 4 份材质（原来每栋 6 份 → 384 份，且每份一个 draw call）
@@ -571,8 +513,6 @@ export function HRStand({ lot, onEnterOffice, delivered = false, theme = 'dark' 
   const nameTex = useNameTexture(lot.name, lot.industry, lot.lotNo)
   const color = INDUSTRIES[lot.industry].color
   // 参数时间语义：这家公司几点下班（与环境主题无关）
-  const night = lot.params.offworkTime >= 20
-  // 环境主题：决定立面是浅色玻璃幕墙还是夜景
   const envNight = theme === 'dark'
 
   // 雨棚顶色 = 行业色向玻璃色靠拢 → 鸟瞰时四个街区各成一色带（个体识别主线索）
@@ -702,15 +642,13 @@ export function HRStand({ lot, onEnterOffice, delivered = false, theme = 'dark' 
           </mesh>
         </group>
       )}
-      {/* HR 形象（near 时真 GLB，Suspense 加载期回退占位） */}
+      {/* HR 形象（near 时真 GLB；远景占位由 PlaceholderHRs InstancedMesh 池统一绘制，M6a） */}
       <group position={[0, 0.14, 0]}>
         {near ? (
-          <Suspense fallback={<PlaceholderHR color={color} night={night} hrIndex={lot.hrIndex} />}>
+          <Suspense fallback={null}>
             <RealHR hrIndex={lot.hrIndex} />
           </Suspense>
-        ) : (
-          <PlaceholderHR color={color} night={night} hrIndex={lot.hrIndex} />
-        )}
+        ) : null}
       </group>
       {/* 名牌 */}
       <sprite position={[0, 2.72, 0]} scale={[1.72, 0.39, 1]}>

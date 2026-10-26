@@ -20,11 +20,11 @@ const StreetScene = lazy(() =>
   import('./components/street/StreetScene').then((m) => ({ default: m.StreetScene }))
 )
 import { fictionalCompanies, companyById } from './data/fictional-companies'
-import type { Lot } from './data/street-companies'
+import { STREET_LOTS, type Lot } from './data/street-companies'
 import { assetUrl } from './engine/asset'
 import { ErrorBoundary, SceneErrorBoundary } from './state/ErrorBoundary'
 import { RoleGate, type Role } from './components/role/RoleGate'
-import { loadRole, saveRole } from './engine/progress'
+import { loadRole, saveRole, loadBasket, saveBasket } from './engine/progress'
 import './components/role/role-gate.css'
 import {
   systemHour,
@@ -173,11 +173,22 @@ export default function App() {
   }
 
   // 对比篮：街区收两家 → 一键进 A/B（v1.2 新旧模式打通）
-  const [basket, setBasket] = useState<Lot[]>([])
+  const [basket, setBasket] = useState<Lot[]>(() => {
+    const ids = loadBasket()
+    return ids.map((id) => {
+      const lot = STREET_LOTS.find((l) => l.id === id)
+      return lot ?? null
+    }).filter((l): l is Lot => l !== null)
+  })
   const [nameA, setNameA] = useState<string | null>(null)
   const [nameB, setNameB] = useState<string | null>(null)
-  const addBasket = (lot: Lot) =>
-    setBasket((b) => (b.some((x) => x.id === lot.id) ? b : [...b, lot].slice(-2)))
+  const addBasket = (lot: Lot) => {
+    setBasket((prev) => {
+      const next = prev.some((x) => x.id === lot.id) ? prev : [...prev, lot].slice(-2)
+      saveBasket(next.map((l) => l.id))
+      return next
+    })
+  }
   const applyBasketAndCompare = () => {
     if (basket[0]) {
       setParamsA(basket[0].params)

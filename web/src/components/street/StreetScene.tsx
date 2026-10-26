@@ -9,6 +9,7 @@ import { TwinEnvironment } from './TwinEnvironment'
 import { AvatarActor, RoamRefs } from '../AvatarActor'
 import { RoamCamera } from '../RoamCamera'
 import { HRStand, preloadHRModels } from './HRStand'
+import { PlaceholderHRs } from './PlaceholderHRs'
 import { BoothPoles, MoneyStacks } from './BoothProps'
 import { LotBeacons, LotNumberDecals } from './LotMarkers'
 import { NPC } from './NPC'
@@ -1047,6 +1048,9 @@ export function StreetScene({
   const teleportRef = useRef<THREE.Vector3 | null>(null)
   const headingRef = useRef(0.55)
   const focusRef = useRef<THREE.Vector3 | null>(null)
+  const cameraRef = useRef<THREE.Camera | null>(null)
+  /** 近景摊位 id 集合（与 HRStand 的 NEAR=26 一致，用于 PlaceholderHRs 判断哪些实例移出视野） */
+  const nearSetRef = useRef<Set<string>>(new Set())
   const refs = useMemo<RoamRefs>(
     () => ({
       position: positionRef,
@@ -1067,6 +1071,16 @@ export function StreetScene({
   useEffect(() => {
     if (follow) preloadHRModels()
   }, [follow])
+  // 计算近景摊位集合（与 HRStand 的 NEAR=26 一致），供 PlaceholderHRs 判断哪些占位实例移出视野
+  useFrame((state) => {
+    const camPos = state.camera.position
+    const next = new Set<string>()
+    for (const pl of placed) {
+      const d = camPos.distanceTo(new THREE.Vector3(pl.position[0], 0, pl.position[2]))
+      if (d < 26) next.add(pl.lot.id)
+    }
+    nearSetRef.current = next
+  })
   const [deliveries, setDeliveries] = useState<
     { id: number; from: [number, number]; to: [number, number] }[]
   >([])
@@ -1127,6 +1141,7 @@ export function StreetScene({
       shadows
       gl={{ toneMapping: THREE.ACESFilmicToneMapping }}
       onCreated={({ camera, scene, gl }) => {
+        cameraRef.current = camera
         // 场景图诊断钩子（T9 排查工具链沿用）：window.__st / __cam / __gl
         ;(window as unknown as { __st: THREE.Scene; __cam: THREE.Camera; __gl: THREE.WebGLRenderer }).__st = scene
         ;(window as unknown as { __st: THREE.Scene; __cam: THREE.Camera; __gl: THREE.WebGLRenderer }).__cam = camera
@@ -1185,6 +1200,13 @@ export function StreetScene({
           <HRStand lot={pl.lot} onEnterOffice={onEnterOffice} delivered={delivered.has(pl.lot.id)} theme={theme} />
         </group>
       ))}
+      {/* M6a：远景占位人形 InstancedMesh 池（替代每个摊位 11 个独立 mesh 的 PlaceholderHR） */}
+      <PlaceholderHRs
+        placements={placed}
+        cameraPosition={cameraRef.current?.position ?? new THREE.Vector3()}
+        near={nearSetRef.current}
+        night={theme === 'dark'}
+      />
       {/* 个体识别：地面编号牌（01–64）+ 行业色信标鳍 —— 共 2 个 draw call */}
       <LotNumberDecals />
       <LotBeacons />
