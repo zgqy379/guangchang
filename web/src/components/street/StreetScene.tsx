@@ -48,24 +48,9 @@ import {
   TwinGroundRoughnessDay,
 } from '../../../generated/design-tokens.output.mjs'
 import type { ThemeName } from '../../engine/theme'
-
-const PROGRESS_KEY = 'gc-street-progress-v1'
-
-function loadProgress(): { delivered: string[]; visited: string[] } {
-  try {
-    const raw = localStorage.getItem(PROGRESS_KEY)
-    if (raw) {
-      const p = JSON.parse(raw) as { delivered?: unknown; visited?: unknown }
-      return {
-        delivered: Array.isArray(p.delivered) ? (p.delivered as string[]) : [],
-        visited: Array.isArray(p.visited) ? (p.visited as string[]) : [],
-      }
-    }
-  } catch {
-    /* 隐私模式下 localStorage 不可用，退回空进度 */
-  }
-  return { delivered: [], visited: [] }
-}
+// 进度读写统一走 engine/progress.ts（另一路新建的持久化层）。
+// 键名与结构与原来的 'gc-street-progress-v1' 完全一致 → 既有进度不丢、无需迁移。
+import { loadStreetProgress, saveStreetProgress } from '../../engine/progress'
 
 const placed = placeLots()
 const fmtClock = (h: number) => `${String(Math.floor(h)).padStart(2, '0')}:${h % 1 ? '30' : '00'}`
@@ -1085,16 +1070,12 @@ export function StreetScene({
   const [deliveries, setDeliveries] = useState<
     { id: number; from: [number, number]; to: [number, number] }[]
   >([])
-  const [initialProgress] = useState(loadProgress)
+  const [initialProgress] = useState(loadStreetProgress)
   const [delivered, setDelivered] = useState<Set<string>>(() => new Set(initialProgress.delivered))
   const [visited, setVisited] = useState<string[]>(initialProgress.visited)
   const [xpFlash, setXpFlash] = useState(0)
   useEffect(() => {
-    try {
-      localStorage.setItem(PROGRESS_KEY, JSON.stringify({ delivered: [...delivered], visited }))
-    } catch {
-      /* 隐私模式下不可写，忽略 */
-    }
+    saveStreetProgress({ delivered: [...delivered], visited })
   }, [delivered, visited])
   const [nearLot, setNearLot] = useState<Lot | null>(null)
   const [toast, setToast] = useState<{ id: number; text: string } | null>(null)

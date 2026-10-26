@@ -9,11 +9,11 @@
       "drawCalls": 2146,
       "drawCallsMin": 2146,
       "triangles": 1529264,
-      "fps": 32.4,
+      "fps": 41.2,
       "fpsRounds": [
-        34.6,
-        32.4,
-        27.9
+        42.7,
+        41.2,
+        38.8
       ],
       "memory": {
         "geometries": 2086,
@@ -25,17 +25,17 @@
     },
     {
       "tag": "walk(越肩)",
-      "drawCalls": 706,
+      "drawCalls": 709,
       "drawCallsMin": 326,
       "triangles": 7981837,
-      "fps": 38.9,
+      "fps": 36.9,
       "fpsRounds": [
-        39.1,
-        38.9,
-        37.7
+        37.2,
+        36.9,
+        35.6
       ],
       "memory": {
-        "geometries": 2052,
+        "geometries": 2054,
         "textures": 150,
         "programs": 57
       },
@@ -47,14 +47,14 @@
       "drawCalls": 709,
       "drawCallsMin": 709,
       "triangles": 7719573,
-      "fps": 36,
+      "fps": 33.9,
       "fpsRounds": [
-        36.8,
-        36,
-        31.9
+        39.7,
+        33.9,
+        31
       ],
       "memory": {
-        "geometries": 2052,
+        "geometries": 2054,
         "textures": 150,
         "programs": 57
       },
@@ -64,13 +64,13 @@
     {
       "tag": "deliver(投递)",
       "drawCalls": 712,
-      "drawCallsMin": 712,
+      "drawCallsMin": 711,
       "triangles": 7994151,
-      "fps": 40,
+      "fps": 33.9,
       "fpsRounds": [
-        42,
-        40,
-        36.9
+        40.5,
+        33.9,
+        33.8
       ],
       "memory": {
         "geometries": 2049,
@@ -112,18 +112,48 @@
         "h": 445
       }
     ],
-    "overlaps": [
-      {
-        "a": ".gc-nav",
-        "b": ".nav-stack",
-        "ox": 248,
-        "oy": 445
-      }
-    ],
+    "overlaps": [],
     "clipped": [],
     "small": [],
+    "navParts": [
+      {
+        "cls": "gc-nav-head",
+        "h": 42,
+        "visible": true
+      },
+      {
+        "cls": {},
+        "h": 132,
+        "visible": true
+      },
+      {
+        "cls": "gc-nav-section",
+        "h": 20,
+        "visible": true
+      },
+      {
+        "cls": "gc-nav-list",
+        "h": 72,
+        "visible": true
+      },
+      {
+        "cls": "gc-nav-section",
+        "h": 20,
+        "visible": true
+      },
+      {
+        "cls": "gc-nav-districts",
+        "h": 108,
+        "visible": true
+      }
+    ],
+    "navHeight": 445,
+    "navBottom": 678,
+    "viewportH": 720,
+    "navOverflowsViewport": false,
     "hOverflow": false
   },
+  "mobile": null,
   "consoleErrors": [],
   "out": "E:\\guangchang\\docs\\figures\\street-2026-10-27"
 }

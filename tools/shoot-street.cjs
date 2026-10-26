@@ -19,8 +19,9 @@ const OUT = path.resolve(arg('out', '../docs/figures/street-2026-10-27'))
 const LABEL = arg('label', 'shot')
 const URL = arg('url', 'http://localhost:4173/')
 const THEME = arg('theme', 'light') // light | dark
-const W = 1280
-const H = 720
+const MOBILE = args.includes('--mobile')
+const W = MOBILE ? 390 : Number(arg('w', 1280))
+const H = MOBILE ? 844 : Number(arg('h', 720))
 
 fs.mkdirSync(OUT, { recursive: true })
 
@@ -212,6 +213,7 @@ async function shoot(page, name) {
   // ① 同侧浮层是否重叠（HUD vs 导航器 vs 名片卡）
   // ② SVG 罗盘文字是否被 viewBox 裁切（getBBox 越界）
   // ③ 是否有横向溢出
+  // ④ 导航器面板的高度构成（回答"445px 都花在哪了"）
   const layout = await page.evaluate(() => {
     const rect = (sel) => {
       const el = document.querySelector(sel)
@@ -225,6 +227,10 @@ async function shoot(page, name) {
       for (let j = i + 1; j < boxes.length; j++) {
         const a = boxes[i]
         const b = boxes[j]
+        // 父子关系不算压盖（.gc-nav 是 .nav-stack 的子元素，边界相同是正常的）
+        const aEl = document.querySelector(a.sel)
+        const bEl = document.querySelector(b.sel)
+        if (aEl && bEl && (aEl.contains(bEl) || bEl.contains(aEl))) continue
         const ox = Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x)
         const oy = Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y)
         if (ox > 0 && oy > 0) overlaps.push({ a: a.sel, b: b.sel, ox: Math.round(ox), oy: Math.round(oy) })
@@ -242,22 +248,86 @@ async function shoot(page, name) {
         }
       })
     }
-    // 触控尺寸（≥24px 高）
+    // 触控尺寸（≥22px 高）
     const small = []
-    document.querySelectorAll('.gc-nav button').forEach((b) => {
+    document.querySelectorAll('.gc-nav button, .gc-nav-toggle').forEach((b) => {
       const r = b.getBoundingClientRect()
+      if (r.width === 0 && r.height === 0) return
       if (r.height < 22 || r.width < 22) small.push({ cls: b.className, w: Math.round(r.width), h: Math.round(r.height) })
     })
+    // 导航器高度构成
+    const navParts = []
+    const nav = document.querySelector('.gc-nav')
+    if (nav) {
+      for (const child of nav.children) {
+        const r = child.getBoundingClientRect()
+        navParts.push({
+          cls: child.className || child.tagName,
+          h: Math.round(r.height),
+          visible: r.height > 0,
+        })
+      }
+    }
+    const navRect = nav ? nav.getBoundingClientRect() : null
     return {
       boxes,
       overlaps,
       clipped,
       small,
+      navParts,
+      navHeight: navRect ? Math.round(navRect.height) : -1,
+      navBottom: navRect ? Math.round(navRect.bottom) : -1,
+      viewportH: window.innerHeight,
+      navOverflowsViewport: navRect ? navRect.bottom > window.innerHeight + 1 : false,
       hOverflow: document.documentElement.scrollWidth > window.innerWidth,
     }
   })
   console.log('\n=== LAYOUT ===')
   console.log(JSON.stringify(layout, null, 2))
+
+  // —— 移动端专项（390×844）：折叠圆钮 / 展开浮层 与 名片卡 的关系 ——
+  let mobile = null
+  if (MOBILE) {
+    const measureMobile = () =>
+      page.evaluate(() => {
+        const r = (sel) => {
+          const el = document.querySelector(sel)
+          if (!el) return null
+          const b = el.getBoundingClientRect()
+          return { x: Math.round(b.x), y: Math.round(b.y), w: Math.round(b.width), h: Math.round(b.height) }
+        }
+        const inter = (a, b) =>
+          a && b
+            ? {
+                ox: Math.round(Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x)),
+                oy: Math.round(Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y)),
+              }
+            : null
+        const toggle = r('.gc-nav-toggle')
+        const panel = r('.gc-nav')
+        const card = r('.lot-card-dock')
+        const hud = r('.game-hud')
+        return {
+          toggle,
+          panel,
+          card,
+          hud,
+          toggleVsCard: inter(toggle, card),
+          toggleVsHud: inter(toggle, hud),
+          panelVsCard: inter(panel, card),
+          viewport: { w: window.innerWidth, h: window.innerHeight },
+          hOverflow: document.documentElement.scrollWidth > window.innerWidth,
+        }
+      })
+    mobile = { collapsed: await measureMobile() }
+    await shoot(page, 'mobile-collapsed')
+    await page.click('.gc-nav-toggle')
+    await page.waitForTimeout(700)
+    mobile.expanded = await measureMobile()
+    await shoot(page, 'mobile-expanded')
+    console.log('\n=== MOBILE ===')
+    console.log(JSON.stringify(mobile, null, 2))
+  }
 
   const report = {
     label: LABEL,
@@ -266,6 +336,7 @@ async function shoot(page, name) {
     viewport: `${W}x${H}`,
     metrics: [hero, walk, focus, deliver],
     layout,
+    mobile,
     consoleErrors: errors.slice(0, 10),
     out: OUT,
   }

@@ -1,0 +1,279 @@
+/* ============================================================
+   街区导航器 GcNavigator · 局部样式（2026-10-27 美术攻关）
+   ------------------------------------------------------------
+   为什么单独成文件：styles.css 由另一条并行工作流维护（首屏体积 / ErrorBoundary /
+   玻璃垫底），导航器样式与全局令牌无关，局部化可避免并发冲突、也让归属清晰。
+   由 GameMiniMap.tsx 以 `import './navigator.css'` 引入（Vite 支持 CSS 局部导入）。
+
+   规格来源：docs/design/ui-system-v3.md §8.5（导航器 GcNavigator）+ §9.4（三条布局铁律）
+   ============================================================ */
+
+/* —— 同侧浮层共用一个 flex 栈 ——
+   铁律：右下浮层会增长，不能各自 position:fixed 偏移手避（齿轮压导航器就是这么来的） */
+.nav-stack {
+  position: fixed;
+  right: 12px;
+  bottom: 42px;
+  z-index: 14;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  pointer-events: none;
+}
+.nav-stack > * {
+  pointer-events: auto;
+}
+
+/* —— 导航器面板：液态玻璃 + 垫实底 ——
+   垫实底是关键：--ui-glass-fill 是半透明的，压在 3D 场景上时合成底随背后像素变化，
+   浅色主题压最亮天幕（theme.light.skyHorizon）时次级文字会掉到 4.48:1（不达 AA）。
+   全局 --ui-glass-underlay 由 styles.css 维护（另一路负责），这里给**同值兜底**，
+   保证即使全局变量缺失，导航器也不会退化成"没垫底的玻璃"。
+   ⚠️ 顺序坑：background 简写会重置 background-color，实底必须写在 background 之后。 */
+.gc-nav {
+  --gc-nav-underlay: var(--ui-glass-underlay, rgba(255, 255, 255, 0.86));
+  width: 248px;
+  padding: 10px 12px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--ui-glass-border);
+  background: var(--ui-glass-fill);
+  background-color: var(--gc-nav-underlay);
+  backdrop-filter: blur(18px) saturate(170%);
+  -webkit-backdrop-filter: blur(18px) saturate(170%);
+  box-shadow: var(--ui-shadow);
+  color: var(--ui-ink-primary);
+  transition: background-color 600ms ease, color 600ms ease;
+}
+/* 浅色主题：深玻璃垫实底（合成 ≈ rgb(43,47,58)，次级/弱化文字均 ≥6.9:1） */
+.app[data-theme='light'] .gc-nav {
+  --gc-nav-underlay: var(--ui-glass-underlay, rgba(11, 14, 26, 0.86));
+}
+
+.gc-nav-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.gc-nav-district {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 2px 9px;
+  border: 1px solid;
+  border-radius: 999px;
+}
+.gc-nav-title {
+  font-size: var(--font-size-xs);
+  color: var(--ui-ink-muted);
+  letter-spacing: 0.08em;
+}
+.gc-nav-compass {
+  display: block;
+  margin: 0 auto;
+}
+.gc-nav-section {
+  margin: 7px 0 3px;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--ui-ink-muted);
+  border-top: 1px solid var(--ui-border-soft);
+  padding-top: 5px;
+}
+.gc-nav-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.gc-nav-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 24px;
+  padding: 1px 6px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ui-ink-primary);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+.gc-nav-row:hover {
+  background: var(--ui-surface-hover);
+}
+.gc-nav-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+.gc-nav-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.gc-nav-ind {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ui-ink-muted);
+  flex: 0 0 auto;
+}
+.gc-nav-dist {
+  font-size: 12px;
+  color: var(--ui-ink-secondary);
+  font-variant-numeric: tabular-nums;
+  flex: 0 0 auto;
+  min-width: 34px;
+  text-align: right;
+}
+.gc-nav-state {
+  flex: 0 0 auto;
+  width: 16px;
+  display: inline-grid;
+  place-items: center;
+}
+.gc-nav-state--delivered {
+  color: var(--color-state-success);
+}
+.gc-nav-state--basket {
+  color: var(--color-state-info);
+}
+.gc-nav-state--visited {
+  color: var(--ui-ink-muted);
+}
+.gc-nav-districts {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.gc-nav-district-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 22px; /* ui-system-v3 §8.4：区进度行高 22 */
+  padding: 0 6px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--ui-ink-secondary);
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.gc-nav-district-row:hover {
+  background: var(--ui-surface-hover);
+}
+.gc-nav-district-row.is-active {
+  border-color: var(--ui-border-soft);
+  background: var(--ui-surface);
+  color: var(--ui-ink-primary);
+}
+.gc-nav-ind-name {
+  width: 46px;
+  text-align: left;
+  flex: 0 0 auto;
+}
+.gc-nav-count {
+  width: 34px;
+  font-weight: 700;
+  color: var(--ui-ink-primary);
+  font-variant-numeric: tabular-nums;
+  flex: 0 0 auto;
+}
+.gc-nav-bar {
+  flex: 1;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--ui-surface);
+  overflow: hidden;
+}
+.gc-nav-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+}
+
+/* —— 移动端折叠按钮（ui-system-v3 §8.5：罗盘收为 96px 圆形按钮，点击展开全屏列表）——
+   桌面不显示；移动端默认只露这个圆钮，面板收进全屏浮层。 */
+.gc-nav-toggle {
+  display: none;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  border: 1px solid var(--ui-glass-border);
+  background: var(--ui-glass-fill);
+  background-color: var(--gc-nav-underlay, rgba(11, 14, 26, 0.86));
+  backdrop-filter: blur(16px) saturate(170%);
+  -webkit-backdrop-filter: blur(16px) saturate(170%);
+  box-shadow: var(--ui-shadow);
+  color: var(--ui-ink-primary);
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+}
+.gc-nav-toggle svg {
+  display: block;
+}
+.gc-nav-close {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  .nav-stack {
+    /* 展开态是模态浮层，必须盖住 HUD（z-index 15）：
+       .nav-stack 自己带 z-index → 形成层叠上下文，面板内部的 z-index 只在栈内比较，
+       所以要把整个栈抬到 15 以上（桌面不抬，桌面两者不重叠）。 */
+    z-index: 16;
+    right: 8px;
+    /* 圆钮落在右侧边缘、垂直居中：避开顶部 HUD 与底部名片卡（§8.4 铁律 2 垂直分区）。
+       ⚠️ 这里**不能用 transform: translateY(-50%)** —— 带 transform 的祖先会成为
+       position:fixed 子元素的包含块，导致展开浮层的 inset 相对 .nav-stack 解析
+       （实测面板塌成 80×32 而不是 374×780）。改用 calc(50% - 48px)（48 = 96/2）居中。 */
+    bottom: auto;
+    top: calc(50% - 48px);
+  }
+  .gc-nav-toggle {
+    display: flex;
+  }
+  /* 展开态：全屏列表浮层（盖在名片卡之上，z 更高是**有意的模态**，不是意外压盖） */
+  .gc-nav {
+    display: none;
+    position: fixed;
+    inset: 56px 8px 8px;
+    width: auto;
+    padding: 12px 14px 16px;
+    border-radius: 18px;
+    overflow-y: auto;
+    z-index: 20;
+  }
+  .gc-nav.is-open {
+    display: block;
+  }
+  .gc-nav-close {
+    display: inline-grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1px solid var(--ui-border-soft);
+    background: var(--ui-surface);
+    color: var(--ui-ink-primary);
+    font-size: 15px;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .gc-nav-compass {
+    width: 120px;
+    height: 120px;
+  }
+}

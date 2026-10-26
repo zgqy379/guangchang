@@ -1,13 +1,27 @@
 #!/usr/bin/env node
-// UI 对比度自检（v4 玻璃数字孪生 · 2026-10-26）
+// UI 对比度自检（v4 玻璃数字孪生 · 2026-10-26 起；2026-10-27 扩展为按场景色扫描）
 //
 // 为什么需要这个脚本：
 //   UI 玻璃是**半透明**的，会透出 3D 场景。按"纯白底 / 纯黑底"算对比度会失真——
-//   真实底色是玻璃色与场景色的合成结果。夜间亮玻璃叠深色场景合成后 ≈ rgb(188,189,192)，
-//   白天深玻璃叠浅色场景 ≈ rgb(63,67,79)。文字色阶必须远离这个合成底色。
+//   真实底色是玻璃色与**背后场景色**的合成结果。关键事实：**背景是变量，不是常量**。
+//   同一个玻璃浮层，压在浅色天幕上 vs 压在深色地面上，合成底能差一倍以上。
+//
+// 2026-10-27 的扩展（主理人指出原来的缺陷）：
+//   旧版只用两个"典型底"常量（夜间 rgb(15,20,30) / 白天 rgb(195,205,215)）——
+//   正好漏掉了真实最坏情况：**浅色主题压 theme.light.skyHorizon #f4f8fb** 时，
+//   深玻璃合成底掉到 #4C5059，次级文字 4.48:1 ❌、弱化文字 4.20:1 ❌。
+//   新版**直接读 web/design/tokens.json 里的 theme.light.* / theme.dark.* 实际值**，
+//   对每一个可能的场景底色逐一算合成底，取最坏值 —— 自动发现"压最亮天幕时不达标"。
 //
 // 用法：node tools/check-contrast.mjs
 // 退出码非 0 表示有不达标项（可直接接入 CI / prebuild）
+
+import fs from 'node:fs'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const TOKENS_PATH = path.resolve(__dirname, '../web/design/tokens.json')
 
 function lum(r, g, b) {
   const f = (c) => {
@@ -29,74 +43,92 @@ function blend(fg, alpha, bg) {
   return fg.map((c, i) => Math.round(c * alpha + bg[i] * (1 - alpha)))
 }
 
+/** #rrggbb → [r,g,b] */
+function hexToRgb(hex) {
+  const h = hex.replace('#', '')
+  return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)]
+}
+
 const grade = (r) => (r >= 7 ? 'AAA' : r >= 4.5 ? 'AA' : '✗ 不达标')
 
-// —— 玻璃合成底色（关键：不能用纯白/纯黑） ——
-const NIGHT_SCENE = [15, 20, 30] // 夜间场景典型底（深靛）
-const DAY_SCENE = [195, 205, 215] // 白天场景典型底（冷白玻璃/浅地面）
-const nightGlass = blend([255, 255, 255], 0.72, NIGHT_SCENE)
-const lightGlass = blend([11, 14, 26], 0.72, DAY_SCENE)
-// —— 玻璃垫实底（--ui-glass-underlay）——
-// 新增玻璃浮层（导航器等）必须垫这层实底，否则压最亮天幕时次级文字掉到 4.48:1
-const nightUnderlay = blend([255, 255, 255], 0.86, NIGHT_SCENE)
-const lightUnderlay = blend([11, 14, 26], 0.86, DAY_SCENE)
-// 最坏背景：浅色主题压 skyHorizon(#f4f8fb)，夜间主题压 skyTop(#0a1020)
-const WORST_DAY = [244, 248, 251]
-const WORST_NIGHT = [10, 16, 32]
-const nightUnderlayWorst = blend([255, 255, 255], 0.86, WORST_NIGHT)
-const lightUnderlayWorst = blend([11, 14, 26], 0.86, WORST_DAY)
+// —— 从设计令牌里取真实场景色 ——
+let tokens = null
+try {
+  tokens = JSON.parse(fs.readFileSync(TOKENS_PATH, 'utf8'))
+} catch (e) {
+  console.error(`✗ 读不到设计令牌 ${TOKENS_PATH}：${e.message}`)
+  process.exit(1)
+}
 
-const THEMES = {
-  '夜间主题（亮玻璃 + 深墨字）': {
-    base: nightGlass,
-    underlay: nightUnderlay,
-    underlayWorst: nightUnderlayWorst,
-    ink: {
-      primary: [11, 14, 26], // #0b0e1a
-      secondary: [57, 65, 77], // #39414d
-      muted: [69, 76, 89], // #454c59
-    },
+const themeLight = tokens.theme?.light ?? {}
+const themeDark = tokens.theme?.dark ?? {}
+
+/** 场景里可能被玻璃浮层压住的底色（按亮度排序取最坏） */
+const SCENE_BASES = {
+  light: Object.entries(themeLight)
+    .filter(([, v]) => typeof v?.$value === 'string' && v.$value.startsWith('#'))
+    .map(([k, v]) => ({ name: `theme.light.${k}`, rgb: hexToRgb(v.$value) })),
+  dark: Object.entries(themeDark)
+    .filter(([, v]) => typeof v?.$value === 'string' && v.$value.startsWith('#'))
+    .map(([k, v]) => ({ name: `theme.dark.${k}`, rgb: hexToRgb(v.$value) })),
+}
+
+// —— 玻璃参数（与 styles.css 的实际值一致）——
+const GLASS = {
+  light: { fill: [11, 14, 26], fillAlpha: 0.72, underlay: [11, 14, 26], underlayAlpha: 0.86 },
+  dark: { fill: [255, 255, 255], fillAlpha: 0.72, underlay: [255, 255, 255], underlayAlpha: 0.86 },
+}
+
+const INK = {
+  light: {
+    primary: [230, 237, 243], // #e6edf3
+    secondary: [183, 194, 204], // #b7c2cc
+    muted: [176, 188, 200], // #b0bcc8
   },
-  '白天主题（深玻璃 + 浅色字）': {
-    base: lightGlass,
-    underlay: lightUnderlay,
-    underlayWorst: lightUnderlayWorst,
-    ink: {
-      primary: [230, 237, 243], // #e6edf3
-      secondary: [183, 194, 204], // #b7c2cc
-      muted: [176, 188, 200], // #b0bcc8
-    },
+  dark: {
+    primary: [11, 14, 26], // #0b0e1a
+    secondary: [57, 65, 77], // #39414d
+    muted: [69, 76, 89], // #454c59
   },
 }
 
 let failed = 0
 
-console.log('UI 对比度自检（玻璃底色按半透明合成计算）\n')
-for (const [name, t] of Object.entries(THEMES)) {
-  console.log(`=== ${name} ===`)
-  console.log(`  合成底色 rgb(${t.base.join(',')})`)
-  for (const [k, c] of Object.entries(t.ink)) {
-    const r = ratio(c, t.base)
-    const ok = r >= 4.5
-    if (!ok) failed++
-    console.log(
-      `  ${k.padEnd(10)} rgb(${c.join(',')})`.padEnd(40) +
-        `${r.toFixed(2)}:1  ${grade(r)}`
-    )
+console.log('UI 对比度自检（按设计令牌里的真实场景色扫描，逐个背景取最坏值）\n')
+
+for (const theme of ['light', 'dark']) {
+  const g = GLASS[theme]
+  const ink = INK[theme]
+  const bases = SCENE_BASES[theme]
+  const themeName = theme === 'light' ? '白天主题（深玻璃 + 浅色字）' : '夜间主题（亮玻璃 + 深墨字）'
+  console.log(`=== ${themeName} ===`)
+
+  for (const [mode, alpha, label, gates] of [
+    ['未垫实底', g.fillAlpha, '只有 --ui-glass-fill（.72 半透明）—— 参考值，不参与门禁', false],
+    ['垫实底', g.underlayAlpha, '加了 --ui-glass-underlay —— 新增玻璃浮层必须用这一档', true],
+  ]) {
+    const fg = mode === '未垫实底' ? g.fill : g.underlay
+    console.log(`  —— ${mode}：${label} ——`)
+    // 对每个场景底色算合成底，再对每个文字层级取**最坏**（对比度最低）的那个
+    for (const [k, c] of Object.entries(ink)) {
+      let worst = { r: Infinity, name: '', base: null }
+      for (const b of bases) {
+        const composite = blend(fg, alpha, b.rgb)
+        const r = ratio(c, composite)
+        if (r < worst.r) worst = { r, name: b.name, base: composite }
+      }
+      const ok = worst.r >= 4.5
+      // 只有"垫实底"这一档参与门禁；未垫实底一档是**为什么必须垫底**的论据
+      if (!ok && gates) failed++
+      console.log(
+        `  ${k.padEnd(10)}`.padEnd(14) +
+          `最坏 ${worst.r.toFixed(2)}:1  ${grade(worst.r).padEnd(10)}` +
+          `← 压 ${worst.name}（合成 rgb(${worst.base.join(',')})）` +
+          (gates || ok ? '' : '   ← 不达标即"必须垫实底"的证据')
+      )
+    }
+    console.log('')
   }
-  // 垫实底后的最坏背景验算（新增玻璃浮层的验收口径）
-  console.log(`  —— 垫实底 --ui-glass-underlay 后（最坏背景）——`)
-  console.log(`  合成底色 rgb(${t.underlayWorst.join(',')})`)
-  for (const [k, c] of Object.entries(t.ink)) {
-    const r = ratio(c, t.underlayWorst)
-    const ok = r >= 4.5
-    if (!ok) failed++
-    console.log(
-      `  ${k.padEnd(10)} rgb(${c.join(',')})`.padEnd(40) +
-        `${r.toFixed(2)}:1  ${grade(r)}`
-    )
-  }
-  console.log('')
 }
 
 console.log('=== 品牌色使用约束 ===')
@@ -114,4 +146,4 @@ if (failed) {
   console.error(`✗ 对比度自检失败：${failed} 项不达标`)
   process.exit(1)
 }
-console.log('✓ 对比度自检通过：全部文字组合 ≥ AA (4.5:1)')
+console.log('✓ 对比度自检通过：全部文字组合在**所有场景底色**上均 ≥ AA (4.5:1)')

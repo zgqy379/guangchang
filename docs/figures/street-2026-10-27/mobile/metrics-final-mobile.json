@@ -1,0 +1,246 @@
+{
+  "label": "final-mobile",
+  "url": "http://127.0.0.1:4173/",
+  "theme": "light",
+  "viewport": "390x844",
+  "metrics": [
+    {
+      "tag": "hero(鸟瞰)",
+      "drawCalls": 725,
+      "drawCallsMin": 723,
+      "triangles": 1442188,
+      "fps": 73.5,
+      "fpsRounds": [
+        74.6,
+        73.5,
+        71.9
+      ],
+      "memory": {
+        "geometries": 932,
+        "textures": 47,
+        "programs": 39
+      },
+      "webgl2": true,
+      "renderer": "ANGLE (AMD, AMD Radeon(TM) Graphics (0x00001681) Direct3D11 vs_5_0 ps_5_0, D3D11)"
+    },
+    {
+      "tag": "walk(越肩)",
+      "drawCalls": 475,
+      "drawCallsMin": 125,
+      "triangles": 8248260,
+      "fps": 39.7,
+      "fpsRounds": [
+        40,
+        39.7,
+        36.9
+      ],
+      "memory": {
+        "geometries": 1221,
+        "textures": 115,
+        "programs": 56
+      },
+      "webgl2": true,
+      "renderer": "ANGLE (AMD, AMD Radeon(TM) Graphics (0x00001681) Direct3D11 vs_5_0 ps_5_0, D3D11)"
+    },
+    {
+      "tag": "focus(特写)",
+      "drawCalls": 439,
+      "drawCallsMin": 439,
+      "triangles": 7708801,
+      "fps": 42.9,
+      "fpsRounds": [
+        44.2,
+        42.9,
+        39.8
+      ],
+      "memory": {
+        "geometries": 1223,
+        "textures": 115,
+        "programs": 56
+      },
+      "webgl2": true,
+      "renderer": "ANGLE (AMD, AMD Radeon(TM) Graphics (0x00001681) Direct3D11 vs_5_0 ps_5_0, D3D11)"
+    },
+    {
+      "tag": "deliver(投递)",
+      "drawCalls": 441,
+      "drawCallsMin": 441,
+      "triangles": 7708915,
+      "fps": 36.6,
+      "fpsRounds": [
+        37.7,
+        36.6,
+        33.3
+      ],
+      "memory": {
+        "geometries": 1217,
+        "textures": 116,
+        "programs": 70
+      },
+      "webgl2": true,
+      "renderer": "ANGLE (AMD, AMD Radeon(TM) Graphics (0x00001681) Direct3D11 vs_5_0 ps_5_0, D3D11)"
+    }
+  ],
+  "layout": {
+    "boxes": [
+      {
+        "sel": ".game-hud",
+        "x": 183,
+        "y": 99,
+        "w": 197,
+        "h": 126
+      },
+      {
+        "sel": ".gc-nav",
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      },
+      {
+        "sel": ".lot-card-dock",
+        "x": 16,
+        "y": 638,
+        "w": 358,
+        "h": 168
+      },
+      {
+        "sel": ".nav-stack",
+        "x": 286,
+        "y": 374,
+        "w": 96,
+        "h": 96
+      }
+    ],
+    "overlaps": [],
+    "clipped": [],
+    "small": [],
+    "navParts": [
+      {
+        "cls": "gc-nav-head",
+        "h": 0,
+        "visible": false
+      },
+      {
+        "cls": {},
+        "h": 0,
+        "visible": false
+      },
+      {
+        "cls": "gc-nav-section",
+        "h": 0,
+        "visible": false
+      },
+      {
+        "cls": "gc-nav-list",
+        "h": 0,
+        "visible": false
+      },
+      {
+        "cls": "gc-nav-section",
+        "h": 0,
+        "visible": false
+      },
+      {
+        "cls": "gc-nav-districts",
+        "h": 0,
+        "visible": false
+      }
+    ],
+    "navHeight": 0,
+    "navBottom": 0,
+    "viewportH": 844,
+    "navOverflowsViewport": false,
+    "hOverflow": false
+  },
+  "mobile": {
+    "collapsed": {
+      "toggle": {
+        "x": 286,
+        "y": 374,
+        "w": 96,
+        "h": 96
+      },
+      "panel": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      },
+      "card": {
+        "x": 16,
+        "y": 638,
+        "w": 358,
+        "h": 168
+      },
+      "hud": {
+        "x": 183,
+        "y": 99,
+        "w": 197,
+        "h": 126
+      },
+      "toggleVsCard": {
+        "ox": 88,
+        "oy": -168
+      },
+      "toggleVsHud": {
+        "ox": 94,
+        "oy": -149
+      },
+      "panelVsCard": {
+        "ox": -16,
+        "oy": -638
+      },
+      "viewport": {
+        "w": 390,
+        "h": 844
+      },
+      "hOverflow": false
+    },
+    "expanded": {
+      "toggle": {
+        "x": 286,
+        "y": 374,
+        "w": 96,
+        "h": 96
+      },
+      "panel": {
+        "x": 8,
+        "y": 56,
+        "w": 374,
+        "h": 780
+      },
+      "card": {
+        "x": 16,
+        "y": 638,
+        "w": 358,
+        "h": 168
+      },
+      "hud": {
+        "x": 183,
+        "y": 99,
+        "w": 197,
+        "h": 126
+      },
+      "toggleVsCard": {
+        "ox": 88,
+        "oy": -168
+      },
+      "toggleVsHud": {
+        "ox": 94,
+        "oy": -149
+      },
+      "panelVsCard": {
+        "ox": 358,
+        "oy": 168
+      },
+      "viewport": {
+        "w": 390,
+        "h": 844
+      },
+      "hOverflow": false
+    }
+  },
+  "consoleErrors": [],
+  "out": "E:\\guangchang\\docs\\figures\\street-2026-10-27\\mobile"
+}
