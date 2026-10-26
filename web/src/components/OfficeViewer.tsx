@@ -66,14 +66,15 @@ export function OfficeViewer({ url }: { url: string }) {
               fMax[k] = Math.max(fMax[k], p[k])
             }
           })
-          // dense 中心到全量包围盒最远角的距离 = 必须站在其外的半径
+          // dense 中心到全量包围盒最远角的距离：用于判断"飘点外壳"有多厚
           let radius = 0
           for (const mx of [fMin[0], fMax[0]])
             for (const my of [fMin[1], fMax[1]])
               for (const mz of [fMin[2], fMax[2]])
                 radius = Math.max(radius, Math.hypot(mx - c[0], my - c[1], mz - c[2]))
-
-          const d = Math.max(4.5, radius * 1.9)
+          // 取景取"全量外壳之外"：按 dense box 站近会被飘点糊满屏（实测两种都试过），
+          // 站在外壳外至少能看全整个空间模型，细节靠滚轮缩放
+          const d = Math.max(6, radius * 1.6)
           const inv = 1 / Math.hypot(0.78, 0.42, 0.78)
           camera.position.set(
             c[0] + 0.78 * inv * d,
