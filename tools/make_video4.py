@@ -76,6 +76,8 @@ CAP_FRAMES = int(2.2 * FPS)
 
 CAPDIR = VIDEO / "frames_cap_v8"
 CAPDIR.mkdir(exist_ok=True)
+for old in CAPDIR.glob("f_*.jpg"):
+    old.unlink()
 for i, p in enumerate(files):
     img = Image.open(p)
     for label, start in marks.items():

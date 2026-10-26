@@ -137,3 +137,12 @@
 - **egolite 最小化窗口**：`page.screenshot()` 报 "Cannot capture a screenshot while the window is minimized"，但 `Page.startScreencast` 仍能出帧（录屏不受影响）；要截图先跑 `tools/restore-ego.ps1`
 - **screencast 帧率不是常数**：同一段代码，静态画面 5fps、复杂画面 8-17fps；直接按 12fps 编码会忽快忽慢。必须逐帧记录 `Page.screencastFrame` 的 `metadata.timestamp`，按真实时间重采样到固定 fps（`tools/resample_video.py`），加载遮罩用时间区间剪掉
 - **3DGS 办公室取景**：房间类 splat 机位放在包围盒外只能看到扫描外壳（一团糊墙）；移到室内又容易怼在家具/植物上。当前 `office-promptonly.spz` 扫描质量有限，**视频不剪办公室段落**，报告图也不要再用那张糊墙截图，等换资产/裁剪方案后再上
+
+### 7.8 街区美术收尾（2026-10-26 下午）
+
+- **立面**：`facadeTexture(floors)` 程序化夜景窗格（512²，按楼层数缓存 4 张），用 `boxGeometry` 六个 `attach="material-N"`（四侧贴图 + 顶/底暗色）替换原先每摊 8 片纯色窗——鸟瞰侧墙不再是大黑块，也少 7 个 draw call/摊。夜间窗格用 `MeshBasicMaterial toneMapped={false}`，避免被 ACES 压暗
+- **摊位可识别**：加雨棚（四柱+棚顶+棚下行业色面光）与侧招立柱；投递后棚下变绿 + "✓ 已投递" 浮标，投递在 3D 世界有痕迹
+- **特写机位与雨棚冲突**：棚顶 y=2.36，特写机位若 `p.y+2.8` 会从棚顶往下看被挡；改人眼高度 `p.y+1.85`，并在 `refs.focus && !moving` 时把玩家 `visible=false`（移动立即恢复），否则玩家后背永远挡 HR
+- **路面路牌**：四区名字画进道路（`districtSignTexture`，地面 y=0.026、`depthWrite=false`），配合细引导带（0.16m）比 0.8m 发光带干净
+- **录像合成目录必须先清空**：`frames_cap_v8/` 残留上一轮帧会让片尾卡被顶掉（视频时长对不上）；渲染前删除 `f_*.jpg`
+- **盲审分数因评审而异**：同一批截图三位评审给 6.5/6.1、6.0/6.0、5.5/4.5；共性问题是灯光电影感/摊位识别/地图导航。不要把单一分数当成硬指标，按共性清单逐项收
