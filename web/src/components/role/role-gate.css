@@ -1,0 +1,355 @@
+/* ============================================================
+   首屏角色选择（v1.4 · 双角色体系）
+   ------------------------------------------------------------
+   风格：厂玻璃（Factory Glass）+ 玻璃数字孪生
+   · 玻璃 = 容器（UI 浮层），孪生体 = 内容（3D 场景）—— 首屏用 SVG 剪影
+     预告这个关系，但**不加载任何 3D 资产**
+   · 玻璃垫实底（--ui-glass-underlay），浅色主题压最亮天幕时
+     次级文字会掉到 4.48:1 —— 首屏背景是浅色玻璃层，必须垫
+   · 两张角色卡的冷暖差异由**前景发光体**承担（青粒子 vs 橙钱山），
+     玻璃材质本身两卡共用（同一套材质语言 = 同一个世界的暗示）
+   ============================================================ */
+
+.gc-role-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  /* 不用 flex 做垂直居中：内容高于视口时（移动端两卡竖排），
+     flex 居中会把超高子元素推到视口外上方，滚动也回不来。
+     改用 grid + place-items:center + align-content:safe center，
+     safe 关键字保证溢出时回退到起始对齐（可滚动到全部内容）。 */
+  display: grid;
+  place-items: center;
+  align-content: safe center;
+  overflow-y: auto;
+  padding: 24px 16px;
+  /* 玻璃数字孪生的影棚背板：冷白渐变 + 淡青网格，呼应街区的孪生网格地面 */
+  background:
+    radial-gradient(120% 70% at 50% 0%, rgba(74, 158, 255, 0.10), transparent 60%),
+    radial-gradient(90% 60% at 18% 90%, rgba(22, 192, 182, 0.10), transparent 62%),
+    radial-gradient(90% 60% at 82% 90%, rgba(217, 142, 50, 0.09), transparent 62%),
+    linear-gradient(178deg, #dfe9f2 0%, #eef4f8 46%, #f7fafc 100%);
+  color: #e6edf3;
+}
+
+.app[data-theme='dark'] .gc-role-gate {
+  background:
+    radial-gradient(120% 70% at 50% 0%, rgba(74, 158, 255, 0.12), transparent 60%),
+    radial-gradient(90% 60% at 18% 90%, rgba(22, 192, 182, 0.10), transparent 62%),
+    radial-gradient(90% 60% at 82% 90%, rgba(217, 142, 50, 0.10), transparent 62%),
+    linear-gradient(178deg, #0a1020 0%, #111a30 46%, #080c16 100%);
+  color: #e6edf3;
+}
+
+.gc-role-gate__inner {
+  width: 100%;
+  max-width: 960px;
+  /* 用 margin: auto 在桌面垂直居中；移动端改为 margin: 0 auto（见媒体查询），
+     否则 justify-content: flex-start 时 auto 外边距会把内容推出视口顶部 */
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.gc-role-gate__head {
+  text-align: center;
+  /* 隔离全局 header 样式（styles.css 的 header 是 flex + space-between，
+     若误用 <header> 元素，标题与副标题会被推到左右两端） */
+  display: block;
+}
+
+.gc-role-gate__brand {
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 38px;
+  letter-spacing: 0.02em;
+  /* 显式设色，不依赖继承：body 上的 color 与 .app 的主题反转规则会互相干扰 */
+  color: #e6edf3;
+}
+
+.app[data-theme='light'] .gc-role-gate__brand {
+  color: #0b0e1a;
+}
+
+.gc-role-gate__brand span {
+  display: block;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 20px;
+  opacity: 0.72;
+  margin-top: 2px;
+}
+
+.gc-role-gate__lead {
+  margin: 12px 0 0;
+  font-size: 14px;
+  line-height: 22px;
+  color: #b7c2cc;
+}
+
+.app[data-theme='light'] .gc-role-gate__lead {
+  color: #39414d;
+}
+
+/* ── 两张角色卡 ─────────────────────────────────────────── */
+.gc-role-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.gc-role-card {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  cursor: pointer;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  /* 垫实底 + 玻璃面：background-color 必须写在 background 之后 */
+  background: rgba(255, 255, 255, 0.72);
+  background-color: rgba(11, 14, 26, 0.86);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.85),
+    0 2px 6px -2px rgba(11, 14, 26, 0.28),
+    0 12px 32px -10px rgba(11, 14, 26, 0.45);
+  transition:
+    transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 200ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  color: #e6edf3;
+}
+
+.app[data-theme='light'] .gc-role-card {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(11, 14, 26, 0.72);
+  background-color: rgba(11, 14, 26, 0.86);
+}
+
+.gc-role-card:hover {
+  transform: translateY(-4px);
+  border-color: currentColor;
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.9),
+    0 8px 18px -6px rgba(11, 14, 26, 0.32),
+    0 32px 64px -18px rgba(11, 14, 26, 0.55);
+}
+
+.gc-role-card--candidate { color: #5fd8cf; }
+.gc-role-card--hr { color: #e9a34a; }
+.app[data-theme='light'] .gc-role-card--candidate { color: #5fd8cf; }
+.app[data-theme='light'] .gc-role-card--hr { color: #e9a34a; }
+
+.gc-role-card:active { transform: translateY(-1px) scale(0.995); }
+
+.gc-role-card:focus-visible {
+  outline: 2px solid #c23a2b;
+  outline-offset: 3px;
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.9),
+    0 0 0 4px rgba(194, 58, 43, 0.25),
+    0 12px 32px -10px rgba(11, 14, 26, 0.45);
+}
+
+/* 预览龛：容器里的另一个世界 */
+.gc-role-card__niche {
+  position: relative;
+  aspect-ratio: 320 / 200;
+  overflow: hidden;
+  background: #0b0e1a;
+}
+
+.gc-niche__svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* 取景框收束：CSS 暗角，不压死发光体 */
+.gc-role-card__niche::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 50% 46%, transparent 46%, rgba(11, 14, 26, 0.42) 100%);
+}
+
+.gc-niche__particle {
+  animation: gc-particle 3.2s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+@keyframes gc-particle {
+  0%, 100% { transform: translateY(0); opacity: 0.55; }
+  50% { transform: translateY(-4px); opacity: 0.95; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gc-niche__particle { animation: none; }
+  .gc-role-card { transition: none; }
+  .gc-role-card:hover { transform: none; }
+}
+
+/* 卡片正文 */
+.gc-role-card__body {
+  padding: 16px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.gc-role-card__badge {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: currentColor;
+  /* 用 currentColor 做底会吃掉图标色 → 改用 opacity 叠加，见下 */
+  position: relative;
+}
+
+.gc-role-card__badge svg { position: relative; z-index: 1; }
+.gc-role-card--candidate .gc-role-card__badge { background: rgba(95, 216, 207, 0.16); color: #5fd8cf; }
+.gc-role-card--hr .gc-role-card__badge { background: rgba(233, 163, 74, 0.16); color: #e9a34a; }
+
+.gc-role-card__title {
+  margin: 0;
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 700;
+  color: #e6edf3;
+}
+
+.app[data-theme='light'] .gc-role-card__title { color: #e6edf3; }
+
+.gc-role-card__sub {
+  margin: 0;
+  font-size: 13px;
+  line-height: 20px;
+  color: #b7c2cc;
+}
+
+.gc-role-card__points {
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.gc-role-card__points li {
+  position: relative;
+  padding-left: 16px;
+  font-size: 13px;
+  line-height: 20px;
+  color: #b7c2cc;
+}
+
+.gc-role-card__points li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 7px;
+  width: 6px;
+  height: 6px;
+  border-radius: 2px;
+  background: currentColor;
+}
+
+.gc-role-card__cta {
+  margin-top: 6px;
+  align-self: flex-start;
+  padding: 10px 18px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  background: #c23a2b;
+}
+
+/* ── 底部：默认焦点出口 ─────────────────────────────────── */
+.gc-role-gate__foot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.gc-role-gate__direct {
+  min-height: 44px;
+  padding: 0 24px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  color: #fff;
+  background: #c23a2b;
+  border: none;
+  box-shadow: 0 4px 14px -6px rgba(194, 58, 43, 0.6);
+}
+
+.gc-role-gate__direct:focus-visible {
+  outline: 2px solid #0b0e1a;
+  outline-offset: 3px;
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.55);
+}
+
+.gc-role-gate__remember {
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  cursor: pointer;
+  color: #4a5160;
+  background: rgba(11, 14, 26, 0.06);
+  border: 1px solid rgba(11, 14, 26, 0.12);
+}
+
+.app[data-theme='dark'] .gc-role-gate__remember {
+  color: #b7c2cc;
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.gc-role-gate__hint {
+  margin: 0;
+  font-size: 12px;
+  line-height: 18px;
+  color: #8b949e;
+}
+
+/* ── 响应式 ─────────────────────────────────────────────── */
+@media (max-width: 767px) {
+  .gc-role-gate {
+    padding: 16px 12px;
+    /* 移动端内容高于视口 → 顶部对齐 + 可滚动（safe center 在此已保证不溢出） */
+    place-items: start stretch;
+    align-content: start;
+  }
+  .gc-role-gate__inner {
+    gap: 20px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    margin: 0 auto;
+  }
+  .gc-role-cards { grid-template-columns: 1fr; gap: 14px; }
+  .gc-role-card__title { font-size: 20px; line-height: 28px; }
+  .gc-role-gate__brand { font-size: 24px; line-height: 32px; }
+  .gc-role-gate__lead { font-size: 13px; }
+  .gc-role-gate__foot { margin-top: 4px; }
+}
+
+@media (min-width: 768px) and (max-width: 1279px) {
+  .gc-role-gate__inner { max-width: 860px; }
+}
