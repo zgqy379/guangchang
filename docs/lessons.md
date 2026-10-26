@@ -39,11 +39,14 @@
 3. **部署后必须完整启动验收**（对着线上，不是本地）：DOM 挂载（root 有子节点）+ canvas 存在 + Runtime 零异常。**curl 200 ≠ 应用能跑**（T8 教训）。
 4. 本地 dev 验证不出的坑：base 路径类问题（本地 base 是 `/`）——涉及部署配置的改动，验收必须在线上做。
 5. 私有仓库 GitHub Pages 需要 Pro；公开仓库免费（本项目已转公开，源代码本就是加分提交项）。
+6. **任何运行时第三方 CDN 依赖都要自托管**（T12）：Draco 解码器走 jsDelivr，本地 dev 有缓存看不出来，线上 `draco_wasm_wrapper.js` 直接 `ERR_CONNECTION_CLOSED` → 所有 Draco GLB（玩家/HR/钞票）解析失败、画布全黑。**"我这边能打开"不是验收**，要用新 profile/无缓存 + 真机。
+7. **受限资产连"入口"都不能出现在公开构建里**（T12b）：InteriorGS 的 PLY 早已移出 `web/public/`，但办公室下拉框仍用 `!VITE_PUBLIC_DEPLOY` 判断，而构建从没设过这个变量——公开站点照样列出"真实扫描办公室（InteriorGS 0024 · PLY 57MB）"选项。改为 `import.meta.env.DEV`：只有本地 dev 才出现。同理，受限数据集的**截图**也不能进公开仓库（`docs/iterations/**/*interiorgs*` 已加进 .gitignore）。
 
 ## 四、事故档案（详见 docs/adversarial-review.md 附录）
 
 - **T7**：受限资产二次泄露（数分钟窗口）——根源修复+404 验证；教训→铁律 1
 - **T8**：线上白屏（MSYS 路径转换 + 资产路径不吃 base）——双根源修复+线上复验；教训→铁律 2/3/4
+- **T12 "线上 3D 全黑 + 受限入口泄露"（10.26 合规审计发现）**：真实浏览器打开线上 Demo，画布黑屏、控制台 `ERR_CONNECTION_CLOSED` + `Uncaught (in promise)`（`_initDecoder`）。根因一：四处 `DRACO_PATH` 硬编码 jsDelivr，解码器包装文件拉不到 → 所有 Draco GLB 解析失败（本地 dev 因缓存而看不出来）。根因二：办公室下拉框的受限资产判断用 `!VITE_PUBLIC_DEPLOY`，而该变量从未在构建中设置 → 公开站点仍列出 InteriorGS 选项。修复：Draco 自托管到 `web/public/draco/`（`assetUrl('/draco/')`）、判断改 `import.meta.env.DEV`、受限截图移出公开仓库并加 .gitignore、新增 `THIRD_PARTY_NOTICES.md`。复验：线上 `draco/*.js|wasm` 200、控制台零报错、逛一家/街区/办公室三模式均渲染。**教训→铁律 6/7**
 - **T9 "街区黑屏"**：初进街区全黑。排查弯路：怀疑渲染管线/ack/资源——**真相是初始相机 [13,4.5,9] 落在 lot0 办公楼包围盒内部**（黑盒内部特写=全黑），用户一句"点一下鼠标走出来就有画面"破案。双重教训：①**相机初始位必须对场景所有建筑包围盒做相交验证**（现采用两段式：初始鸟瞰全景 (0,34,26)→首次交互后第三人称跟随）；②**用户的一次真实观察胜过 Agent 的十轮工具推理**——早问用户能省一半排查时间。诊断工具链留存：场景图 dump（Canvas onCreated 挂 `window.__st`）+ 逐组件隐藏二分 + 包围球统计
 
 ## 五、工作流纪律

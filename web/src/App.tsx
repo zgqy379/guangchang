@@ -23,6 +23,14 @@ import { fictionalCompanies, companyById } from './data/fictional-companies'
 import type { Lot } from './data/street-companies'
 import { assetUrl } from './engine/asset'
 
+// 四套 Aholo 生成的办公室 3DGS：街区摊位按行业进入，办公室模式下也可手动切换对比
+const OFFICE_SCENES = [
+  { file: 'finance.spz', label: '金融 · 交易大厅（SpatialGen · SPZ 5.1MB）' },
+  { file: 'manufacturing.spz', label: '智造 · 展厅（SpatialGen · SPZ 4.0MB）' },
+  { file: 'culture.spz', label: '文创 · Loft（SpatialGen · SPZ 3.9MB）' },
+  { file: 'office-promptonly.spz', label: '互联网 · 纯文案生成（World · SPZ 4.1MB）' },
+]
+
 function Scene({
   name,
   params,
@@ -80,7 +88,7 @@ export default function App() {
   const [paramsB, setParamsB] = useState<CompanyParams>(companyById('nebula').params)
   const [presetB, setPresetB] = useState('nebula')
   const [growthKey, setGrowthKey] = useState(0)
-  const [officeScene, setOfficeScene] = useState(assetUrl('/assets/office/office-promptonly.spz'))
+  const [officeScene, setOfficeScene] = useState(assetUrl('/assets/office/finance.spz'))
   const [roam, setRoam] = useState(false)
 
   // 街区名片 → 进办公室参观（v1.2：按行业切换对应 SpatialGen 生成空间）
@@ -167,11 +175,13 @@ export default function App() {
               value={officeScene}
               onChange={(e) => setOfficeScene(e.target.value)}
             >
-              <option value={assetUrl("/assets/office/office-promptonly.spz")}>
-                AI 生成办公室（World · SPZ 4.1MB）
-              </option>
-              {/* InteriorGS 数据集为受限授权（HF gated），公开部署不携带该资产 */}
-              {!import.meta.env.VITE_PUBLIC_DEPLOY && (
+              {OFFICE_SCENES.map((o) => (
+                <option key={o.file} value={assetUrl(`/assets/office/${o.file}`)}>
+                  {o.label}
+                </option>
+              ))}
+              {/* InteriorGS 数据集为受限授权（HF gated）：资产与入口都只在本地 dev 出现，任何生产构建都不暴露 */}
+              {import.meta.env.DEV && (
                 <option value={assetUrl("/assets/office/interiorgs-0024.ply")}>
                   真实扫描办公室（InteriorGS 0024 · PLY 57MB，仅本地版）
                 </option>

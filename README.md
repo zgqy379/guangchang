@@ -4,10 +4,11 @@
 
 **▶ 在线 Demo：<https://zgqy379.github.io/guangchang/>**（单人漫游 · A/B 对比 · 办公室 3DGS 漫游 · 生长动画）
 
-**▶ Demo 视频：<https://zgqy379.github.io/guangchang/demo-video.mp4>**（48s 实机录屏：招聘街区 HUD / 参数碑 / 投递结算 / 对比篮 / 四区巡游）
+**▶ Demo 视频：<https://zgqy379.github.io/guangchang/demo-video.mp4>**（约 40s 实机录屏：招聘街区 HUD / 参数碑 / 投递结算 / 对比篮 / 四区巡游）
 
-- **唯一权威文档**：[`project.md`](./project.md)（v1.1）——所有决策以它最新版为准
+- **唯一权威文档**：[`project.md`](./project.md)（v1.1）——决策与历史以它为准；**最新执行状态见 [`docs/handoff-2026-10-26.md`](./docs/handoff-2026-10-26.md)**
 - **项目报告书**：[`docs/report.pdf`](./docs/report.pdf)（源稿 `report.typ`）
+- **第三方素材授权**：[`THIRD_PARTY_NOTICES.md`](./THIRD_PARTY_NOTICES.md)
 - **提交截止**：2026-11-19 19:00
 
 ## 仓库结构
@@ -37,11 +38,14 @@ npm run dev      # 开发服务器
 npm run build    # 类型检查 + 构建
 ```
 
-Demo 已通（脚手架 v0.1）：词典引擎驱动的 HR 参数面板、Instanced Mesh 钞票山
-（base/增量分层）、薛定谔钞票（含防博弈封顶）、工时天空（夕阳/月亮）、A/B 对比模式。
+Demo v2（招聘街区版）：64 摊位四领域街区、游戏化 HUD 与投递进度、参数碑、
+词典引擎驱动的 HR 参数面板、Instanced Mesh 钞票山（base/增量分层）、薛定谔钞票（含防博弈封顶）、
+工时天空（夕阳/月亮）、A/B 对比模式、Aholo Viewer 办公室 3DGS 漫游。
+Draco 解码器与全部资产自托管，不依赖第三方 CDN（见 `THIRD_PARTY_NOTICES.md`）。
 
 ## 当前进度与下一步
 
-见 `project.md` 9.3 里程碑表。当前最大欠账：**官方报名组队** 与
-**W1 Aholo API 实测**（清单：`docs/w1-api-test-checklist.md`，
-Lux3D 经官方 skill 仓库当天可跑：`github.com/manycore-research/Aholo-Lux3D`）。
+参赛状态：**报名 / 组队 / 提交选题均已完成**（团队 3FO4K4VY3D07，单人队），作品提交入口已开。
+交付物：线上 Demo、Demo 视频、报告书 PDF、源码、魔搭创空间均已就绪。
+待办：**官网正式提交作品**（截止 2026-11-19 19:00）、小红书发布（#Aholo黑客松，5% 传播分）、移动端真机数据。
+最新状态以 [`docs/handoff-2026-10-26.md`](./docs/handoff-2026-10-26.md) 为准。

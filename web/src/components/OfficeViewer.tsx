@@ -45,26 +45,49 @@ export function OfficeViewer({ url }: { url: string }) {
         if (stopped) return
 
         // 3DGS 为 OpenCV 坐标系（-Y 朝上）
-        // 自动取景：按 splat 内容包围盒推导 Dollhouse 角视角（SPZ/PLY 尺度不可控，
-        // 人工位姿会怼墙——2026-10-25 审查修复）
+        // 自动取景：dense box 决定"看什么"，全量点云包围盒决定"站多远"。
+        // 只按 dense box 定距离会把相机留在飘在外围的点云里（画面糊成一片噪点）。
         camera.up.set(0, -1, 0)
         try {
           const operator = new SplatUtils.SplatOperator(splat, data)
           const { boxMin, boxMax } = SplatUtils.computeDenseBox(operator, 0.9)
-          const c = [
+          const c: [number, number, number] = [
             (boxMin[0] + boxMax[0]) / 2,
             (boxMin[1] + boxMax[1]) / 2,
             (boxMin[2] + boxMax[2]) / 2,
           ]
-          const s = Math.max(
-            boxMax[0] - boxMin[0],
-            boxMax[1] - boxMin[1],
-            boxMax[2] - boxMin[2]
+
+          let fMin = [Infinity, Infinity, Infinity]
+          let fMax = [-Infinity, -Infinity, -Infinity]
+          operator.foreachSplatCenter((_i, x, y, z) => {
+            const p = [x, y, z]
+            for (let k = 0; k < 3; k++) {
+              fMin[k] = Math.min(fMin[k], p[k])
+              fMax[k] = Math.max(fMax[k], p[k])
+            }
+          })
+          // dense 中心到全量包围盒最远角的距离 = 必须站在其外的半径
+          let radius = 0
+          for (const mx of [fMin[0], fMax[0]])
+            for (const my of [fMin[1], fMax[1]])
+              for (const mz of [fMin[2], fMax[2]])
+                radius = Math.max(radius, Math.hypot(mx - c[0], my - c[1], mz - c[2]))
+
+          const d = Math.max(4.5, radius * 1.9)
+          const inv = 1 / Math.hypot(0.78, 0.42, 0.78)
+          camera.position.set(
+            c[0] + 0.78 * inv * d,
+            c[1] - 0.42 * inv * d,
+            c[2] + 0.78 * inv * d
           )
-          const d = Math.max(3.6, s * 1.42)
-          camera.position.set(c[0] + d * 0.78, c[1] - d * 0.42, c[2] + d * 0.78)
           camera.lookAt(new Vector3(c[0], c[1], c[2]))
-          console.log('[office] dense box', { boxMin, boxMax, center: c, size: s })
+          console.log(
+            `[office] dense=[${boxMin.map((v) => v.toFixed(2))}]..[${boxMax
+              .map((v) => v.toFixed(2))
+              .join(',')}] full=[${fMin.map((v) => v.toFixed(2))}]..[${fMax
+              .map((v) => v.toFixed(2))
+              .join(',')}] radius=${radius.toFixed(2)} dist=${d.toFixed(2)}`
+          )
         } catch {
           // 兜底：人工位姿
           camera.position.set(-3.4, -1.4, 2.2)

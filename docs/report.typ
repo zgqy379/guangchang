@@ -22,9 +22,10 @@
   inset: 6pt,
   align: horizon,
   fill: (x, y) => if y == 0 { rgb("#f0f0f0") },
-  [*在线 Demo*], [link("https://zgqy379.github.io/guangchang/")[https://zgqy379.github.io/guangchang/]],
-  [*魔搭创空间*], [link("https://modelscope.cn/studios/zgqy379/guangchang3d")[modelscope.cn/studios/zgqy379/guangchang3d]],
-  [*源代码*], [link("https://github.com/zgqy379/guangchang")[github.com/zgqy379/guangchang]],
+  [*在线 Demo*], [#link("https://zgqy379.github.io/guangchang/")[https://zgqy379.github.io/guangchang/]],
+  [*Demo 视频*], [#link("https://zgqy379.github.io/guangchang/demo-video.mp4")[https://zgqy379.github.io/guangchang/demo-video.mp4]],
+  [*魔搭创空间*], [#link("https://modelscope.cn/studios/zgqy379/guangchang3d")[modelscope.cn/studios/zgqy379/guangchang3d]],
+  [*源代码*], [#link("https://github.com/zgqy379/guangchang")[github.com/zgqy379/guangchang]],
   [*团队*], [必胜客的汉堡最好吃（3FO4K4VY3D07 · 单人）],
 )
 
@@ -62,13 +63,27 @@ v1 是参数可视化单场景；v2 按用户洞察升级为*可逛的招聘会�
   columns: (auto, auto, auto),
   inset: 6pt,
   [*能力*], [*创作过程*], [*项目成果*],
-  [Lux3D 文生 3D], [HR 形象 ×10 全链路（生成→绑骨→Idle 重定向→Draco 压缩 41MB→1.7MB）、求职者形象、逛厂币（真钞 prompt 被内容审核拦截后合规转向虚构币）], [玩家与 HR 的近景 3D 形象（HR 共用玩家 idle 动画）；远景/加载期低模回退],
-  [Lux3D 图生], [W1 实测图生形象 ×2，照片生成自己 3D 形象的链路已打通（Demo 期提供本地后端脚本）], [形象选择器样例],
-  [SpatialGen 世界生成], [纯文案生成四行业办公室（金融交易大厅/智造展厅/文创 Loft）], [四大街区办公空间可进入参观],
+  [Lux3D 文生 3D], [HR 形象生成 10 款、上线 9 款，全链路（生成→绑骨→Idle 重定向→Draco 压缩 41MB→1.7MB）、求职者形象、逛厂币（真钞 prompt 被内容审核拦截后合规转向虚构币）], [玩家与 HR 的近景 3D 形象（HR 共用玩家 idle 动画）；远景/加载期低模回退],
+  [Lux3D 图生], [W1 实测图生形象 ×2，照片生成自己 3D 形象的链路已打通（本地后端脚本，未进公开 Demo）], [公开 Demo 使用预生成形象；自拍原图不入库、不上传],
+  [Aholo API / MCP], [Lux3D 与 World 的批量生成、绑骨、资产回传与参数存档均走官方 API（Key 仅存本地 `.env`）], [迭代存档 `docs/iterations/`（prompt/参数/失败版本全留痕）],
+  [SpatialGen 世界生成], [纯文案生成四行业办公室（互联网/金融交易大厅/智造展厅/文创 Loft）], [四大街区办公空间可进入参观],
   [Aholo Viewer], [3DGS 浏览器选型与接入], [办公室漫游渲染层（SPZ 4-5MB 移动端友好）],
-  [Aholo Reality], [InteriorGS 真实扫描办公室接入与验收], [本地版"真实扫描"来源（受限授权不进公开部署，报告存档）],
+  [Aholo Reality], [照片/视频重建实测：定点全景摇镜因无平移视差失败，待真实行走素材重测；另以 InteriorGS（HF gated 数据集）作真实扫描对照，本地 Viewer 渲染验收], [公开 Demo 不含 Reality 重建结果；受限资产与截图均不随公开仓库/部署分发],
   [LuxReal], [街区大屏宣传片的规划内容源（AI 视频创作）], [大屏组件已就绪，视频资产接入中],
 )
+
+*主要工具与素材授权*：前端与 3D 场景为 React + Vite + three.js / R3F（MIT）；Draco 解码器自托管（Apache-2.0，`web/public/draco/`）；角色 idle/walk 动画来自 Mixamo（Adobe 许可，嵌入 GLB 随项目使用，不作独立动画再分发）；Pexels 5483080 仅用于 World 重建的失败对照测试，未进入公开 Demo；Aholo 生成资产遵循 Aholo 服务条款；完整清单见仓库 `THIRD_PARTY_NOTICES.md`。
+
+#figure(
+  grid(
+    columns: 3,
+    gutter: 6pt,
+    image("iterations/lux3d-avatar/2026-10-26-avatar-v2/preview.png", width: 100%),
+    image("iterations/lux3d-avatar/2026-10-26-avatar-v3/preview.png", width: 100%),
+    image("iterations/lux3d-money/2026-10-25-fantasy-banknote/preview.png", width: 100%),
+  ),
+  caption: [关键资产迭代（Lux3D）：同一 prompt 模板的两次形象生成（风格方差实测 → 锚定筛选，左为最终玩家形象）/ 逛厂币（真钞 prompt 被内容审核拦截后合规转向虚构币）],
+) <fig-iteration>
 
 = 工程事实与诚实声明
 
@@ -76,9 +91,8 @@ v1 是参数可视化单场景；v2 按用户洞察升级为*可逛的招聘会�
 - 防博弈规则写进渲染：期权视觉体积 ≤ base 山 ×2（超出封顶并标注）；base 与增量分色分垒不允许混山
 - 性能：64 摊位 + 4 套 3DGS 按需加载；桌面实测 50–87fps（场景含 2136 draw call 基线，后续以实例化与 LOD 优化）；首屏 gzip 约 305KB
 - *诚实声明（2026-10-26）*：HR 真 GLB ×9 的 *自带 idle clip 是 T-pose*（资产侧问题），近景验收曾整体消失；隔离验证确认 HR 与玩家为同一套 52 根 Mixamo 骨，运行时改用玩家 idle clip 驱动，近景真模已恢复（提包/西装/自然站姿），占位仅用于远景与加载回退。街角办公楼体块穿插已同步修复（摊位起点 10→14m）
-- 安全：API Key 仅存 `.env`（gitignored），历史提交经 `git log -p` 审计无泄漏；受限授权资产（InteriorGS）不进公开部署，公开 URL 验证 404
-- 设计品质由*独立设计评审盲审*持续把关（视觉总监 + 空间设计师，只看截图）；最新独立盲审视觉 5.5 / 空间 4.5（前两轮 6.5/6.1、6.0/6.0），仍未过 7 分门禁；本轮已补夜景窗格、摊位雨棚/侧招、四区路面路牌、投递世界标记与进度条化 HUD。剩余差距集中在电影感灯光/辉光、摊位个体识别度、小地图导航信息，规格与实拍存档 `docs/design/` 与 `docs/figures/`
-- 自评分（按官方权重）：技术栈 27/30 · 有趣 21/25 · 创新 18/20 · 完成度 17/20 · 传播 0/5（小红书待发布）≈ *83/100*
+- 安全与合规：API Key 仅存 `.env`（gitignored），历史提交经 `git log -p` 审计无泄漏；受限授权资产（InteriorGS）及其截图/渲染图均不进公开仓库与公开部署，公开 URL 验证 404；自拍原图不入库，公开 Demo 仅使用预生成形象；Demo 中公司与薪资均为虚构样例
+- 视觉：本轮已补夜景窗格、摊位雨棚/侧招、四区路面路牌、投递世界标记与进度条化 HUD；规格与实拍存档 `docs/design/` 与 `docs/figures/`
 
 = 展望
 

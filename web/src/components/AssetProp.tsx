@@ -5,9 +5,9 @@ import { assetUrl } from '../engine/asset'
 
 // Aholo 生成资产道具：首个真实 Lux3D 产物（逛厂币捆）进 Demo 场景
 // 21MB 原始 GLB 经 gltf-transform（Draco+WebP）压到 2.2MB
-// Draco 解码器走 jsdelivr（国内可达，实测于 10.26）
+// Draco 解码器自托管在 web/public/draco（避免第三方 CDN 单点）
 // 生成模型原始尺寸不可控 → 统一归一化到 targetSize（最大边）
-const DRACO_PATH = 'https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/libs/draco/gltf/'
+const DRACO_PATH = assetUrl('/draco/')
 
 export function AssetProp({
   url,

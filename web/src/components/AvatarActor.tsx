@@ -6,7 +6,7 @@ import { useAnimations, useGLTF } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 import { assetUrl } from '../engine/asset'
 
-const DRACO_PATH = 'https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/libs/draco/gltf/'
+const DRACO_PATH = assetUrl('/draco/')
 const SPEED = 1.35 // m/s，自然步速
 const HEIGHT = 1.6
 

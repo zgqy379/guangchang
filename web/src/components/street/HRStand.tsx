@@ -22,7 +22,7 @@ import {
   ColorStateInfo,
 } from '../../../generated/design-tokens.output.mjs'
 
-const DRACO_PATH = 'https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/libs/draco/gltf/'
+const DRACO_PATH = assetUrl('/draco/')
 const HR_POOL = [
   'hr-f01', 'hr-f02', 'hr-f03', 'hr-f04', 'hr-f05',
   'hr-m01', 'hr-m02', 'hr-m03', 'hr-m04',

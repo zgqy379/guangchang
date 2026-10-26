@@ -6,7 +6,7 @@ import { useFrame } from '@react-three/fiber'
 import { clone as skeletonClone } from 'three/examples/jsm/utils/SkeletonUtils.js'
 import { assetUrl } from '../../engine/asset'
 
-const DRACO_PATH = 'https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/libs/draco/gltf/'
+const DRACO_PATH = assetUrl('/draco/')
 
 export function NPC({ a, b }: { a: [number, number]; b: [number, number] }) {
   const { scene } = useGLTF(assetUrl('/assets/avatar/avatar-idle.glb'), DRACO_PATH)
