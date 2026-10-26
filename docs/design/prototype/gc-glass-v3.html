@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-scene-tone="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>逛厂 UI v3 · 厂玻璃 Factory Glass — 可交互原型</title>
+<style>
+/* ============================================================
+   逛厂 UI v3 原型 · 厂玻璃 Factory Glass
+   令牌与 docs/design/ui-system-v3.md §11 保持一致
+   ============================================================ */
+
+:root {
+  /* —— 玻璃 —— */
+  --glass-fill: rgba(255, 255, 255, 0.72);
+  --glass-fill-strong: rgba(255, 255, 255, 0.86);
+  --glass-fill-weak: rgba(255, 255, 255, 0.48);
+  --glass-fill-deep: rgba(11, 14, 26, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.55);
+  --glass-highlight: rgba(255, 255, 255, 0.85);
+  --glass-blur: 28px;
+  --glass-saturate: 180%;
+
+  /* —— 墨色（玻璃上的文字）—— */
+  --ink-primary: #0b0e1a;
+  --ink-secondary: #4a5160;
+  --ink-muted: #7a8494;
+  --ink-on-brand: #ffffff;
+
+  /* —— 品牌 —— */
+  --brand-red: #ff5a3c;
+  --brand-red-deep: #c23a2b;
+  --brand-gold: #ffd24a;
+  --brand-gold-text: #b8860b;
+  --brand-orange: #f0883e;
+
+  /* —— 状态 —— */
+  --state-success: #1f9d63;
+  --state-info: #4a9eff;
+  --state-warning: #d4a72c;
+
+  /* —— 行业 —— */
+  --industry-internet: #4a9eff;
+  --industry-finance: #d4a72c;
+  --industry-manufacturing: #f0883e;
+  --industry-culture: #c678dd;
+
+  /* —— 阴影 —— */
+  --elevation-glass1: inset 0 1px 0 0 rgba(255,255,255,.85), 0 2px 6px -2px rgba(11,14,26,.28), 0 12px 32px -10px rgba(11,14,26,.45);
+  --elevation-glass2: inset 0 1px 0 0 rgba(255,255,255,.9), 0 4px 10px -3px rgba(11,14,26,.3), 0 20px 44px -14px rgba(11,14,26,.5);
+  --elevation-glass3: inset 0 1px 0 0 rgba(255,255,255,.95), 0 8px 18px -6px rgba(11,14,26,.32), 0 32px 64px -18px rgba(11,14,26,.55);
+
+  /* —— 圆角 —— */
+  --radius-card: 20px;
+  --radius-panel: 24px;
+  --radius-control: 12px;
+  --radius-tile: 14px;
+  --radius-pill: 999px;
+
+  /* —— 动效 —— */
+  --motion-instant: 80ms;
+  --motion-fast: 120ms;
+  --motion-base: 200ms;
+  --motion-soft: 320ms;
+  --motion-exit: 180ms;
+  --ease-in: cubic-bezier(.2,.8,.2,1);
+  --ease-out: cubic-bezier(.4,0,1,1);
+
+  /* —— 字号 —— */
+  --fs-display: 30px; --fs-2xl: 24px; --fs-xl: 20px; --fs-lg: 16px;
+  --fs-md: 14px; --fs-sm: 13px; --fs-xs: 12px; --fs-num: 26px;
+
+  --font: 'PingFang SC', 'Microsoft YaHei', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  font-family: var(--font);
+  background: #070a12;
+  color: var(--ink-primary);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ============ 舞台：模拟夜景街区（纯 CSS，用于验证玻璃效果） ============ */
+.stage {
+  position: fixed; inset: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(120% 80% at 50% 110%, rgba(255, 210, 74, .10), transparent 60%),
+    radial-gradient(90% 60% at 22% 30%, rgba(74, 158, 255, .16), transparent 62%),
+    radial-gradient(90% 60% at 82% 22%, rgba(198, 120, 221, .14), transparent 60%),
+    radial-gradient(70% 50% at 50% 48%, rgba(255, 210, 74, .08), transparent 70%),
+    linear-gradient(178deg, #0a1020 0%, #0d1424 42%, #080c16 100%);
+}
+.scene-label {
+  position: absolute; left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  color: rgba(230, 237, 243, .05);
+  font-size: 108px; font-weight: 800; letter-spacing: .18em;
+  white-space: nowrap; pointer-events: none; user-select: none;
+}
+/* 模拟楼宇窗光 */
+.buildings { position: absolute; inset: 0; }
+.bldg { position: absolute; border-radius: 2px; }
+.bldg i {
+  position: absolute; display: block; border-radius: 1px;
+  background: rgba(255, 196, 107, .5);
+  animation: winFlicker 6s var(--ease-in) infinite alternate;
+}
+@keyframes winFlicker { from { opacity: .35 } to { opacity: .9 } }
+.vignette {
+  position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse at 50% 45%, transparent 48%, rgba(0,0,0,.55) 100%);
+}
+/* 地面引导带 */
+.guideband {
+  position: absolute; left: 50%; bottom: 22%;
+  width: 46%; height: 2px; transform: translateX(-50%);
+  background: linear-gradient(90deg, transparent, rgba(74,158,255,.85), transparent);
+  filter: blur(.4px);
+}
+
+/* ============ 玻璃基座 ============ */
+.glass {
+  position: relative;
+  background: linear-gradient(180deg,
+    rgba(255,255,255,.82) 0%,
+    rgba(255,255,255,.70) 48%,
+    rgba(255,255,255,.60) 100%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--elevation-glass1);
+  color: var(--ink-primary);
+}
+.glass::before {
+  content: ''; position: absolute; inset: 0; border-radius: inherit;
+  background: linear-gradient(115deg,
+    rgba(255,255,255,.42) 0%, rgba(255,255,255,0) 38%,
+    rgba(255,255,255,0) 70%, rgba(255,255,255,.16) 100%);
+  pointer-events: none;
+}
+.glass--deep {
+  background: var(--glass-fill-deep);
+  border-color: rgba(255,255,255,.18);
+  color: #e6edf3;
+}
+
+/* ============ 顶栏 ============ */
+.topbar {
+  position: fixed; top: 0; left: 0; right: 0; height: 56px;
+  z-index: 40;
+  display: flex; align-items: center; gap: 16px;
+  padding: 0 16px;
+  background: linear-gradient(180deg, rgba(255,255,255,.86), rgba(255,255,255,.70));
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  border-bottom: 1px solid rgba(11,14,26,.08);
+  box-shadow: 0 2px 14px -6px rgba(11,14,26,.35);
+}
+.brand { display: flex; align-items: baseline; gap: 10px; }
+.brand b { font-size: var(--fs-xl); font-weight: 800; letter-spacing: .02em; }
+.brand span { font-size: var(--fs-sm); color: var(--ink-secondary); }
+.nav { display: flex; gap: 4px; margin-left: 8px; }
+.nav button {
+  height: 36px; padding: 0 14px; border: 0; border-radius: var(--radius-pill);
+  background: transparent; color: var(--ink-primary);
+  font-family: var(--font); font-size: var(--fs-sm); font-weight: 600;
+  cursor: pointer; transition: background var(--motion-fast) var(--ease-in);
+}
+.nav button:hover { background: rgba(11,14,26,.06); }
+.nav button[aria-current='page'] { background: var(--ink-primary); color: #fff; }
+.topbar-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.icon-btn {
+  width: 44px; height: 44px; border-radius: var(--radius-pill);
+  border: 1px solid rgba(11,14,26,.10);
+  background: rgba(255,255,255,.55);
+  color: var(--ink-primary);
+  display: grid; place-items: center; cursor: pointer; position: relative;
+  transition: transform var(--motion-instant) var(--ease-in), background var(--motion-fast);
+}
+.icon-btn:hover { background: rgba(255,255,255,.85); }
+.icon-btn:active { transform: scale(.94); }
+.badge {
+  position: absolute; top: -3px; right: -3px;
+  min-width: 18px; height: 18px; padding: 0 5px;
+  border-radius: var(--radius-pill);
+  background: var(--brand-red-deep); color: #fff;
+  font-size: 10px; font-weight: 800; line-height: 18px; text-align: center;
+  border: 2px solid rgba(255,255,255,.9);
+}
+.avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: linear-gradient(135deg, #4a9eff, #c678dd);
+  color: #fff; display: grid; place-items: center;
+  font-size: var(--fs-xs); font-weight: 800;
+}
+
+/* ============ HUD（右上） ============ */
+.hud {
+  position: fixed; top: 68px; right: 12px; width: 288px;
+  z-index: 30; padding: 14px;
+}
+.hud-title { font-size: var(--fs-xs); color: var(--ink-secondary); letter-spacing: .08em; }
+.hud-row { display: block; }
+.hud-level { font-size: var(--fs-2xl); font-weight: 800; color: var(--brand-gold-text); line-height: 1.15; }
+.hud-xp-wrap { margin: 6px 0 10px; }
+.xp-bar { position: relative; height: 8px; border-radius: var(--radius-pill); background: rgba(11,14,26,.08); overflow: hidden; }
+.xp-fill { height: 100%; border-radius: var(--radius-pill); background: linear-gradient(90deg, var(--brand-red-deep), var(--brand-gold)); transition: width var(--motion-soft) var(--ease-in); }
+.xp-text { margin-top: 4px; font-size: var(--fs-xs); color: var(--ink-secondary); font-variant-numeric: tabular-nums; }
+.hud-counts { display: flex; gap: 10px; padding: 9px 0; border-top: 1px solid rgba(11,14,26,.08); border-bottom: 1px solid rgba(11,14,26,.08); margin-bottom: 9px; }
+.hud-count { flex: 1; }
+.hud-count b { display: block; font-size: var(--fs-md); font-weight: 800; font-variant-numeric: tabular-nums; }
+.hud-count span { font-size: var(--fs-xs); color: var(--ink-secondary); }
+.district-row {
+  display: flex; align-items: center; gap: 7px; height: 24px;
+  border-radius: 8px; padding: 0 4px; margin: 0 -4px;
+  cursor: pointer; transition: background var(--motion-fast) var(--ease-in);
+}
+.district-row:hover { background: rgba(11,14,26,.05); }
+.district-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; box-shadow: 0 0 0 1px rgba(11,14,26,.28); }
+.district-label { width: 52px; font-size: var(--fs-xs); color: var(--ink-secondary); flex: none; }
+.district-count { width: 34px; font-size: var(--fs-xs); font-weight: 800; font-variant-numeric: tabular-nums; flex: none; }
+.district-bar { flex: 1; height: 4px; border-radius: var(--radius-pill); background: rgba(11,14,26,.08); overflow: hidden; }
+.district-bar i { display: block; height: 100%; border-radius: var(--radius-pill); transition: width var(--motion-soft) var(--ease-in); }
+
+/* ============ 名片卡（左下） ============ */
+.company {
+  position: fixed; left: 16px; bottom: 20px; width: 380px; z-index: 32;
+  padding: 16px 16px 14px; overflow: hidden;
+  border-left: 4px solid var(--industry-internet);
+  animation: cardIn var(--motion-base) var(--ease-in);
+}
+@keyframes cardIn { from { opacity: 0; transform: translateY(12px) scale(.96) } to { opacity: 1; transform: none } }
+.company-head { display: flex; align-items: flex-start; gap: 10px; }
+.rarity {
+  width: 28px; height: 28px; border-radius: 8px; flex: none;
+  display: grid; place-items: center; font-size: var(--fs-sm); font-weight: 800;
+  color: var(--ink-primary);
+}
+.company-name { font-size: var(--fs-xl); font-weight: 800; line-height: 1.2; }
+.company-tag { font-size: var(--fs-sm); color: var(--ink-secondary); margin-top: 2px; }
+.industry-chip {
+  margin-left: auto; flex: none;
+  font-size: var(--fs-xs); font-weight: 600;
+  padding: 3px 10px; border-radius: var(--radius-pill);
+}
+.company-stamp {
+  position: absolute; top: 12px; right: 12px;
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--state-success); color: #fff;
+  display: none; place-items: center; font-size: 13px; font-weight: 800;
+  box-shadow: 0 2px 8px rgba(31,157,99,.4);
+}
+.company.is-delivered .company-stamp { display: grid; }
+.tiles { display: flex; gap: 8px; margin: 13px 0 14px; }
+.tile {
+  flex: 1; padding: 9px 10px; border-radius: var(--radius-tile);
+  background: rgba(11,14,26,.05); border: 1px solid rgba(11,14,26,.08);
+}
+.tile-label { font-size: var(--fs-xs); color: var(--ink-secondary); }
+.tile-value { font-size: var(--fs-num); font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; display: flex; align-items: baseline; gap: 3px; }
+.tile-value small { font-size: var(--fs-sm); font-weight: 700; }
+.tile-note { font-size: 11px; color: var(--ink-muted); margin-top: 2px; }
+.moon { display: inline-block; font-size: 13px; margin-left: 2px; }
+.actions { display: flex; gap: 8px; }
+.btn {
+  height: 44px; border-radius: var(--radius-control); border: 0;
+  font-family: var(--font); font-size: var(--fs-sm); font-weight: 600;
+  cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  transition: transform var(--motion-instant) var(--ease-in), filter var(--motion-fast);
+}
+.btn:active { transform: scale(.96); }
+.btn-primary { flex: 1.4; background: var(--brand-red-deep); color: #fff; }
+.btn-primary:hover { filter: brightness(1.08); }
+.btn-ghost { flex: 1; background: rgba(11,14,26,.06); color: var(--ink-primary); }
+.btn-ghost:hover { background: rgba(11,14,26,.10); }
+.btn-circle { width: 44px; flex: none; background: rgba(255,255,255,.6); border: 1px solid rgba(11,14,26,.10); color: var(--ink-primary); }
+.company.is-delivered .btn-primary { background: rgba(11,14,26,.06); color: var(--ink-secondary); cursor: default; }
+
+/* ============ 导航器（右下）+ 演示控制台入口（同一 flex 栈，永不重叠） ============ */
+.nav-stack {
+  position: fixed; right: 12px; bottom: 20px; z-index: 34;
+  display: flex; flex-direction: column; align-items: flex-end; gap: 10px;
+}
+.navigator {
+  width: 248px; padding: 12px; border-bottom-right-radius: 16px;
+}
+.compass { display: block; margin: 0 auto 8px; }
+.nearby-title { font-size: var(--fs-xs); color: var(--ink-secondary); padding: 6px 2px 4px; border-top: 1px solid rgba(11,14,26,.08); }
+.nearby-row {
+  display: flex; align-items: center; gap: 7px; height: 34px;
+  padding: 0 6px; margin: 0 -6px; border-radius: 8px; cursor: pointer;
+  transition: background var(--motion-fast) var(--ease-in);
+}
+.nearby-row:hover { background: rgba(11,14,26,.05); }
+.nearby-row.is-active { background: rgba(11,14,26,.08); }
+.nearby-dot { width: 6px; height: 6px; border-radius: 50%; flex: none; box-shadow: 0 0 0 1px rgba(11,14,26,.3); }
+.nearby-name { font-size: var(--fs-sm); font-weight: 600; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nearby-dist { font-size: var(--fs-xs); color: var(--ink-secondary); font-variant-numeric: tabular-nums; }
+.nearby-state { font-size: 12px; width: 16px; text-align: center; }
+
+/* ============ 对比篮坞（底部居中） ============ */
+.basket-dock {
+  position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); z-index: 33;
+  display: flex; align-items: center; gap: 12px;
+  padding: 8px 10px; border-radius: var(--radius-pill);
+}
+.basket-label { font-size: var(--fs-sm); font-weight: 700; display: flex; align-items: center; gap: 6px; padding-left: 4px; }
+.slot {
+  width: 148px; height: 44px; border-radius: var(--radius-control);
+  display: flex; align-items: center; gap: 6px; padding: 0 10px;
+  font-size: var(--fs-sm);
+}
+.slot.empty { border: 1px dashed rgba(11,14,26,.22); color: var(--ink-muted); justify-content: center; }
+.slot.filled { background: rgba(11,14,26,.05); border: 1px solid rgba(11,14,26,.08); font-weight: 600; }
+.slot .slot-tag { width: 18px; height: 18px; border-radius: 5px; background: var(--ink-primary); color: #fff; font-size: 10px; font-weight: 800; display: grid; place-items: center; flex: none; }
+.slot .slot-x { margin-left: auto; cursor: pointer; color: var(--ink-secondary); font-size: 14px; line-height: 1; padding: 4px; border-radius: 4px; }
+.slot .slot-x:hover { background: rgba(11,14,26,.08); color: var(--ink-primary); }
+.swap { width: 24px; height: 24px; border-radius: 50%; border: 0; background: rgba(11,14,26,.06); color: var(--ink-secondary); cursor: pointer; display: grid; place-items: center; transition: transform var(--motion-base) var(--ease-in); }
+.swap:hover { transform: rotate(180deg); }
+.btn-compare { height: 44px; padding: 0 18px; border-radius: var(--radius-pill); border: 0; background: var(--brand-red-deep); color: #fff; font-family: var(--font); font-size: var(--fs-sm); font-weight: 700; cursor: pointer; }
+.btn-compare:disabled { opacity: .42; cursor: default; }
+
+/* ============ Toast + XP ============ */
+.toast-area { position: fixed; top: 68px; left: 50%; transform: translateX(-50%); z-index: 50; display: flex; flex-direction: column; gap: 8px; align-items: center; pointer-events: none; }
+.toast {
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 18px; border-radius: var(--radius-pill);
+  font-size: var(--fs-md); font-weight: 600; white-space: nowrap;
+  animation: toastIn 220ms var(--ease-in);
+}
+.toast b { color: var(--brand-gold-text); }
+@keyframes toastIn { from { opacity: 0; transform: translateY(-8px) } to { opacity: 1; transform: none } }
+.toast.leaving { animation: toastOut var(--motion-exit) var(--ease-out) forwards; }
+@keyframes toastOut { to { opacity: 0; transform: translateY(-8px) } }
+.xp-float {
+  position: fixed; top: 96px; left: 50%; z-index: 51;
+  margin-left: 92px; color: var(--brand-gold-text);
+  font-size: var(--fs-xl); font-weight: 800;
+  animation: xpUp 900ms var(--ease-out) forwards; pointer-events: none;
+}
+@keyframes xpUp { 0% { opacity: 0; transform: translateY(6px) scale(.9) } 20% { opacity: 1 } 100% { opacity: 0; transform: translateY(-18px) scale(1.05) } }
+
+/* ============ 演示控制台 ============ */
+.demo-toggle {
+  width: 44px; height: 44px; border-radius: 50%;
+  display: grid; place-items: center; cursor: pointer;
+  animation: softPulse 3.2s var(--ease-in) infinite;
+}
+@keyframes softPulse { 0%,100% { box-shadow: var(--elevation-glass1), 0 0 0 0 rgba(255,210,74,.28) } 50% { box-shadow: var(--elevation-glass1), 0 0 0 7px rgba(255,210,74,0) } }
+.demo-panel {
+  position: fixed; right: 12px; bottom: 20px; z-index: 45;
+  width: 280px; padding: 16px;
+  transform: translateX(calc(100% + 20px)); opacity: 0;
+  transition: transform var(--motion-soft) var(--ease-out), opacity var(--motion-base);
+}
+.demo-panel.open { transform: none; opacity: 1; }
+.demo-panel h3 { margin: 0 0 4px; font-size: var(--fs-lg); font-weight: 800; }
+.demo-note { font-size: var(--fs-xs); color: var(--ink-secondary); margin-bottom: 12px; }
+.demo-item {
+  width: 100%; height: 44px; margin-bottom: 6px; padding: 0 12px;
+  border-radius: var(--radius-control); border: 1px solid rgba(11,14,26,.10);
+  background: rgba(255,255,255,.55); color: var(--ink-primary);
+  font-family: var(--font); font-size: var(--fs-sm); font-weight: 600;
+  cursor: pointer; text-align: left; display: flex; align-items: center; gap: 8px;
+}
+.demo-item:hover { background: #fff; }
+.demo-item.active { background: var(--ink-primary); color: #fff; border-color: var(--ink-primary); }
+
+/* ============ 移动端底部 Tab ============ */
+.bottom-tabs { display: none; }
+
+/* ============ 视口切换（原型调试用） ============ */
+.viewport-switch {
+  position: fixed; left: 50%; bottom: 96px; transform: translateX(-50%); z-index: 60;
+  display: flex; gap: 4px; padding: 5px; border-radius: var(--radius-pill);
+}
+.viewport-switch button {
+  height: 30px; padding: 0 14px; border: 0; border-radius: var(--radius-pill);
+  background: transparent; color: var(--ink-primary);
+  font-family: var(--font); font-size: var(--fs-xs); font-weight: 700; cursor: pointer;
+}
+.viewport-switch button[aria-pressed='true'] { background: var(--ink-primary); color: #fff; }
+
+/* ============ 响应式 ============ */
+@media (max-width: 1279px) {
+  .hud { width: 264px; }
+  .company { width: 340px; }
+  .navigator { width: 220px; }
+  .brand span { display: none; }
+}
+@media (max-width: 1023px) {
+  .hud { top: 60px; right: 8px; width: 232px; padding: 11px; }
+  .hud-districts { display: none; }
+  .company { left: 12px; right: 12px; width: auto; bottom: 12px; }
+  .nav-stack { display: none; }
+  .basket-dock { bottom: 14px; }
+}
+@media (max-width: 767px) {
+  .topbar { height: 52px; padding: 0 10px; gap: 8px; }
+  .nav { display: none; }
+  /* HUD 计数条移到顶栏下方，避免与底部名片卡争抢空间 */
+  .hud {
+    top: 58px; bottom: auto;
+    left: 10px; right: 10px; width: auto; padding: 7px 14px;
+    border-radius: var(--radius-pill);
+  }
+  .hud-title, .hud-districts { display: none; }
+  .hud-row { display: flex; align-items: center; gap: 10px; }
+  .hud-level { font-size: var(--fs-lg); flex: none; }
+  .hud-xp-wrap { margin: 0; flex: 0 1 96px; min-width: 56px; }
+  .xp-bar { height: 6px; }
+  .xp-text { margin-top: 3px; font-size: 11px; }
+  .hud-counts {
+    border: 0; padding: 0 0 0 10px; margin: 0; flex: none;
+    border-left: 1px solid rgba(11,14,26,.10);
+    gap: 8px;
+  }
+  .hud-count { display: flex; align-items: baseline; gap: 3px; white-space: nowrap; }
+  .hud-count b { display: inline; font-size: var(--fs-sm); }
+  .hud-count span { font-size: 11px; }
+  .company {
+    left: 10px; right: 10px; bottom: calc(70px + env(safe-area-inset-bottom));
+    width: auto; padding: 13px;
+  }
+  .tiles { gap: 6px; }
+  .tile { padding: 7px 8px; }
+  .tile-value { font-size: 21px; }
+  .actions { flex-wrap: wrap; }
+  .btn-primary { flex: 1 1 100%; }
+  .btn-ghost { flex: 1; }
+  .basket-dock { display: none; }
+  .nav-stack { display: flex; right: 10px; bottom: auto; top: 108px; }
+  .navigator { display: none; }
+  .demo-toggle { width: 44px; height: 44px; }
+  .demo-panel { width: calc(100vw - 24px); }
+  .viewport-switch { bottom: auto; top: 108px; left: 50%; transform: translateX(-50%) scale(.9); }
+  .bottom-tabs {
+    display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 44;
+    height: calc(58px + env(safe-area-inset-bottom));
+    padding-bottom: env(safe-area-inset-bottom);
+    justify-content: space-around; align-items: center;
+  }
+  .bottom-tabs button {
+    flex: 1; height: 52px; border: 0; background: transparent;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+    font-family: var(--font); font-size: 11px; font-weight: 600; color: var(--ink-secondary);
+    cursor: pointer;
+  }
+  .bottom-tabs button[aria-current='page'] { color: var(--brand-red-deep); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- ===== 模拟场景 ===== -->
+<div class="stage">
+  <div class="buildings" id="buildings"></div>
+  <div class="guideband"></div>
+  <div class="scene-label">招聘街区</div>
+  <div class="vignette"></div>
+</div>
+
+<!-- ===== 顶栏 ===== -->
+<header class="topbar">
+  <div class="brand"><b>逛厂</b><span>把画的饼，砌成真的山</span></div>
+  <nav class="nav" aria-label="主导航">
+    <button aria-current="page">招聘街区</button>
+    <button>对比</button>
+    <button>我的</button>
+  </nav>
+  <div class="topbar-right">
+    <button class="icon-btn" aria-label="对比篮" id="basketBtn">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+      <span class="badge" id="basketCount" hidden>0</span>
+    </button>
+    <button class="icon-btn" aria-label="通知">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+    </button>
+    <div class="avatar" title="求职者">我</div>
+  </div>
+</header>
+
+<!-- ===== HUD ===== -->
+<section class="hud glass" aria-label="求职者进度">
+  <div class="hud-title">求职者进度</div>
+  <div class="hud-row">
+    <div class="hud-level" id="hudLevel">Lv.1</div>
+    <div class="hud-xp-wrap">
+      <div class="xp-bar"><div class="xp-fill" id="xpFill" style="width:0%"></div></div>
+      <div class="xp-text" id="xpText">0/50 XP</div>
+    </div>
+    <div class="hud-counts">
+      <div class="hud-count"><b id="cDeliver">0</b><span>投递</span></div>
+      <div class="hud-count"><b id="cBasket">0/2</b><span>对比篮</span></div>
+      <div class="hud-count"><b id="cVisit">0</b><span>已参观</span></div>
+    </div>
+  </div>
+  <div class="hud-districts" id="hudDistricts"></div>
+</section>
+<!-- ===== 名片卡 ===== -->
+<section class="company glass" id="companyCard" aria-label="公司名片">
+  <div class="company-stamp">✓</div>
+  <div class="company-head">
+    <div class="rarity" id="cRarity" style="background:var(--brand-gold)">S</div>
+    <div style="min-width:0">
+      <div class="company-name" id="cName">星链科技</div>
+      <div class="company-tag" id="cTag">扁平管理 · 下午茶</div>
+    </div>
+    <span class="industry-chip" id="cIndustry">互联网区</span>
+  </div>
+  <div class="tiles">
+    <div class="tile">
+      <div class="tile-label">总包</div>
+      <div class="tile-value" id="tSalary">80<small>万</small></div>
+    </div>
+    <div class="tile">
+      <div class="tile-label">下班</div>
+      <div class="tile-value" id="tClock">22:30<span class="moon">🌙</span></div>
+    </div>
+    <div class="tile">
+      <div class="tile-label">缴费基数</div>
+      <div class="tile-value" id="tRatio">0.6</div>
+      <div class="tile-note" id="tRatioNote">= 全额 60%</div>
+    </div>
+  </div>
+  <div class="actions">
+    <button class="btn btn-primary" id="btnDeliver">投个简历</button>
+    <button class="btn btn-ghost" id="btnCompare">对比</button>
+    <button class="btn btn-circle" id="btnVisit" aria-label="参观办公室">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/><path d="M9 9v.01M9 12v.01M9 15v.01M9 18v.01"/></svg>
+    </button>
+  </div>
+</section>
+
+<!-- ===== 导航器 + 演示控制台入口（同一 flex 栈，避免重叠） ===== -->
+<div class="nav-stack">
+  <button class="demo-toggle glass" id="demoToggle" aria-label="演示形态切换">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6h.09A1.65 1.65 0 0 0 10 3.09V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
+  </button>
+  <section class="navigator glass" aria-label="导航器">
+    <svg class="compass" width="132" height="132" viewBox="0 0 132 132" role="img" aria-label="街区罗盘，显示玩家位置与四区方向">
+      <title>街区罗盘</title>
+      <circle cx="66" cy="66" r="50" fill="rgba(11,14,26,.05)" stroke="rgba(11,14,26,.12)"/>
+      <g stroke-width="2" fill="none" stroke-linecap="round">
+        <line x1="66" y1="66" x2="66" y2="22" stroke="#f0883e"/>
+        <line x1="66" y1="66" x2="110" y2="66" stroke="#4a9eff"/>
+        <line x1="66" y1="66" x2="66" y2="110" stroke="#c678dd"/>
+        <line x1="66" y1="66" x2="22" y2="66" stroke="#d4a72c"/>
+      </g>
+      <g font-size="9" font-weight="700" text-anchor="middle" paint-order="stroke" stroke="#fff" stroke-width="2.6" stroke-linejoin="round">
+        <text x="66" y="17" fill="#f0883e">智造</text>
+        <text x="113" y="70" fill="#4a9eff">互联网</text>
+        <text x="66" y="128" fill="#c678dd">文创</text>
+        <text x="19" y="70" fill="#d4a72c">金融</text>
+      </g>
+      <circle cx="66" cy="66" r="5" fill="none" stroke="#0b0e1a" stroke-width="1" opacity=".35"/>
+      <g transform="translate(78 60)">
+        <path d="M0,0 L-16,-27 A 32 32 0 0 1 16,-27 Z" fill="#0b0e1a" opacity=".10"/>
+        <path d="M0,-4 L3.4,3.4 L0,1.6 L-3.4,3.4 Z" fill="#0b0e1a"/>
+      </g>
+      <g id="compassDots"></g>
+    </svg>
+    <div class="nearby-title">附近摊位</div>
+    <div id="nearbyList"></div>
+  </section>
+</div>
+
+<!-- ===== 对比篮坞 ===== -->
+<section class="basket-dock glass" id="basketDock" aria-label="对比篮" hidden>
+  <div class="basket-label">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+    对比篮
+  </div>
+  <div class="slot empty" id="slotA">空位 A</div>
+  <button class="swap" id="swapBtn" aria-label="交换 A/B">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10 3 6l4-4"/><path d="M3 6h18"/><path d="m17 14 4 4-4 4"/><path d="M21 18H3"/></svg>
+  </button>
+  <div class="slot empty" id="slotB">空位 B</div>
+  <button class="btn-compare" id="btnCompareGo" disabled>开始对比 →</button>
+</section>
+
+<aside class="demo-panel glass" id="demoPanel" aria-label="演示形态切换">
+  <h3>演示形态</h3>
+  <div class="demo-note">Demo 形态切换 · 正式版将移除</div>
+  <button class="demo-item">逛一家（单公司空间）</button>
+  <button class="demo-item">A/B 对比</button>
+  <button class="demo-item">办公室漫游</button>
+  <button class="demo-item active">招聘街区</button>
+  <button class="demo-item">▶ 生长动画</button>
+  <button class="demo-item">🚶 漫游模式</button>
+</aside>
+
+<!-- ===== 移动端底部 Tab ===== -->
+<nav class="bottom-tabs glass" aria-label="底部导航">
+  <button aria-current="page">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V9l7-5 7 5v12"/><path d="M10 21v-6h4v6"/></svg>
+    街区
+  </button>
+  <button>
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h7v12H3z"/><path d="M14 6h7v12h-7z"/></svg>
+    对比
+  </button>
+  <button>
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    我的
+  </button>
+</nav>
+
+<!-- ===== Toast / XP ===== -->
+<div class="toast-area" id="toastArea"></div>
+
+<!-- ===== 原型视口切换 ===== -->
+<div class="viewport-switch glass" role="group" aria-label="视口预览">
+  <button data-w="100" aria-pressed="true">桌面</button>
+  <button data-w="900" aria-pressed="false">平板</button>
+  <button data-w="390" aria-pressed="false">手机</button>
+</div>
+
+<script>
+/* ============================================================
+   原型数据与逻辑
+   ============================================================ */
+const INDUSTRY_COLOR = { internet:'#4a9eff', finance:'#d4a72c', manufacturing:'#f0883e', culture:'#c678dd' };
+const INDUSTRY_LABEL = { internet:'互联网区', finance:'金融区', manufacturing:'智造区', culture:'文创区' };
+
+const LOTS = [
+  { id:'internet-0', name:'星链科技', industry:'internet', tagline:'扁平管理 · 下午茶', salary:80, clock:'22:30', ratio:'0.6', dist:12, delivered:false, basket:false },
+  { id:'internet-1', name:'码上互联', industry:'internet', tagline:'技术驱动 · 少开会', salary:52, clock:'21:00', ratio:'full', dist:18, delivered:false, basket:false },
+  { id:'internet-2', name:'云梯数据', industry:'internet', tagline:'期权给力 · 节奏快', salary:96, clock:'23:30', ratio:'0.8', dist:25, delivered:false, basket:false },
+  { id:'internet-3', name:'量子跳动', industry:'internet', tagline:'大牛带教 · 成长快', salary:44, clock:'20:30', ratio:'full', dist:31, delivered:false, basket:false },
+  { id:'finance-0', name:'恒岳资本', industry:'finance', tagline:'平台大 · 起点高', salary:61, clock:'22:00', ratio:'0.8', dist:46, delivered:false, basket:false },
+];
+
+const state = {
+  current: LOTS[0],
+  delivered: new Set(),
+  basket: [],
+  visited: new Set(),
+  perIndustry: { internet:1, finance:0, manufacturing:0, culture:0 },
+  xp: 0,
+};
+
+const XP_PER_DELIVERY = 10, XP_PER_VISIT = 5, XP_PER_LEVEL = 50;
+const $ = (s) => document.querySelector(s);
+
+/* —— 模拟楼宇窗光 —— */
+(function buildScene(){
+  const wrap = $('#buildings');
+  let seed = 7;
+  const rnd = () => (seed = (seed*1103515245+12345) & 0x7fffffff) / 0x7fffffff;
+  for (let b = 0; b < 9; b++){
+    const w = 80 + rnd()*120, h = 180 + rnd()*260;
+    const el = document.createElement('div');
+    el.className = 'bldg';
+    el.style.cssText = `left:${rnd()*100}%; top:${8+rnd()*46}%; width:${w}px; height:${h}px; background:rgba(16,22,36,.72); border:1px solid rgba(255,255,255,.045)`;
+    for (let i = 0; i < 26; i++){
+      const win = document.createElement('i');
+      win.style.cssText = `left:${6+rnd()*(w-16)}px; top:${8+rnd()*(h-24)}px; width:5px; height:8px; animation-delay:${(rnd()*6).toFixed(2)}s`;
+      el.appendChild(win);
+    }
+    wrap.appendChild(el);
+  }
+})();
+
+/* —— 名片卡渲染 —— */
+function renderCompany(){
+  const lot = state.current;
+  const card = $('#companyCard');
+  card.style.borderLeftColor = INDUSTRY_COLOR[lot.industry];
+  $('#cName').textContent = lot.name;
+  $('#cTag').textContent = lot.tagline;
+  const chip = $('#cIndustry');
+  chip.textContent = INDUSTRY_LABEL[lot.industry];
+  chip.style.color = INDUSTRY_COLOR[lot.industry];
+  chip.style.background = INDUSTRY_COLOR[lot.industry] + '1F';
+
+  // 稀有度：总包档位 S≥80 / A≥40 / B
+  const total = lot.salary * 10000;
+  const rar = $('#cRarity');
+  if (total >= 800000){ rar.textContent='S'; rar.style.background='var(--brand-gold)'; rar.style.color='var(--ink-primary)'; }
+  else if (total >= 400000){ rar.textContent='A'; rar.style.background='var(--state-info)'; rar.style.color='var(--ink-primary)'; }
+  else { rar.textContent='B'; rar.style.background='#8B949E'; rar.style.color='#fff'; }
+
+  $('#tSalary').innerHTML = lot.salary + '<small>万</small>';
+  $('#tClock').innerHTML = lot.clock + (lot.clock >= '21:00' ? '<span class="moon">🌙</span>' : '<span class="moon">☀️</span>');
+  $('#tRatio').textContent = lot.ratio;
+  $('#tRatioNote').textContent = lot.ratio === 'full' ? '= 全额 100%' : '= 全额 ' + Math.round(parseFloat(lot.ratio)*100) + '%';
+
+  const delivered = state.delivered.has(lot.id);
+  card.classList.toggle('is-delivered', delivered);
+  const btn = $('#btnDeliver');
+  btn.textContent = delivered ? '已投递 ✓' : '投个简历';
+  btn.disabled = delivered;
+  $('#btnCompare').textContent = state.basket.includes(lot.id)
+    ? (state.basket.indexOf(lot.id) === 0 ? '已在对比篮 A' : '已在对比篮 B')
+    : '对比';
+}
+
+function renderHud(){
+  const level = Math.floor(state.xp / XP_PER_LEVEL) + 1;
+  const inLevel = state.xp % XP_PER_LEVEL;
+  $('#hudLevel').textContent = 'Lv.' + level;
+  $('#xpFill').style.width = (inLevel / XP_PER_LEVEL * 100) + '%';
+  $('#xpText').textContent = inLevel + '/' + XP_PER_LEVEL + ' XP';
+  $('#cDeliver').textContent = state.delivered.size;
+  $('#cBasket').textContent = state.basket.length + '/2';
+  $('#cVisit').textContent = state.visited.size;
+
+  const totals = { internet:16, finance:16, manufacturing:16, culture:16 };
+  $('#hudDistricts').innerHTML = Object.keys(INDUSTRY_LABEL).map(k => {
+    const got = state.perIndustry[k] || 0;
+    return `<div class="district-row" data-ind="${k}" title="传送到${INDUSTRY_LABEL[k]}">
+      <span class="district-dot" style="background:${INDUSTRY_COLOR[k]}"></span>
+      <span class="district-label">${INDUSTRY_LABEL[k].replace('区','')}</span>
+      <span class="district-count">${got}/${totals[k]}</span>
+      <span class="district-bar"><i style="width:${got/totals[k]*100}%;background:${INDUSTRY_COLOR[k]}"></i></span>
+    </div>`;
+  }).join('');
+  $('#hudDistricts').querySelectorAll('.district-row').forEach(el => {
+    el.addEventListener('click', () => toast('已传送到' + INDUSTRY_LABEL[el.dataset.ind]));
+  });
+}
+
+function renderNavigator(){
+  const list = $('#nearbyList');
+  list.innerHTML = LOTS.map(l => {
+    const st = state.delivered.has(l.id) ? '✓' : (state.basket.includes(l.id) ? '🧺' : '');
+    return `<div class="nearby-row ${l.id===state.current.id?'is-active':''}" data-id="${l.id}">
+      <span class="nearby-dot" style="background:${INDUSTRY_COLOR[l.industry]}"></span>
+      <span class="nearby-name">${l.name}</span>
+      <span class="nearby-dist">${l.dist}m</span>
+      <span class="nearby-state">${st}</span>
+    </div>`;
+  }).join('');
+  list.querySelectorAll('.nearby-row').forEach(el => {
+    el.addEventListener('click', () => selectLot(el.dataset.id));
+  });
+
+  // 罗盘摊点（半径 50 的圆内按距离分布）
+  const dots = $('#compassDots');
+  dots.innerHTML = LOTS.map(l => {
+    const ang = { internet:0, finance:180, manufacturing:270, culture:90 }[l.industry];
+    const rad = ang * Math.PI/180;
+    const r = 14 + (l.dist/50)*28;
+    const cx = 66 + Math.cos(rad)*r, cy = 66 - Math.sin(rad)*r;
+    const done = state.delivered.has(l.id);
+    return done
+      ? `<path d="M${cx-3} ${cy} l2 2 l4 -5" stroke="#1f9d63" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`
+      : `<circle cx="${cx}" cy="${cy}" r="${done?3:2.4}" fill="${INDUSTRY_COLOR[l.industry]}" opacity=".9"/>`;
+  }).join('');
+}
+
+function renderBasket(){
+  const dock = $('#basketDock');
+  dock.hidden = state.basket.length === 0;
+  const bc = $('#basketCount');
+  bc.hidden = state.basket.length === 0;
+  bc.textContent = state.basket.length;
+
+  ['A','B'].forEach((tag, i) => {
+    const el = $('#slot' + tag);
+    const id = state.basket[i];
+    if (!id){
+      el.className = 'slot empty';
+      el.textContent = '空位 ' + tag;
+    } else {
+      const lot = LOTS.find(l => l.id === id);
+      el.className = 'slot filled';
+      el.innerHTML = `<span class="slot-tag">${tag}</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${lot.name}</span><span class="slot-x" data-remove="${id}" role="button" aria-label="移除">✕</span>`;
+    }
+  });
+  $('#btnCompareGo').disabled = state.basket.length < 2;
+  el_$$('#basketDock .slot-x').forEach(x => x.addEventListener('click', () => {
+    state.basket = state.basket.filter(i => i !== x.dataset.remove);
+    renderBasket(); renderCompany(); renderHud();
+  }));
+}
+function el_$$(s){ return Array.from(document.querySelectorAll(s)); }
+
+function selectLot(id){
+  state.current = LOTS.find(l => l.id === id);
+  renderCompany(); renderNavigator();
+}
+
+/* —— Toast + XP —— */
+function toast(msg, xp){
+  const area = $('#toastArea');
+  const t = document.createElement('div');
+  t.className = 'toast glass';
+  t.innerHTML = `<span>${msg}</span>` + (xp ? `<b>+${xp} XP</b>` : '');
+  area.appendChild(t);
+  setTimeout(() => { t.classList.add('leaving'); setTimeout(() => t.remove(), 200); }, 2200);
+
+  if (xp){
+    const f = document.createElement('div');
+    f.className = 'xp-float';
+    f.textContent = '+' + xp;
+    document.body.appendChild(f);
+    setTimeout(() => f.remove(), 950);
+  }
+}
+
+/* —— 交互绑定 —— */
+$('#btnDeliver').addEventListener('click', () => {
+  const lot = state.current;
+  if (state.delivered.has(lot.id)) return;
+  state.delivered.add(lot.id);
+  state.xp += XP_PER_DELIVERY;
+  state.perIndustry[lot.industry] = (state.perIndustry[lot.industry]||0) + 1;
+  renderCompany(); renderHud(); renderNavigator();
+  toast('已投给 ' + lot.name, XP_PER_DELIVERY);
+});
+
+$('#btnCompare').addEventListener('click', () => {
+  const lot = state.current;
+  if (state.basket.includes(lot.id)) { toast('已在对比篮中'); return; }
+  if (state.basket.length >= 2) { toast('对比篮满了 — 先移除一家', 0); return; }
+  state.basket.push(lot.id);
+  renderBasket(); renderCompany(); renderHud();
+  toast('已加入对比篮 ' + (state.basket.length===1?'A':'B') + ' 位');
+});
+
+$('#btnVisit').addEventListener('click', () => {
+  const lot = state.current;
+  if (!state.visited.has(lot.id)){
+    state.visited.add(lot.id);
+    state.xp += XP_PER_VISIT;
+    renderHud();
+    toast('参观 ' + lot.name + ' 办公室', XP_PER_VISIT);
+  } else {
+    toast('再次参观 ' + lot.name);
+  }
+});
+
+$('#swapBtn').addEventListener('click', () => {
+  if (state.basket.length < 2) return;
+  [state.basket[0], state.basket[1]] = [state.basket[1], state.basket[0]];
+  renderBasket(); renderCompany();
+});
+
+$('#btnCompareGo').addEventListener('click', () => toast('进入 A/B 对比模式'));
+$('#basketBtn').addEventListener('click', () => toast('对比篮 ' + state.basket.length + '/2'));
+
+$('#demoToggle').addEventListener('click', () => $('#demoPanel').classList.toggle('open'));
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('#demoPanel') && !e.target.closest('#demoToggle')) $('#demoPanel').classList.remove('open');
+});
+el_$$('.demo-item').forEach(b => b.addEventListener('click', () => {
+  el_$$('.demo-item').forEach(x => x.classList.remove('active'));
+  b.classList.add('active');
+  toast('切换到：' + b.textContent.trim());
+}));
+
+/* —— 视口预览 —— */
+el_$$('.viewport-switch button').forEach(b => b.addEventListener('click', () => {
+  el_$$('.viewport-switch button').forEach(x => x.setAttribute('aria-pressed','false'));
+  b.setAttribute('aria-pressed','true');
+  document.body.style.width = b.dataset.w + 'px';
+  document.body.style.marginLeft = b.dataset.w === '100' ? '0' : 'auto';
+  document.body.style.marginRight = b.dataset.w === '100' ? '0' : 'auto';
+  document.body.style.boxShadow = b.dataset.w === '100' ? 'none' : '0 0 60px rgba(0,0,0,.6)';
+}));
+
+renderCompany(); renderHud(); renderNavigator(); renderBasket();
+</script>
+</body>
+</html>

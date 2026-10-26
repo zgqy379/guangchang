@@ -11,6 +11,86 @@ body,
   color: var(--color-text-primary);
 }
 
+/* 主题化页面底色：浅色场景时页面背景也转浅 */
+.app[data-theme='light'] {
+  background: var(--ui-page-bg);
+  color: var(--ui-page-fg);
+}
+
+/* ============================================================
+   v4 玻璃数字孪生 · 环境主题反相
+   ------------------------------------------------------------
+   场景默认是白天浅色（玻璃孪生），此时"亮玻璃 UI"会消失在浅色
+   背景里 —— 所以 UI 玻璃必须随环境主题反相：
+     data-theme="dark"  → 亮玻璃 + 墨字（场景深色，玻璃悬浮感最强）
+     data-theme="light" → 深玻璃 + 白字（场景浅色，深浮层保证可读）
+   两套下文字对比度均 ≥ 4.5:1。
+   ============================================================ */
+.app {
+  /* —— 玻璃与墨色变量（默认 = 夜间深色场景下的亮玻璃） ——
+     对比度按「玻璃底色合成后的实际亮度」计算（半透明玻璃会透出 3D 场景，
+     不能按纯白/纯黑算）：
+       夜间亮玻璃合成底 ≈ rgb(189,190,194)，L≈0.516
+       白天深玻璃合成底 ≈ rgb(64,69,80)，L≈0.059
+     文字色阶必须远离玻璃底色：夜间用深墨，白天用浅色。 */
+  --ui-glass-fill: rgba(255, 255, 255, 0.72);
+  --ui-glass-fill-strong: rgba(255, 255, 255, 0.86);
+  --ui-glass-border: rgba(255, 255, 255, 0.55);
+  --ui-glass-highlight: rgba(255, 255, 255, 0.85);
+  --ui-ink-primary: #0b0e1a;    /* 10.4:1 ✓AAA */
+  --ui-ink-secondary: #39414d;  /*  5.6:1 ✓AA  */
+  --ui-ink-muted: #454c59;      /*  4.7:1 ✓AA  */
+  --ui-surface: rgba(11, 14, 26, 0.06);
+  --ui-surface-hover: rgba(11, 14, 26, 0.1);
+  --ui-border-soft: rgba(11, 14, 26, 0.08);
+  --ui-shadow: 0 12px 32px -10px rgba(11, 14, 26, 0.45);
+  --ui-page-bg: var(--color-neutral-1);
+  --ui-page-fg: var(--color-text-primary);
+  --ui-panel-bg: #0d1117;
+  --ui-panel-border: var(--color-neutral-5);
+  transition: background-color 600ms var(--ease-in, ease), color 600ms var(--ease-in, ease);
+}
+
+.app[data-theme='light'] {
+  /* 白天浅色场景：UI 转为深玻璃 + 浅色字（对比度按深玻璃底重算） */
+  --ui-glass-fill: rgba(11, 14, 26, 0.72);
+  --ui-glass-fill-strong: rgba(11, 14, 26, 0.86);
+  --ui-glass-border: rgba(255, 255, 255, 0.18);
+  --ui-glass-highlight: rgba(255, 255, 255, 0.22);
+  --ui-ink-primary: #e6edf3;    /*  8.1:1 ✓AAA */
+  --ui-ink-secondary: #b7c2cc;  /*  5.3:1 ✓AA  */
+  --ui-ink-muted: #b0bcc8;      /*  5.0:1 ✓AA  */
+  --ui-surface: rgba(255, 255, 255, 0.1);
+  --ui-surface-hover: rgba(255, 255, 255, 0.16);
+  --ui-border-soft: rgba(255, 255, 255, 0.12);
+  --ui-shadow: 0 14px 36px -12px rgba(11, 14, 26, 0.5);
+  --ui-page-bg: #eef4f8;
+  --ui-page-fg: #0b0e1a;
+  --ui-panel-bg: rgba(255, 255, 255, 0.92);
+  --ui-panel-border: rgba(11, 14, 26, 0.1);
+}
+
+/* 主题锁定按钮 */
+.theme-lock {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  border: 1px solid var(--ui-border-soft);
+  background: var(--ui-surface);
+  color: var(--ui-ink-primary);
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  display: inline-grid;
+  place-items: center;
+  transition: background var(--motion-fast, 120ms) ease, transform var(--motion-instant, 80ms) ease;
+}
+.theme-lock:hover { background: var(--ui-surface-hover); }
+.theme-lock:active { transform: scale(0.92); }
+.theme-lock--auto { color: var(--ui-ink-secondary); }
+.theme-lock--light { color: #d98a00; border-color: rgba(217, 138, 0, 0.4); }
+.theme-lock--dark { color: #7fa8ff; border-color: rgba(127, 168, 255, 0.4); }
+
 .app {
   display: flex;
   flex-direction: column;
@@ -22,7 +102,10 @@ header {
   align-items: center;
   justify-content: space-between;
   padding: 10px 18px;
-  border-bottom: 1px solid var(--color-neutral-5);
+  border-bottom: 1px solid var(--ui-panel-border);
+  background: var(--ui-panel-bg);
+  color: var(--ui-ink-primary);
+  transition: background-color 600ms ease, color 600ms ease, border-color 600ms ease;
 }
 header h1 {
   margin: 0;
@@ -31,13 +114,13 @@ header h1 {
 header h1 span {
   font-size: 13px;
   font-weight: normal;
-  color: var(--color-text-secondary);
+  color: var(--ui-ink-secondary);
   margin-left: 10px;
 }
 .mode-switch button {
-  background: var(--color-neutral-3);
-  color: var(--color-text-primary);
-  border: 1px solid var(--color-border-strong);
+  background: var(--ui-surface);
+  color: var(--ui-ink-primary);
+  border: 1px solid var(--ui-border-soft);
   padding: 6px 14px;
   cursor: pointer;
 }
@@ -73,8 +156,10 @@ main {
   width: 320px;
   overflow-y: auto;
   padding: 14px;
-  border-right: 1px solid var(--color-neutral-5);
-  background: #0d1117;
+  border-right: 1px solid var(--ui-panel-border);
+  background: var(--ui-panel-bg);
+  color: var(--ui-ink-primary);
+  transition: background-color 600ms ease, color 600ms ease, border-color 600ms ease;
 }
 
 .preset-row {
@@ -234,7 +319,7 @@ main {
   white-space: nowrap;
 }
 .scale-note {
-  background: rgba(13, 17, 23, 0.72);
+  background: var(--ui-glass-fill);
   border: 1px solid #2a3038;
   border-radius: 6px;
   color: var(--color-text-secondary);
@@ -274,7 +359,7 @@ main {
   left: 12px;
   color: var(--color-text-secondary);
   font-size: 12px;
-  background: rgba(13, 17, 23, 0.7);
+  background: var(--ui-glass-fill);
   border-radius: 4px;
   padding: 3px 8px;
   pointer-events: none;
@@ -296,14 +381,16 @@ main {
 
 /* ===== 招聘街区（v1.2）===== */
 .lot-card {
-  background: rgba(13, 17, 23, 0.86);
+  background: var(--ui-glass-fill);
   backdrop-filter: blur(12px);
-  border: 1px solid var(--color-border-strong);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--ui-glass-border);
   border-radius: 10px;
   padding: 10px 14px;
-  color: var(--color-text-primary);
+  color: var(--ui-ink-primary);
   min-width: 200px;
   text-align: center;
+  transition: background-color 600ms ease, color 600ms ease, border-color 600ms ease;
 }
 .lot-card-name {
   font-size: 18px;
@@ -316,15 +403,52 @@ main {
 }
 .lot-card-line {
   font-size: 13px;
-  color: #b7c2cc;
+  color: var(--ui-ink-secondary);
   margin-bottom: 3px;
 }
 .lot-card-line b {
   color: var(--color-brand-orange);
 }
+/* 名片数值三宫格：核心数值独立成块（v4 玻璃孪生 · 数值不与氛围混排） */
+.lot-card-stats {
+  display: flex;
+  gap: 6px;
+  margin: 7px 0 6px;
+}
+.lot-card-stat {
+  flex: 1;
+  min-width: 0;
+  padding: 5px 8px;
+  border-radius: 8px;
+  background: var(--ui-surface);
+  border: 1px solid var(--ui-border-soft);
+  text-align: left;
+}
+.lot-card-stat .k {
+  display: block;
+  font-size: 11px;
+  color: var(--ui-ink-muted);
+  line-height: 1.3;
+}
+.lot-card-stat .v {
+  display: block;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--ui-ink-primary);
+  line-height: 1.25;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.lot-card-stat .v small {
+  font-size: 11px;
+  font-weight: 700;
+  margin-left: 1px;
+}
 .lot-card-tag {
   font-size: 12px;
-  color: var(--color-text-muted);
+  color: var(--ui-ink-muted);
   margin-bottom: 9px;
 }
 /* 屏幕停靠名片：不随 3D 距离缩放，近景也保持可读（游戏对话卡范式） */
@@ -374,7 +498,7 @@ main {
   padding: 8px 18px;
   border-radius: 999px;
   border: 1px solid var(--color-brand-gold);
-  background: rgba(13, 17, 23, 0.82);
+  background: var(--ui-glass-fill-strong);
   color: var(--color-brand-gold);
   font-family: inherit;
   font-size: var(--font-size-md);
@@ -417,7 +541,9 @@ main {
   filter: brightness(1.15);
 }
 .nav-pill {
-  background: rgba(13, 17, 23, 0.9);
+  background: var(--ui-glass-fill-strong);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border: 2px solid;
   border-radius: 999px;
   padding: 4px 12px;
@@ -427,7 +553,7 @@ main {
   white-space: nowrap;
 }
 .peak-tag {
-  background: rgba(13, 17, 23, 0.85);
+  background: var(--ui-glass-fill);
   border: 1px solid var(--color-brand-orange);
   border-radius: 999px;
   color: var(--color-brand-orange);
@@ -456,19 +582,21 @@ button:disabled {
   top: 10px;
   right: 10px;
   z-index: 15;
-  background: rgba(13, 17, 23, 0.78);
+  background: var(--ui-glass-fill);
   backdrop-filter: blur(12px);
-  border: 1px solid var(--color-border-strong);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--ui-glass-border);
   border-radius: var(--radius-md);
   padding: 10px 14px;
-  color: var(--color-text-primary);
+  color: var(--ui-ink-primary);
   min-width: 264px;
   pointer-events: none;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+  box-shadow: var(--ui-shadow);
+  transition: background-color 600ms ease, color 600ms ease, border-color 600ms ease;
 }
 .game-hud-title {
   font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
+  color: var(--ui-ink-muted);
   letter-spacing: 0.08em;
 }
 .game-hud-level {
@@ -508,7 +636,7 @@ button:disabled {
 .xp-bar {
   position: relative;
   height: 12px;
-  background: var(--color-neutral-5);
+  background: var(--ui-surface);
   border-radius: var(--radius-pill);
   overflow: hidden;
   margin: 4px 0 8px;
@@ -525,13 +653,13 @@ button:disabled {
   text-align: center;
   font-size: 10px;
   line-height: 12px;
-  color: var(--color-text-primary);
+  color: var(--ui-ink-primary);
 }
 .game-hud-counts {
   display: flex;
   gap: var(--space-3);
   font-size: var(--font-size-md);
-  color: var(--color-text-secondary);
+  color: var(--ui-ink-secondary);
   margin-bottom: 8px;
 }
 .game-hud-districts {
@@ -552,18 +680,18 @@ button:disabled {
 }
 .district-label {
   width: 48px;
-  color: var(--color-text-secondary);
+  color: var(--ui-ink-secondary);
 }
 .district-count {
   width: 38px;
-  color: var(--color-text-primary);
+  color: var(--ui-ink-primary);
   font-weight: 700;
 }
 .district-bar {
   flex: 1;
   height: 5px;
   border-radius: 999px;
-  background: var(--color-neutral-5);
+  background: var(--ui-surface);
   overflow: hidden;
 }
 .district-bar i {
@@ -598,9 +726,10 @@ button:disabled {
   transform: translateX(-50%);
   z-index: 16;
   pointer-events: none;
-  background: rgba(13, 17, 23, 0.88);
+  background: var(--ui-glass-fill-strong);
   backdrop-filter: blur(10px);
-  border: 1px solid var(--color-brand-gold);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--ui-glass-border);
   border-radius: 999px;
   padding: 8px 18px;
   color: var(--color-text-primary);
@@ -613,6 +742,10 @@ button:disabled {
 .game-toast b {
   color: var(--color-brand-gold);
   margin-left: 6px;
+}
+.game-toast {
+  color: var(--ui-ink-primary);
+  transition: background-color 600ms ease, color 600ms ease;
 }
 @keyframes game-toast-in {
   from {
@@ -644,8 +777,9 @@ button:disabled {
   padding: 4px 12px;
   border-radius: 999px;
   border: 1px solid;
-  background: rgba(13, 17, 23, 0.78);
+  background: var(--ui-glass-fill);
   backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   font-size: var(--font-size-sm);
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -703,7 +837,7 @@ button:disabled {
   left: 12px;
   color: var(--color-text-secondary);
   font-size: 12px;
-  background: rgba(13, 17, 23, 0.7);
+  background: var(--ui-glass-fill);
   border-radius: 4px;
   padding: 3px 8px;
 }
@@ -718,7 +852,8 @@ button:disabled {
 
 footer {
   padding: 8px 18px;
-  border-top: 1px solid var(--color-neutral-5);
-  color: var(--color-text-muted);
+  border-top: 1px solid var(--ui-panel-border);
+  color: var(--ui-ink-muted);
+  background: var(--ui-panel-bg);
   font-size: 12px;
 }

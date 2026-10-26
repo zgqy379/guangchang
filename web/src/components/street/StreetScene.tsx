@@ -26,7 +26,13 @@ import {
   ColorTextSecondary,
   ColorSceneBarOff,
   ColorSceneBarOn,
+  ThemeLightGround,
+  ThemeLightRoad,
+  ThemeLightGlassHead,
+  ThemeLightGlassBody,
+  ThemeLightSkyTop,
 } from '../../../generated/design-tokens.output.mjs'
+import type { ThemeName } from '../../engine/theme'
 
 const PROGRESS_KEY = 'gc-street-progress-v1'
 
@@ -78,18 +84,27 @@ function asphaltTexture() {
 }
 const ASPHALT = asphaltTexture()
 
-function Roads() {
+function Roads({ theme }: { theme: ThemeName }) {
+  const night = theme === 'dark'
   return (
     <group>
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.02, 0]} receiveShadow>
         <planeGeometry args={[240, 240]} />
-        <meshStandardMaterial color={ColorSceneFloor} map={ASPHALT} roughness={1} />
+        <meshStandardMaterial
+          color={night ? ColorSceneFloor : ThemeLightGround}
+          map={ASPHALT}
+          roughness={night ? 1 : 0.9}
+        />
       </mesh>
-      {/* 十字两条路（albedo 提亮一档，盲审：黑地不可读） */}
+      {/* 十字两条路（白天浅色沥青，夜间深色） */}
       {[0, Math.PI / 2].map((rot, i) => (
-        <mesh key={i} rotation={[-Math.PI / 2, 0, rot]} position={[0, 0, 0]}>
+        <mesh key={i} rotation={[-Math.PI / 2, 0, rot]} position={[0, 0, 0]} receiveShadow>
           <planeGeometry args={[180, 10.4]} />
-          <meshStandardMaterial color={ColorSceneRoad} map={ASPHALT} roughness={0.85} />
+          <meshStandardMaterial
+            color={night ? ColorSceneRoad : ThemeLightRoad}
+            map={ASPHALT}
+            roughness={night ? 0.85 : 0.72}
+          />
         </mesh>
       ))}
       {/* 中央斑马线（收窄至 0.5m，尺度校正） */}
@@ -98,22 +113,66 @@ function Roads() {
           {[-6.4, -5.8, -5.2, 5.2, 5.8, 6.4].map((z) => (
             <mesh key={z} rotation={[-Math.PI / 2, 0, 0]} position={[z, 0.005, 0]}>
               <planeGeometry args={[0.5, 9.6]} />
-              <meshStandardMaterial color="#c8d2da" opacity={0.55} transparent />
+              <meshStandardMaterial
+                color={night ? '#c8d2da' : '#ffffff'}
+                opacity={night ? 0.55 : 0.75}
+                transparent
+              />
             </mesh>
           ))}
         </group>
       ))}
       {/* 中央转盘基石 */}
-      <mesh position={[0, 0.06, 0]}>
+      <mesh position={[0, 0.06, 0]} receiveShadow>
         <cylinderGeometry args={[3.4, 3.6, 0.12, 32]} />
-        <meshStandardMaterial color={ColorSceneGateDark} roughness={0.9} />
+        <meshStandardMaterial
+          color={night ? ColorSceneGateDark : ThemeLightGlassHead}
+          roughness={0.85}
+        />
+      </mesh>
+      {/* 孪生网格地面：淡青线框叠加（玻璃数字孪生的标志性元素） */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.004, 0]}>
+        <planeGeometry args={[180, 180]} />
+        <meshBasicMaterial
+          map={twinGridTexture()}
+          transparent
+          opacity={night ? 0.28 : 0.18}
+          depthWrite={false}
+        />
       </mesh>
     </group>
   )
 }
 
+// 孪生网格贴图：程序化生成淡青网格线（每 6m 一格）
+let TWIN_GRID_TEX: THREE.CanvasTexture | null = null
+function twinGridTexture() {
+  if (TWIN_GRID_TEX) return TWIN_GRID_TEX
+  const size = 256
+  const c = document.createElement('canvas')
+  c.width = c.height = size
+  const ctx = c.getContext('2d')!
+  ctx.clearRect(0, 0, size, size)
+  // 每张贴图覆盖 24m，4 格 → 6m 一格
+  const cell = size / 4
+  ctx.strokeStyle = 'rgba(107,158,196,0.55)'
+  ctx.lineWidth = 1
+  for (let i = 0; i <= 4; i++) {
+    const p = Math.round(i * cell) + 0.5
+    ctx.beginPath(); ctx.moveTo(p, 0); ctx.lineTo(p, size); ctx.stroke()
+    ctx.beginPath(); ctx.moveTo(0, p); ctx.lineTo(size, p); ctx.stroke()
+  }
+  const t = new THREE.CanvasTexture(c)
+  t.wrapS = t.wrapT = THREE.RepeatWrapping
+  t.repeat.set(180 / 24, 180 / 24)
+  t.colorSpace = THREE.SRGBColorSpace
+  TWIN_GRID_TEX = t
+  return t
+}
+
 // 参数碑：碑高=总包、5 灯条=五险、顶灯=下班时间（4 个 InstancedMesh）
-function ParamSteles() {
+function ParamSteles({ theme }: { theme: ThemeName }) {
+  const night = theme === 'dark'
   const body = useRef<THREE.InstancedMesh>(null)
   const band = useRef<THREE.InstancedMesh>(null)
   const bars = useRef<THREE.InstancedMesh>(null)
@@ -191,7 +250,7 @@ function ParamSteles() {
     <group>
       <instancedMesh ref={body} args={[undefined, undefined, data.length]}>
         <boxGeometry args={[1, 1, 1]} />
-        <meshStandardMaterial color={ColorSceneGateDark} roughness={0.85} />
+        <meshStandardMaterial color={night ? ColorSceneGateDark : ThemeLightGlassHead} roughness={night ? 0.85 : 0.5} />
       </instancedMesh>
       <instancedMesh ref={band} args={[undefined, undefined, data.length]}>
         <boxGeometry args={[1, 1, 1]} />
@@ -335,7 +394,8 @@ function DistrictRoadSigns() {
 }
 
 // 远景天际线：四街尽头的灯塔塔楼 + 斜向中层楼群（雾中剪影）
-function DistantSkyline() {
+function DistantSkyline({ theme }: { theme: ThemeName }) {
+  const night = theme === 'dark'
   const bodies = useRef<THREE.InstancedMesh>(null)
   const { list } = useMemo(() => {
     const list: { x: number; z: number; w: number; h: number; d: number }[] = []
@@ -369,7 +429,15 @@ function DistantSkyline() {
   return (
     <instancedMesh ref={bodies} args={[undefined, undefined, list.length]}>
       <boxGeometry args={[1, 1, 1]} />
-      <meshStandardMaterial color={ColorSceneFloor} roughness={0.95} emissive="#0e1622" emissiveIntensity={0.6} />
+      {/* 白天：冷白玻璃远景（融入浅色天幕）；夜间：深蓝剪影 */}
+      <meshStandardMaterial
+        color={night ? ColorSceneFloor : ThemeLightGlassBody}
+        roughness={night ? 0.95 : 0.5}
+        transparent={!night}
+        opacity={night ? 1 : 0.72}
+        emissive={night ? '#0e1622' : ThemeLightSkyTop}
+        emissiveIntensity={night ? 0.6 : 0.12}
+      />
     </instancedMesh>
   )
 }
@@ -391,7 +459,8 @@ function lampGlowTexture() {
   return LAMP_GLOW_TEX
 }
 
-function StreetLamps() {
+function StreetLamps({ theme }: { theme: ThemeName }) {
+  const night = theme === 'dark'
   const ref = useRef<THREE.InstancedMesh>(null)
   const headRef = useRef<THREE.InstancedMesh>(null)
   const poolRef = useRef<THREE.InstancedMesh>(null)
@@ -460,40 +529,48 @@ function StreetLamps() {
     <>
       <instancedMesh ref={ref} args={[undefined, undefined, mats.length]}>
         <cylinderGeometry args={[0.035, 0.05, 3.6, 6]} />
-        <meshStandardMaterial color={ColorSceneGate} />
+        <meshStandardMaterial color={night ? ColorSceneGate : ThemeLightGlassHead} />
       </instancedMesh>
-      {/* 灯头发光（盲审：路灯零发光） */}
+      {/* 灯头发光（仅夜间；白天关灯，靠日光塑形） */}
       <instancedMesh ref={headRef} args={[undefined, undefined, mats.length]}>
         <sphereGeometry args={[0.17, 10, 8]} />
-        <meshStandardMaterial color={ColorSceneLamp} emissive={ColorSceneLamp} emissiveIntensity={2.6} />
-      </instancedMesh>
-      {/* 灯头光晕：点精灵，64 盏一次 draw call */}
-      <points>
-        <bufferGeometry>
-          <bufferAttribute attach="attributes-position" args={[glowPositions, 3]} />
-        </bufferGeometry>
-        <pointsMaterial
-          map={lampGlowTexture()}
-          color={ColorSceneLamp}
-          size={1.15}
-          sizeAttenuation
-          transparent
-          opacity={0.8}
-          depthWrite={false}
-          blending={THREE.AdditiveBlending}
-        />
-      </points>
-      {/* 地面暖光池（廉价假光，替代 64 个点光源） */}
-      <instancedMesh ref={poolRef} args={[undefined, undefined, mats.length]}>
-        <planeGeometry args={[3.4, 3.4]} />
-        <meshBasicMaterial
-          map={poolTex}
-          transparent
-          depthWrite={false}
-          blending={THREE.AdditiveBlending}
-          opacity={0.55}
+        <meshStandardMaterial
+          color={night ? ColorSceneLamp : '#b9c6d2'}
+          emissive={night ? ColorSceneLamp : '#000000'}
+          emissiveIntensity={night ? 2.6 : 0}
         />
       </instancedMesh>
+      {/* 灯头光晕：点精灵，64 盏一次 draw call（仅夜间） */}
+      {night && (
+        <points>
+          <bufferGeometry>
+            <bufferAttribute attach="attributes-position" args={[glowPositions, 3]} />
+          </bufferGeometry>
+          <pointsMaterial
+            map={lampGlowTexture()}
+            color={ColorSceneLamp}
+            size={1.15}
+            sizeAttenuation
+            transparent
+            opacity={0.8}
+            depthWrite={false}
+            blending={THREE.AdditiveBlending}
+          />
+        </points>
+      )}
+      {/* 地面暖光池（廉价假光，替代 64 个点光源；仅夜间） */}
+      {night && (
+        <instancedMesh ref={poolRef} args={[undefined, undefined, mats.length]}>
+          <planeGeometry args={[3.4, 3.4]} />
+          <meshBasicMaterial
+            map={poolTex}
+            transparent
+            depthWrite={false}
+            blending={THREE.AdditiveBlending}
+            opacity={0.55}
+          />
+        </instancedMesh>
+      )}
     </>
   )
 }
@@ -519,16 +596,17 @@ function labelTexture(text: string, color: string) {
   return t
 }
 
-function ArchWay({ industry, axisX, sign }: { industry: keyof typeof INDUSTRIES; axisX: boolean; sign: 1 | -1 }) {
+function ArchWay({ industry, axisX, sign, theme }: { industry: keyof typeof INDUSTRIES; axisX: boolean; sign: 1 | -1; theme: ThemeName }) {
   const tex = useMemo(() => labelTexture(INDUSTRIES[industry].label, INDUSTRIES[industry].color), [industry])
   const color = INDUSTRIES[industry].color
+  const night = theme === 'dark'
   return (
     <group rotation={[0, axisX ? Math.PI / 2 : 0, 0]} position={[axisX ? sign * 22 : 0, 0, axisX ? 0 : sign * 22]}>
       {[-4.8, 4.8].map((x) => (
         <group key={x} position={[x, 0, 0]}>
           <mesh position={[0, 2.65, 0]}>
             <boxGeometry args={[0.42, 5.3, 0.42]} />
-            <meshStandardMaterial color={ColorSceneGate} roughness={0.7} emissive={color} emissiveIntensity={0.12} />
+            <meshStandardMaterial color={night ? ColorSceneGate : ThemeLightGlassHead} roughness={night ? 0.7 : 0.35} metalness={night ? 0 : 0.1} emissive={color} emissiveIntensity={night ? 0.12 : 0.35} />
           </mesh>
           {/* 行业色发光边条：夜间把牌坊读成“区门”，而不是黑柱 */}
           <mesh position={[0, 2.65, 0.23]}>
@@ -543,7 +621,7 @@ function ArchWay({ industry, axisX, sign }: { industry: keyof typeof INDUSTRIES;
       ))}
       <mesh position={[0, 5.6, 0]}>
         <boxGeometry args={[10.4, 1.0, 0.6]} />
-        <meshStandardMaterial color={ColorSceneGate} roughness={0.7} emissive={color} emissiveIntensity={0.1} />
+        <meshStandardMaterial color={night ? ColorSceneGate : ThemeLightGlassHead} roughness={night ? 0.7 : 0.35} metalness={night ? 0 : 0.1} emissive={color} emissiveIntensity={night ? 0.1 : 0.3} />
       </mesh>
       {/* 区色信标：从鸟瞰/远端也能定位四区入口 */}
       <mesh position={[4.8, 4.6, 0]}>
@@ -754,12 +832,26 @@ function LotCard({
         {lot.name}
         <span style={{ color: INDUSTRIES[lot.industry].color }}> {lot.industryLabel}</span>
       </div>
-      <div className="lot-card-line">
-        总包 <b>{Math.round(totalPackage(lot.params) / 10000)}万</b> · 下班{' '}
-        {fmtClock(lot.params.offworkTime)} ·{' '}
-        {lot.params.socialInsuranceBaseRatio === 'full'
-          ? '五险全额'
-          : `基数${lot.params.socialInsuranceBaseRatio}`}
+      <div className="lot-card-stats">
+        <div className="lot-card-stat">
+          <span className="k">总包</span>
+          <span className="v">
+            {Math.round(totalPackage(lot.params) / 10000)}
+            <small>万</small>
+          </span>
+        </div>
+        <div className="lot-card-stat">
+          <span className="k">下班</span>
+          <span className="v">{fmtClock(lot.params.offworkTime)}</span>
+        </div>
+        <div className="lot-card-stat">
+          <span className="k">五险</span>
+          <span className="v">
+            {lot.params.socialInsuranceBaseRatio === 'full'
+              ? '全额'
+              : `基数${lot.params.socialInsuranceBaseRatio}`}
+          </span>
+        </div>
       </div>
       <div className="lot-card-tag">{lot.tagline}</div>
       <div className="lot-card-actions">
@@ -786,11 +878,14 @@ function NavPillar({
   refs,
   onInteract,
   visible,
+  theme,
 }: {
   refs: RoamRefs
   onInteract: () => void
   visible: boolean
+  theme: ThemeName
 }) {
+  const night = theme === 'dark'
   const cap = useRef<THREE.Mesh>(null)
   const outerRing = useRef<THREE.Mesh>(null)
   useFrame((_, dt) => {
@@ -805,7 +900,7 @@ function NavPillar({
       {/* 中央四区图腾：五米灯柱 + 四区色棱线 + 顶部金色地标 */}
       <mesh position={[0, 2.5, 0]}>
         <cylinderGeometry args={[0.42, 0.62, 5, 8]} />
-        <meshStandardMaterial color={ColorSceneGateDark} roughness={0.7} emissive="#1a2230" emissiveIntensity={0.5} />
+        <meshStandardMaterial color={night ? ColorSceneGateDark : ThemeLightGlassHead} roughness={night ? 0.7 : 0.3} metalness={night ? 0 : 0.15} emissive={night ? "#1a2230" : ThemeLightSkyTop} emissiveIntensity={night ? 0.5 : 0.3} />
       </mesh>
       {(Object.keys(INDUSTRIES) as (keyof typeof INDUSTRIES)[]).map((ind, i) => {
         const angle = (i * Math.PI) / 2 + Math.PI / 4
@@ -825,7 +920,7 @@ function NavPillar({
         <meshStandardMaterial
           color={ColorBrandGold}
           emissive={ColorBrandGold}
-          emissiveIntensity={2.4}
+          emissiveIntensity={night ? 2.4 : 0.6}
           roughness={0.3}
         />
       </mesh>
@@ -896,12 +991,14 @@ function NavPillar({
 
 // ---------- 主场景 ----------
 export function StreetScene({
-  offworkHour,
+  envHour,
+  theme,
   onEnterOffice,
   onAddBasket,
   basketIds,
 }: {
-  offworkHour: number
+  envHour: number
+  theme: ThemeName
   onEnterOffice: (lot: Lot) => void
   onAddBasket: (lot: Lot) => void
   basketIds: string[]
@@ -1009,20 +1106,17 @@ export function StreetScene({
         )
       }}
     >
-      <WorkdaySky offworkHour={offworkHour} fogNear={30} fogFar={170} />
-      {/* 商业级光照基线：天光半球 + 月光平行光 + 暖色反向补光（压暗侧立面可读） */}
-      <hemisphereLight args={['#ffc3a0', '#243049', 0.95]} />
-      <directionalLight position={[12, 14, 8]} color="#8fa8ff" intensity={0.75} />
-      <directionalLight position={[-16, 9, 12]} color="#ffb08a" intensity={0.4} />
-      <Roads />
+      {/* v4 玻璃数字孪生：天空/主光/补光/阴影全部由 WorkdaySky 按系统时间统一管理 */}
+      <WorkdaySky envHour={envHour} theme={theme} fogNear={40} fogFar={200} />
+      <Roads theme={theme} />
       <RoadLanes />
       <DistrictRoadSigns />
-      <DistantSkyline />
-      <StreetLamps />
-      <ArchWay industry="internet" axisX sign={1} />
-      <ArchWay industry="finance" axisX sign={-1} />
-      <ArchWay industry="manufacturing" axisX={false} sign={1} />
-      <ArchWay industry="culture" axisX={false} sign={-1} />
+      <DistantSkyline theme={theme} />
+      <StreetLamps theme={theme} />
+      <ArchWay industry="internet" axisX sign={1} theme={theme} />
+      <ArchWay industry="finance" axisX sign={-1} theme={theme} />
+      <ArchWay industry="manufacturing" axisX={false} sign={1} theme={theme} />
+      <ArchWay industry="culture" axisX={false} sign={-1} theme={theme} />
       {/* NPC 求职者闲逛（人行道往返，街区人气） */}
       <Suspense fallback={null}>
         <NPC a={[12, 4.2]} b={[30, 4.2]} />
@@ -1053,10 +1147,10 @@ export function StreetScene({
         })}
       {placed.map((pl) => (
         <group key={pl.lot.id} position={pl.position} rotation={[0, pl.rotationY, 0]}>
-          <HRStand lot={pl.lot} onEnterOffice={onEnterOffice} delivered={delivered.has(pl.lot.id)} />
+          <HRStand lot={pl.lot} onEnterOffice={onEnterOffice} delivered={delivered.has(pl.lot.id)} theme={theme} />
         </group>
       ))}
-      <ParamSteles />
+      <ParamSteles theme={theme} />
       <RarityGems />
       {/* 点击地面行走（透明事件面） */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]} onClick={handleGround}>
@@ -1076,7 +1170,7 @@ export function StreetScene({
       {deliveries.map((d) => (
         <DeliveryFX key={d.id} d={d} onDone={() => setDeliveries((l) => l.filter((x) => x.id !== d.id))} />
       ))}
-      <NavPillar refs={refs} onInteract={() => setFollow(true)} visible={follow} />
+      <NavPillar refs={refs} onInteract={() => setFollow(true)} visible={follow} theme={theme} />
       </Canvas>
       <div className="scene-vignette" aria-hidden />
       <GameHud state={hudState} />

@@ -22,6 +22,13 @@ const StreetScene = lazy(() =>
 import { fictionalCompanies, companyById } from './data/fictional-companies'
 import type { Lot } from './data/street-companies'
 import { assetUrl } from './engine/asset'
+import {
+  systemHour,
+  resolveTheme,
+  isDusk,
+  type ThemeName,
+  type LockMode,
+} from './engine/theme'
 
 // 四套 Aholo 生成的办公室 3DGS：街区摊位按行业进入，办公室模式下也可手动切换对比
 const OFFICE_SCENES = [
@@ -36,11 +43,15 @@ function Scene({
   params,
   growthKey,
   roam = false,
+  envHour,
+  theme,
 }: {
   name: string
   params: CompanyParams
   growthKey: number
   roam?: boolean
+  envHour: number
+  theme: ThemeName
 }) {
   // 漫游共享状态：Avatar 位置 + 点击目标（相机/演员/地面点击三方共用）
   const positionRef = useRef(new THREE.Vector3(-1.9, 0, 2.0))
@@ -51,7 +62,7 @@ function Scene({
   )
   return (
     <Canvas dpr={[1, 2]} camera={{ position: [3.1, 2.1, 4.3], fov: 45 }}>
-      <WorkdaySky offworkHour={params.offworkTime} />
+      <WorkdaySky envHour={envHour} theme={theme} />
       {/* 大地板：让展台坐在"地面"上而非悬空，地砖路可延伸向远方 */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.02, 0]}>
         <planeGeometry args={[90, 90]} />
@@ -91,6 +102,55 @@ export default function App() {
   const [officeScene, setOfficeScene] = useState(assetUrl('/assets/office/finance.spz'))
   const [roam, setRoam] = useState(false)
 
+  // ===== 环境主题（v4 玻璃数字孪生）=====
+  // 系统时钟 → 主题；用户可锁定（评审演示时不被系统时间打断）
+  const [lockMode, setLockMode] = useState<LockMode>('auto')
+  const [envHour, setEnvHour] = useState(() => systemHour())
+  const [theme, setTheme] = useState<ThemeName>(() => resolveTheme(systemHour(), 'auto'))
+  const [pendingTheme, setPendingTheme] = useState<ThemeName | null>(null)
+
+  // 每 60 秒检查一次系统时间；临界点抖动时延迟 3 秒再应用（防闪烁）
+  useEffect(() => {
+    const tick = () => {
+      const h = systemHour()
+      setEnvHour(h)
+      const next = resolveTheme(h, lockMode)
+      setPendingTheme((cur) => (cur === next ? null : next))
+    }
+    tick()
+    const id = window.setInterval(tick, 60000)
+    return () => window.clearInterval(id)
+  }, [lockMode])
+
+  // 切换延迟 3 秒（避免临界点反复横跳）
+  useEffect(() => {
+    if (!pendingTheme) return
+    const id = window.setTimeout(() => {
+      setTheme(pendingTheme)
+      setPendingTheme(null)
+    }, 3000)
+    return () => window.clearTimeout(id)
+  }, [pendingTheme])
+
+  const dusk = isDusk(envHour)
+
+  // 主题锁定循环：auto → light → dark → auto
+  // 手动锁定必须**立即生效**（用户点击就是要立刻看到反馈），
+  // 只有跟随系统时间的自动切换才走 3 秒防抖延迟。
+  const cycleLock = () =>
+    setLockMode((m) => {
+      const next = m === 'auto' ? 'light' : m === 'light' ? 'dark' : 'auto'
+      if (next !== 'auto') {
+        setTheme(next)
+        setPendingTheme(null)
+      } else {
+        // 回到自动：立即按当前系统时间重算
+        setTheme(resolveTheme(systemHour(), 'auto'))
+        setPendingTheme(null)
+      }
+      return next
+    })
+
   // 街区名片 → 进办公室参观（v1.2：按行业切换对应 SpatialGen 生成空间）
   const enterOfficeFromStreet = (lot: { industry: string }) => {
     const file =
@@ -127,12 +187,21 @@ export default function App() {
   })
 
   return (
-    <div className="app">
+    <div className="app" data-theme={theme}>
       <header>
         <h1>
           逛厂 <span>把画的饼，砌成真的山</span>
         </h1>
         <div className="mode-switch">
+          {/* 主题锁定：auto 跟随系统时间 / 强制白天 / 强制夜间（评审演示不被系统时间打断） */}
+          <button
+            className={`theme-lock theme-lock--${lockMode}`}
+            onClick={cycleLock}
+            title={`主题：${lockMode === 'auto' ? `跟随系统时间（${dusk ? '黄昏' : theme === 'light' ? '白天' : '夜间'}）` : lockMode === 'light' ? '强制白天' : '强制夜间'}`}
+            aria-label={`主题：${lockMode === 'auto' ? '跟随系统时间' : lockMode === 'light' ? '强制白天' : '强制夜间'}`}
+          >
+            {lockMode === 'light' ? '☀' : lockMode === 'dark' ? '☾' : '◐'}
+          </button>
           <button className={mode === 'single' ? 'active' : ''} onClick={() => setMode('single')}>
             逛一家
           </button>
@@ -283,7 +352,8 @@ export default function App() {
           {mode === 'street' ? (
             <Suspense fallback={<div className="office-loading">招聘街区加载中…</div>}>
               <StreetSceneLoader
-                offworkHour={paramsA.offworkTime}
+                envHour={envHour}
+                theme={theme}
                 onEnterOffice={enterOfficeFromStreet}
                 onAddBasket={addBasket}
                 basketIds={basket.map((b) => b.id)}
@@ -303,6 +373,8 @@ export default function App() {
               params={paramsA}
               growthKey={growthKey}
               roam={roam}
+              envHour={envHour}
+              theme={theme}
             />
           ) : (
             <>
@@ -310,11 +382,15 @@ export default function App() {
                 name={nameA ? `A · ${nameA}` : 'A · 我的山'}
                 params={paramsA}
                 growthKey={growthKey}
+                envHour={envHour}
+                theme={theme}
               />
               <Scene
                 name={nameB ? `B · ${nameB}` : `B · ${fictionalCompanies.find((c) => c.id === presetB)?.name ?? '自定义'}`}
                 params={paramsB}
                 growthKey={growthKey}
+                envHour={envHour}
+                theme={theme}
               />
             </>
           )}
@@ -332,7 +408,8 @@ export default function App() {
 // 街区加载遮罩：监听首帧事件，加载期显示品牌化加载态（消除黑屏窗口期）
 function StreetSceneLoader(props: {
   onEnterOffice: (lot: { industry: string }) => void
-  offworkHour: number
+  envHour: number
+  theme: ThemeName
   onAddBasket: (lot: Lot) => void
   basketIds: string[]
 }) {

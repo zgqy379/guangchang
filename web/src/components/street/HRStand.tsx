@@ -20,7 +20,12 @@ import {
   ColorSceneSun,
   ColorSceneWindow,
   ColorStateInfo,
+  ThemeLightGlassHead,
+  ThemeLightGlassBody,
+  ThemeLightSkyTop,
+  ThemeLightWire,
 } from '../../../generated/design-tokens.output.mjs'
+import type { ThemeName } from '../../engine/theme'
 
 const DRACO_PATH = assetUrl('/draco/')
 const HR_POOL = [
@@ -39,19 +44,30 @@ export function preloadHRModels() {
 const OUTFITS = ['#3d4c63', '#4a3b52', '#2f4a45', '#5a4038', '#33465e', '#4a4230', '#3b3b46', '#533a44', '#304c58']
 const HAIRS = ['#1b1b22', '#2a1d18', '#20262f', '#3a2a22', '#151a20']
 
-// 办公楼夜景立面：程序化窗格（同一楼层数共享纹理，避免 64 份贴图）
-const FACADE_TEX = new Map<number, THREE.CanvasTexture>()
+// 办公楼立面：程序化窗格（同一楼层数 + 同一模式共享纹理，避免 64 份贴图）
+// v4 玻璃数字孪生：mode='day' 画浅色玻璃幕墙（冷白底 + 淡青玻璃 + 结构线框）
+//                mode='night' 画原夜景（深蓝底 + 暖色亮窗）
+const FACADE_TEX = new Map<string, THREE.CanvasTexture>()
 
-function facadeTexture(floors: number) {
-  const cached = FACADE_TEX.get(floors)
+function facadeTexture(floors: number, mode: 'day' | 'night' = 'night') {
+  const key = `${floors}:${mode}`
+  const cached = FACADE_TEX.get(key)
   if (cached) return cached
   const c = document.createElement('canvas')
   c.width = 512
   c.height = 512
   const ctx = c.getContext('2d')!
+  const day = mode === 'day'
+
   const bg = ctx.createLinearGradient(0, 0, 0, 512)
-  bg.addColorStop(0, '#1a2431')
-  bg.addColorStop(1, '#0f161f')
+  if (day) {
+    // 白天：冷白玻璃底（浅色主题下与天幕融合）
+    bg.addColorStop(0, '#dbe7f0')
+    bg.addColorStop(1, '#c2d4e2')
+  } else {
+    bg.addColorStop(0, '#1a2431')
+    bg.addColorStop(1, '#0f161f')
+  }
   ctx.fillStyle = bg
   ctx.fillRect(0, 0, 512, 512)
 
@@ -59,46 +75,110 @@ function facadeTexture(floors: number) {
   const fh = 512 / floors
   const cw = 512 / cols
   for (let f = 0; f < floors; f++) {
-    ctx.fillStyle = '#090e14'
-    ctx.fillRect(0, f * fh, 512, 2)
-    ctx.fillStyle = '#2b3745'
-    ctx.fillRect(0, f * fh + 2, 512, 1)
+    if (day) {
+      // 楼层分隔：深色结构线（线框感）
+      ctx.fillStyle = '#7d97ab'
+      ctx.fillRect(0, f * fh, 512, 2)
+      ctx.fillStyle = 'rgba(255,255,255,0.55)'
+      ctx.fillRect(0, f * fh + 2, 512, 1)
+    } else {
+      ctx.fillStyle = '#090e14'
+      ctx.fillRect(0, f * fh, 512, 2)
+      ctx.fillStyle = '#2b3745'
+      ctx.fillRect(0, f * fh + 2, 512, 1)
+    }
     for (let col = 0; col < cols; col++) {
       const x = col * cw + cw * 0.17
       const y = f * fh + fh * 0.24
       const w = cw * 0.66
       const h = fh * 0.48
-      ctx.fillStyle = '#080c11'
-      ctx.fillRect(x - 2, y - 2, w + 4, h + 4)
-      const lit = Math.random() < 0.58
-      if (lit) {
-        const warm = Math.random() < 0.68
+      if (day) {
+        // 白天：淡青玻璃块（半透感由底色渐变模拟），无暖光窗
+        ctx.fillStyle = '#8fb0c6'
+        ctx.fillRect(x - 2, y - 2, w + 4, h + 4)
         const glass = ctx.createLinearGradient(x, y, x, y + h)
-        glass.addColorStop(0, warm ? '#f2d9a4' : '#c7dcea')
-        glass.addColorStop(1, warm ? '#a87a45' : '#7595ad')
+        glass.addColorStop(0, '#cfe4f2')
+        glass.addColorStop(0.55, '#a8c8dd')
+        glass.addColorStop(1, '#8fb4cc')
         ctx.fillStyle = glass
         ctx.fillRect(x, y, w, h)
-        ctx.fillStyle = 'rgba(255,255,255,0.16)'
-        ctx.fillRect(x + w * 0.1, y + h * 0.08, w * 0.14, h * 0.84)
+        // 斜向高光条：玻璃反光的标识
+        ctx.fillStyle = 'rgba(255,255,255,0.42)'
+        ctx.fillRect(x + w * 0.08, y + h * 0.06, w * 0.16, h * 0.88)
       } else {
-        ctx.fillStyle = Math.random() < 0.5 ? '#14202c' : '#1a2836'
-        ctx.fillRect(x, y, w, h)
+        ctx.fillStyle = '#080c11'
+        ctx.fillRect(x - 2, y - 2, w + 4, h + 4)
+        const lit = Math.random() < 0.58
+        if (lit) {
+          const warm = Math.random() < 0.68
+          const glass = ctx.createLinearGradient(x, y, x, y + h)
+          glass.addColorStop(0, warm ? '#f2d9a4' : '#c7dcea')
+          glass.addColorStop(1, warm ? '#a87a45' : '#7595ad')
+          ctx.fillStyle = glass
+          ctx.fillRect(x, y, w, h)
+          ctx.fillStyle = 'rgba(255,255,255,0.16)'
+          ctx.fillRect(x + w * 0.1, y + h * 0.08, w * 0.14, h * 0.84)
+        } else {
+          ctx.fillStyle = Math.random() < 0.5 ? '#14202c' : '#1a2836'
+          ctx.fillRect(x, y, w, h)
+        }
       }
     }
   }
   for (let col = 1; col < cols; col++) {
-    ctx.fillStyle = 'rgba(6,10,14,0.6)'
+    // 竖梃：白天为深色结构柱，夜间为暗色
+    ctx.fillStyle = day ? 'rgba(90,120,142,0.75)' : 'rgba(6,10,14,0.6)'
     ctx.fillRect(col * cw - 2, 0, 4, 512)
   }
   const tex = new THREE.CanvasTexture(c)
   tex.anisotropy = 4
-  FACADE_TEX.set(floors, tex)
+  FACADE_TEX.set(key, tex)
   return tex
 }
 
-// 底层玻璃幕墙：渐变 + 竖梃 + 室内暖光，避免近景一大片纯蓝
+// 底层玻璃幕墙：夜间=深蓝反射室内暖光；白天=浅色玻璃反射天空
 let GLASS_TEX: THREE.CanvasTexture | null = null
-function glassTexture() {
+let GLASS_TEX_DAY: THREE.CanvasTexture | null = null
+function glassTexture(mode: 'day' | 'night' = 'night') {
+  if (mode === 'day') {
+    if (GLASS_TEX_DAY) return GLASS_TEX_DAY
+    const c = document.createElement('canvas')
+    c.width = 256
+    c.height = 96
+    const ctx = c.getContext('2d')!
+    // 白天：玻璃反射天空（浅蓝渐变）
+    const g = ctx.createLinearGradient(0, 0, 0, 96)
+    g.addColorStop(0, '#b7d3e8')
+    g.addColorStop(0.5, '#94b8d4')
+    g.addColorStop(1, '#7ea4c2')
+    ctx.fillStyle = g
+    ctx.fillRect(0, 0, 256, 96)
+    // 室内工位（白天是暗色剪影，透过玻璃可见）
+    for (let i = 0; i < 5; i++) {
+      const x = 14 + i * 48
+      ctx.fillStyle = 'rgba(70,95,118,0.28)'
+      ctx.fillRect(x, 46, 26, 10)
+      ctx.fillStyle = 'rgba(90,115,138,0.16)'
+      ctx.fillRect(x, 30, 26, 14)
+    }
+    // 斜向天光反射（玻璃感的关键）
+    ctx.strokeStyle = 'rgba(255,255,255,0.30)'
+    ctx.lineWidth = 12
+    for (let i = 0; i < 4; i++) {
+      ctx.beginPath()
+      ctx.moveTo(-20 + i * 70, 96)
+      ctx.lineTo(40 + i * 70, 0)
+      ctx.stroke()
+    }
+    // 竖梃 + 横梁（深色结构，勾出玻璃分格）
+    ctx.fillStyle = 'rgba(78,102,124,0.8)'
+    for (let i = 1; i < 4; i++) ctx.fillRect(i * 64 - 2, 0, 4, 96)
+    ctx.fillRect(0, 44, 256, 3)
+    const tex = new THREE.CanvasTexture(c)
+    tex.colorSpace = THREE.SRGBColorSpace
+    GLASS_TEX_DAY = tex
+    return tex
+  }
   if (GLASS_TEX) return GLASS_TEX
   const c = document.createElement('canvas')
   c.width = 256
@@ -366,12 +446,15 @@ function useNameTexture(name: string, industry: string) {
   }, [name, industry])
 }
 
-export function HRStand({ lot, onEnterOffice, delivered = false }: { lot: Lot; onEnterOffice: (lot: Lot) => void; delivered?: boolean }) {
+export function HRStand({ lot, onEnterOffice, delivered = false, theme = 'dark' }: { lot: Lot; onEnterOffice: (lot: Lot) => void; delivered?: boolean; theme?: ThemeName }) {
   const nameTex = useNameTexture(lot.name, lot.industry)
   const color = INDUSTRIES[lot.industry].color
   const total = totalPackage(lot.params)
   const layers = Math.max(2, Math.min(7, Math.round(total / 100000)))
+  // 参数时间语义：这家公司几点下班（与环境主题无关）
   const night = lot.params.offworkTime >= 20
+  // 环境主题：决定立面是浅色玻璃幕墙还是夜景
+  const envNight = theme === 'dark'
 
   // 就近 LOD：NEAR 内挂真形象，FAR 外卸载（滞回防抖）；GLB 按需加载（Suspense 回退占位）
   const [near, setNear] = useState(false)
@@ -393,7 +476,7 @@ export function HRStand({ lot, onEnterOffice, delivered = false }: { lot: Lot; o
       {/* 摊位台 */}
       <mesh position={[0, 0.07, 0]} receiveShadow>
         <boxGeometry args={[2.2, 0.14, 2.2]} />
-        <meshStandardMaterial color={ColorSceneBooth} roughness={0.9} />
+        <meshStandardMaterial color={envNight ? ColorSceneBooth : ThemeLightGlassHead} roughness={envNight ? 0.9 : 0.6} />
       </mesh>
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.013, 0.12]}>
         <planeGeometry args={[3.2, 3.2]} />
@@ -404,12 +487,12 @@ export function HRStand({ lot, onEnterOffice, delivered = false }: { lot: Lot; o
         {[[-1.08, -0.82], [1.08, -0.82], [-1.08, 0.82], [1.08, 0.82]].map(([px, pz], i) => (
           <mesh key={i} position={[px, 1.16, pz]}>
             <cylinderGeometry args={[0.022, 0.022, 2.32, 6]} />
-            <meshStandardMaterial color="#39424c" />
+            <meshStandardMaterial color={envNight ? "#39424c" : "#aebfcc"} />
           </mesh>
         ))}
         <mesh position={[0, 2.36, 0]}>
           <boxGeometry args={[2.46, 0.09, 2.02]} />
-          <meshStandardMaterial color="#1b232c" roughness={0.85} />
+          <meshStandardMaterial color={envNight ? "#1b232c" : "#cdd8e2"} roughness={0.85} />
         </mesh>
         <mesh position={[0, 2.31, 0]} rotation={[Math.PI / 2, 0, 0]}>
           <planeGeometry args={[2.18, 1.72]} />
@@ -425,7 +508,7 @@ export function HRStand({ lot, onEnterOffice, delivered = false }: { lot: Lot; o
       <group position={[-1.3, 0, 0.5]}>
         <mesh position={[0, 1.52, 0]}>
           <boxGeometry args={[0.14, 1.86, 0.42]} />
-          <meshStandardMaterial color="#1b232c" />
+          <meshStandardMaterial color={envNight ? "#1b232c" : "#cdd8e2"} />
         </mesh>
         <mesh position={[0.075, 1.52, 0]}>
           <planeGeometry args={[0.34, 1.58]} />
@@ -475,32 +558,32 @@ export function HRStand({ lot, onEnterOffice, delivered = false }: { lot: Lot; o
       <group position={[-0.62, 0.14, 0.55]}>
         <mesh position={[0, 0.24, 0]}>
           <boxGeometry args={[0.42, 0.48, 0.08]} />
-          <meshStandardMaterial color="#3d4650" />
+          <meshStandardMaterial color={envNight ? "#3d4650" : "#b6c3cf"} />
         </mesh>
         <mesh position={[0, 0.24 + (lot.params.socialInsuranceBaseRatio === 'full' ? 0.18 : 0.08), 0.041]}>
           <boxGeometry args={[0.34, lot.params.socialInsuranceBaseRatio === 'full' ? 0.12 : 0.34, 0.02]} />
-          <meshStandardMaterial color="#8b949e" />
+          <meshStandardMaterial color={envNight ? "#8b949e" : "#94a4b3"} />
         </mesh>
       </group>
       {/* 门前细节（动森式 1m 细节，破同构）：咨询桌 + 地毯 + 区域色侧旗 */}
       <group position={[1.35, 0, 1.15]}>
         <mesh position={[0, 0.2, 0]}>
           <boxGeometry args={[0.95, 0.07, 0.55]} />
-          <meshStandardMaterial color="#3b4450" roughness={0.8} />
+          <meshStandardMaterial color={envNight ? "#3b4450" : "#c2cdd8"} roughness={0.8} />
         </mesh>
         <mesh position={[-0.4, 0.1, 0]}>
           <boxGeometry args={[0.06, 0.2, 0.5]} />
-          <meshStandardMaterial color="#2b323b" />
+          <meshStandardMaterial color={envNight ? "#2b323b" : "#b4c1cd"} />
         </mesh>
         <mesh position={[0.4, 0.1, 0]}>
           <boxGeometry args={[0.06, 0.2, 0.5]} />
-          <meshStandardMaterial color="#2b323b" />
+          <meshStandardMaterial color={envNight ? "#2b323b" : "#b4c1cd"} />
         </mesh>
       </group>
       <group position={[-1.5, 0, -0.4]} rotation={[0, 0, (parseInt(lot.id.slice(-2), 10) % 7) * 0.02 - 0.06]}>
         <mesh position={[0, 1.55, 0]}>
           <cylinderGeometry args={[0.03, 0.03, 3.1, 6]} />
-          <meshStandardMaterial color="#39424c" />
+          <meshStandardMaterial color={envNight ? "#39424c" : "#aebfcc"} />
         </mesh>
         <mesh position={[0.26, 2.5, 0]}>
           <planeGeometry args={[0.52, 1.5]} />
@@ -531,23 +614,69 @@ export function HRStand({ lot, onEnterOffice, delivered = false }: { lot: Lot; o
               <mesh position={[0, h / 2, 0]}>
                 <boxGeometry args={[6.4, h, 5.2]} />
                 {(() => {
-                  const tex = facadeTexture(Math.max(3, Math.round(h / 1.3)))
+                  const tex = facadeTexture(Math.max(3, Math.round(h / 1.3)), envNight ? 'night' : 'day')
                   return (
                     <>
-                      <meshBasicMaterial attach="material-0" map={tex} toneMapped={false} />
-                      <meshBasicMaterial attach="material-1" map={tex} toneMapped={false} />
-                      <meshStandardMaterial attach="material-2" color={ColorSceneFacade} roughness={0.9} emissive="#0d1117" emissiveIntensity={0.5} />
-                      <meshStandardMaterial attach="material-3" color={ColorSceneFacade} roughness={0.9} emissive="#0d1117" emissiveIntensity={0.5} />
-                      <meshBasicMaterial attach="material-4" map={tex} toneMapped={false} />
-                      <meshBasicMaterial attach="material-5" map={tex} toneMapped={false} />
+                      {/* 白天：半透明玻璃（透出天光）+ 低粗糙度（产生环境反射） */}
+                      <meshBasicMaterial
+                        attach="material-0"
+                        map={tex}
+                        toneMapped={!envNight}
+                        transparent={!envNight}
+                        opacity={envNight ? 1 : 0.88}
+                      />
+                      <meshBasicMaterial
+                        attach="material-1"
+                        map={tex}
+                        toneMapped={!envNight}
+                        transparent={!envNight}
+                        opacity={envNight ? 1 : 0.88}
+                      />
+                      <meshStandardMaterial
+                        attach="material-2"
+                        color={envNight ? ColorSceneFacade : ThemeLightGlassHead}
+                        roughness={envNight ? 0.9 : 0.22}
+                        metalness={envNight ? 0 : 0.12}
+                        emissive={envNight ? '#0d1117' : ThemeLightSkyTop}
+                        emissiveIntensity={envNight ? 0.5 : 0.25}
+                      />
+                      <meshStandardMaterial
+                        attach="material-3"
+                        color={envNight ? ColorSceneFacade : ThemeLightGlassHead}
+                        roughness={envNight ? 0.9 : 0.22}
+                        metalness={envNight ? 0 : 0.12}
+                        emissive={envNight ? '#0d1117' : ThemeLightSkyTop}
+                        emissiveIntensity={envNight ? 0.5 : 0.25}
+                      />
+                      <meshBasicMaterial
+                        attach="material-4"
+                        map={tex}
+                        toneMapped={!envNight}
+                        transparent={!envNight}
+                        opacity={envNight ? 1 : 0.88}
+                      />
+                      <meshBasicMaterial
+                        attach="material-5"
+                        map={tex}
+                        toneMapped={!envNight}
+                        transparent={!envNight}
+                        opacity={envNight ? 1 : 0.88}
+                      />
                     </>
                   )
                 })()}
               </mesh>
+              {/* 孪生轮廓线框：勾出建筑体块结构（玻璃孪生的标志） */}
+              {!envNight && (
+                <lineSegments position={[0, h / 2, 0]}>
+                  <edgesGeometry args={[new THREE.BoxGeometry(6.4, h, 5.2)]} />
+                  <lineBasicMaterial color={ThemeLightWire} transparent opacity={0.55} />
+                </lineSegments>
+              )}
               {/* 底层玻璃幕墙 */}
               <mesh position={[0, 1.15, 2.66]}>
                 <planeGeometry args={[5.8, 2.1]} />
-                <meshBasicMaterial map={glassTexture()} toneMapped={false} />
+                <meshBasicMaterial map={glassTexture(envNight ? 'night' : 'day')} toneMapped={!envNight} />
               </mesh>
               {/* 门楣 LED（公司名条，行业色发光） */}
               <mesh position={[0, 2.62, 2.70]}>
@@ -559,7 +688,7 @@ export function HRStand({ lot, onEnterOffice, delivered = false }: { lot: Lot; o
                 [3.6, 5.2, 6.8, 8.4].filter((y) => y < h - 0.6).map((y) => (
                   <mesh key={y} position={[0, y, 2.74]}>
                     <planeGeometry args={[6.1, 0.09]} />
-                    <meshBasicMaterial color={ColorSceneWindow} />
+                    <meshBasicMaterial color={envNight ? ColorSceneWindow : "#8fa3b4"} />
                   </mesh>
                 ))}
               {/* 屋顶：互联网平顶广告牌 / 金融尖顶 / 智造水塔 / 文创坡顶 */}
@@ -572,25 +701,25 @@ export function HRStand({ lot, onEnterOffice, delivered = false }: { lot: Lot; o
               {lot.industry === 'finance' && (
                 <mesh position={[0, h + 1.2, 0]}>
                   <coneGeometry args={[1.1, 2.4, 4]} />
-                  <meshStandardMaterial color={ColorSceneGate} metalness={0.5} roughness={0.35} />
+                  <meshStandardMaterial color={envNight ? ColorSceneGate : ThemeLightGlassBody} metalness={0.5} roughness={0.35} />
                 </mesh>
               )}
               {lot.industry === 'manufacturing' && (
                 <group position={[2.1, h + 0.9, 0.9]}>
                   <mesh position={[0, 0.5, 0]}>
                     <cylinderGeometry args={[0.55, 0.62, 1.8, 10]} />
-                    <meshStandardMaterial color={ColorSceneGate} roughness={0.85} />
+                    <meshStandardMaterial color={envNight ? ColorSceneGate : ThemeLightGlassBody} roughness={0.85} />
                   </mesh>
                   <mesh position={[0, 1.5, 0]}>
                     <sphereGeometry args={[0.55, 12, 10]} />
-                    <meshStandardMaterial color={ColorSceneGate} roughness={0.85} />
+                    <meshStandardMaterial color={envNight ? ColorSceneGate : ThemeLightGlassBody} roughness={0.85} />
                   </mesh>
                 </group>
               )}
               {lot.industry === 'culture' && (
                 <mesh position={[0, h + 0.5, 0]} rotation={[0, Math.PI / 4, 0]}>
                   <coneGeometry args={[4.6, 1.1, 4]} />
-                  <meshStandardMaterial color="#5a3a3a" roughness={0.9} />
+                  <meshStandardMaterial color={envNight ? "#5a3a3a" : "#9fb0c0"} roughness={0.9} />
                 </mesh>
               )}
             </>
@@ -598,11 +727,11 @@ export function HRStand({ lot, onEnterOffice, delivered = false }: { lot: Lot; o
         })()}
         <mesh position={[0, 1.05, 2.82]}>
           <planeGeometry args={[1.1, 2.1]} />
-          <meshBasicMaterial color="#0a1a28" />
+          <meshBasicMaterial color={envNight ? "#0a1a28" : "#2c3a48"} />
         </mesh>
         <mesh position={[0.4, 1.0, 2.84]}>
           <boxGeometry args={[0.035, 0.5, 0.03]} />
-          <meshBasicMaterial color={ColorSceneWindow} />
+          <meshBasicMaterial color={envNight ? ColorSceneWindow : "#8fa3b4"} />
         </mesh>
         <mesh
           position={[0, 2.35, 2.86]}

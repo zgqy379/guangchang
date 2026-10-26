@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>逛厂 3D 街区 · 美术风格十选一（对比页）</title>
+<style>
+:root{
+  --ink:#0b0e1a; --ink2:#4a5160; --ink3:#7a8494;
+  --glass:rgba(255,255,255,.72);
+  --line:rgba(11,14,26,.10);
+  --brand:#c23a2b; --gold:#ffd24a;
+  --font:'PingFang SC','Microsoft YaHei',system-ui,-apple-system,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:#070a12;font-family:var(--font);color:var(--ink)}
+.wrap{max-width:1480px;margin:0 auto;padding:28px 20px 60px}
+
+header.page{margin-bottom:26px}
+header.page h1{font-size:26px;font-weight:800;margin:0 0 8px;color:#e6edf3;letter-spacing:.01em}
+header.page p{margin:0;color:#8b949e;font-size:13.5px;line-height:1.8;max-width:900px}
+header.page b{color:#ffd24a;font-weight:700}
+
+.legend{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.legend span{
+  font-size:11.5px;padding:5px 12px;border-radius:999px;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:#b7c2cc;
+}
+.legend span.on{background:#c23a2b;border-color:#c23a2b;color:#fff;font-weight:700}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(430px,1fr));gap:20px}
+
+.card{
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.10);
+  border-radius:18px;overflow:hidden;display:flex;flex-direction:column;
+  transition:transform .2s cubic-bezier(.2,.8,.2,1),border-color .2s,box-shadow .2s;
+}
+.card:hover{transform:translateY(-3px);border-color:rgba(255,255,255,.2);box-shadow:0 18px 40px -16px rgba(0,0,0,.6)}
+.card.pick{border-color:#ffd24a;box-shadow:0 0 0 1px rgba(255,210,74,.5),0 18px 44px -14px rgba(255,210,74,.22)}
+
+/* ===== 场景预览（纯 CSS 模拟） ===== */
+.view{height:200px;position:relative;overflow:hidden}
+.view .sky{position:absolute;inset:0}
+.view .glow{position:absolute;border-radius:50%;filter:blur(28px)}
+.view .road{position:absolute;left:0;right:0;bottom:0;height:52%}
+.view .lane{position:absolute;left:0;right:0;bottom:26%;height:2px;opacity:.5}
+.view .bld{position:absolute;bottom:38%;background:#111;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)}
+.view .bld i{position:absolute;background:#ffc46b;opacity:.75}
+.view .lamp{position:absolute;bottom:38%;width:2px;background:rgba(255,255,255,.14)}
+.view .lamp::after{
+  content:'';position:absolute;top:-5px;left:-4px;width:10px;height:10px;border-radius:50%;
+  background:#ffc46b;box-shadow:0 0 18px 7px rgba(255,196,107,.55);
+}
+.view .stall{position:absolute;bottom:38%;display:flex;flex-direction:column;align-items:center;gap:2px}
+.view .stall .canopy{width:38px;height:9px;border-radius:2px 2px 0 0}
+.view .stall .post{width:2px;height:16px;background:rgba(255,255,255,.22)}
+.view .stall .person{width:6px;height:13px;border-radius:3px 3px 0 0}
+.view .refl{position:absolute;bottom:0;left:0;right:0;height:30%}
+.view .fogline{position:absolute;left:0;right:0;top:52%;height:26%;filter:blur(10px)}
+
+.tagrow{position:absolute;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.tag{
+  font-size:10.5px;font-weight:700;padding:4px 10px;border-radius:999px;
+  background:rgba(11,14,26,.62);color:#fff;backdrop-filter:blur(6px);letter-spacing:.03em;
+  text-shadow:0 1px 2px rgba(0,0,0,.3);
+}
+.tag.star{background:#ffd24a;color:#0b0e1a;text-shadow:none}
+.cost{font-size:10.5px;font-weight:700;padding:4px 10px;border-radius:999px;background:rgba(11,14,26,.62);color:#9fe8c4;backdrop-filter:blur(6px);text-shadow:0 1px 2px rgba(0,0,0,.3)}
+
+/* ===== 文字区 ===== */
+.body{padding:16px 18px 18px;display:flex;flex-direction:column;gap:9px;flex:1}
+.body h2{margin:0;font-size:16px;font-weight:800;color:#e6edf3;display:flex;align-items:center;gap:8px}
+.body .num{
+  width:22px;height:22px;border-radius:6px;background:rgba(255,255,255,.1);
+  display:grid;place-items:center;font-size:11px;font-weight:800;color:#ffd24a;flex:none;
+}
+.body .desc{font-size:12.5px;color:#a9b4c0;line-height:1.7;margin:0}
+.body .why{font-size:12.5px;color:#c9d3dd;line-height:1.75;margin:0;padding:9px 11px;border-radius:9px;background:rgba(255,255,255,.045);border-left:2px solid rgba(255,210,74,.5)}
+.body .why em{color:#ffd24a;font-style:normal;font-weight:700}
+
+.meters{display:flex;flex-direction:column;gap:6px;margin-top:2px}
+.meter{display:flex;align-items:center;gap:9px;font-size:11.5px;color:#8b949e}
+.meter .k{width:56px;flex:none}
+.meter .dots{display:flex;gap:3px}
+.meter .dots i{width:9px;height:9px;border-radius:2px;background:rgba(255,255,255,.13)}
+.meter .dots i.f{background:#ffd24a}
+.meter .v{margin-left:auto;color:#b7c2cc;font-weight:600;white-space:nowrap}
+
+.verdict{font-size:12px;padding:8px 11px;border-radius:9px;line-height:1.6}
+.verdict.good{background:rgba(61,220,151,.1);border:1px solid rgba(61,220,151,.3);color:#8ee8c0}
+.verdict.warn{background:rgba(255,90,60,.09);border:1px solid rgba(255,90,60,.28);color:#ffa894}
+
+@media (max-width:520px){
+  .grid{grid-template-columns:1fr}
+  .wrap{padding:18px 12px 40px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="page">
+  <h1>逛厂 3D 街区 · 美术风格十选一</h1>
+  <p>每个预览都是<b>纯 CSS 模拟</b>的天空/光照/材质关系（非 WebGL 实拍），用于快速比较调性方向与明度结构 —— 亮玻璃 UI 需要深背景才能成立，故重点看<b>明度层次</b>与<b>冷暖对比</b>，而非细节精度。<br>
+  完整选型论证（含改造量、资产兼容度、盲审预期、风险）见 <b>docs/design/art-style-options-v3.md</b>。</p>
+  <div class="legend">
+    <span class="on">★ 我的推荐</span>
+    <span>改造量 = 达到可交付的估计工时</span>
+    <span>资产兼容 = 是否需重做现有资产</span>
+    <span>盲审预期 = 视觉 / 空间 分数区间</span>
+  </div>
+</header>
+
+<div class="grid" id="grid"></div>
+
+</div>
+
+<script>
+const IND = {
+  internet:{c:'#4a9eff',name:'互联网'}, finance:{c:'#d4a72c',name:'金融'},
+  manufacturing:{c:'#f0883e',name:'智造'}, culture:{c:'#c678dd',name:'文创'}
+};
+
+function scene(o){
+  // o: sky[], sun, sunColor, ground, groundLight, bldColor, winColor, winOpacity, fogColor, fogOpacity, refl, lampOn, neon
+  const blds = [];
+  let seed = o.seed || 3;
+  const rnd = () => (seed = (seed*1103515245+12345)&0x7fffffff)/0x7fffffff;
+  for(let i=0;i<7;i++){
+    const w = 34+rnd()*46, h = 46+rnd()*78;
+    const wins=[];
+    for(let j=0;j<9;j++) wins.push(`<i style="left:${4+rnd()*(w-12)}px;top:${5+rnd()*(h-16)}px;width:4px;height:6px;opacity:${(.25+rnd()*.7).toFixed(2)}"></i>`);
+    blds.push(`<div class="bld" style="left:${(i*15-4+rnd()*5)}%;width:${w}px;height:${h}px;background:${o.bldColor}">${wins.join('')}</div>`);
+  }
+  const lamps = [12,32,52,72,90].map(p=>`<div class="lamp" style="left:${p}%;opacity:${o.lampOn}"></div>`).join('');
+  const stalls = [[16,'internet'],[36,'finance'],[58,'manufacturing'],[78,'culture']].map(([p,k])=>{
+    const s=IND[k];
+    return `<div class="stall" style="left:${p}%">
+      <div class="canopy" style="background:${s.c};box-shadow:0 0 12px ${s.c}88"></div>
+      <div class="post"></div>
+      <div class="person" style="background:${o.personColor||'#e8b98a'}"></div>
+    </div>`;
+  }).join('');
+  return `
+    <div class="view">
+      <div class="sky" style="background:linear-gradient(180deg,${o.sky[0]} 0%,${o.sky[1]} 46%,${o.sky[2]} 72%,${o.sky[3]} 100%)"></div>
+      ${o.sun?`<div class="glow" style="left:${o.sun[0]}%;top:${o.sun[1]}%;width:120px;height:120px;transform:translate(-50%,-50%);background:${o.sunColor};filter:blur(26px);opacity:.9"></div>
+      <div style="position:absolute;left:${o.sun[0]}%;top:${o.sun[1]}%;width:26px;height:26px;transform:translate(-50%,-50%);border-radius:50%;background:${o.sunColor};box-shadow:0 0 40px 12px ${o.sunColor}66"></div>`:''}
+      <div class="fogline" style="background:${o.fogColor};opacity:${o.fogOpacity}"></div>
+      <div class="road" style="background:${o.ground}"></div>
+      <div class="road" style="background:linear-gradient(180deg,${o.groundLight} 0%,transparent 46%);opacity:.75;bottom:26%;height:40%"></div>
+      <div class="lane" style="background:${o.laneColor||'#ffc46b'}"></div>
+      ${blds.join('')}
+      ${lamps}
+      ${stalls}
+      ${o.refl?`<div class="refl" style="background:linear-gradient(180deg,${o.refl} 0%,transparent 100%);opacity:${o.reflOpacity||.35}"></div>`:''}
+      <div class="tagrow">
+        <span class="tag ${o.star?'star':''}">${o.id}. ${o.name}${o.star?' ★':''}</span>
+        <span class="cost">${o.cost}</span>
+      </div>
+    </div>`;
+}
+
+const OPTIONS = [
+  { id:10, name:'暮色市井', star:true, cost:'3–4 天',
+    desc:'黄昏 18:30 的热闹招聘会：暖金余晖 + 冷蓝补光 + 湿地面反射，每个摊位带差异化生活道具（灯串/摊布/纸箱），打破 64 摊同构。',
+    why:'唯一同时解决盲审三大共性问题的方案：<em>电影感灯光</em>（长阴影+湿反射）、<em>摊位个体识别</em>（程序化道具）、<em>地图导航信息</em>（市井元素天然成地标）。改动是加法，现有资产全部保留。',
+    compat:5, blind:'7.5–8.2 / 7.2+', diff:'高',
+    risk:'道具需程序化生成；粒子效果在低端机有帧率压力', riskOk:true,
+    s:{ seed:5, sky:['#1b2440','#3f4a6b','#c9763a','#e89a52'], sun:[72,58], sunColor:'#ffb066',
+        ground:'#2a2118', groundLight:'rgba(255,176,102,.28)', bldColor:'#241d18',
+        winColor:'#ffc46b', fogColor:'#e8a05a', fogOpacity:.30, refl:'rgba(255,190,120,.4)', reflOpacity:.5, lampOn:.55 } },
+
+  { id:1, name:'暮色工业电影感', cost:'1–2 小时',
+    desc:'街区定在黄昏 18:30，向阳面暖金、背光面冷蓝，地面带湿反射 —— "下班时分，正在收摊的招聘会"。',
+    why:'<em>复用全部现有资产</em>，只改时段与灯光参数；<em>激活被浪费的 sky.ts 暮色分支</em>；与品牌红金天然契合；直击盲审扣分最多的"电影感灯光"。',
+    compat:5, blind:'7.0–7.8 / 6.8–7.5', diff:'中',
+    risk:'黄昏下深色材质可能欠曝，需回调曝光或补环境光', riskOk:true,
+    s:{ seed:5, sky:['#16203a','#33405f','#b56a3c','#d98a4e'], sun:[72,60], sunColor:'#ffb066',
+        ground:'#241d18', groundLight:'rgba(255,176,102,.22)', bldColor:'#1f1a16',
+        winColor:'#ffc46b', fogColor:'#d98a4e', fogOpacity:.22, refl:'rgba(255,190,120,.35)', reflOpacity:.38, lampOn:.4 } },
+
+  { id:2, name:'真实工时 · 四区时差', cost:'3–5 天',
+    desc:'不设定单一时刻：四区各呈现各自的真实下班时刻 —— 智造区黄昏收工、金融区入夜、互联网区深夜霓虹。街区成为一条时间轴。',
+    why:'<em>只有本项目能做</em>：把"下班时间"从数字升级成空间叙事，完全契合"参数空间化"立意。差异化极强，评审一眼看出不是通用模板。',
+    compat:4, blind:'7.5–8.2 / 7.5+', diff:'极高',
+    risk:'需给 WorkdaySky 做分区支持；分区光照与全局雾可能冲突', riskOk:true,
+    s:{ seed:9, sky:['#101a30','#2a3350','#8a5a3c','#b5744a'], sun:[30,56], sunColor:'#ff9d5c',
+        ground:'#20191a', groundLight:'rgba(255,157,92,.18)', bldColor:'#1c1719',
+        winColor:'#ffc46b', fogColor:'#9a6a48', fogOpacity:.20, refl:'rgba(255,157,92,.3)', reflOpacity:.3, lampOn:.5,
+        personColor:'#c9b08a' } },
+
+  { id:9, name:'玻璃数字孪生', cost:'1–1.5 周',
+    desc:'街区渲染成半透明线框沙盘，参数以发光体积块直接悬浮在空间里，界面即数据。',
+    why:'与项目定位 <em>100% 吻合</em>："参数空间化 3D 平台"；天然解决 64 摊同构（参数不同→光的形态不同）；与液态玻璃 UI 形成材质语言呼应。',
+    compat:3, blind:'7.0–7.8 / 6.8–7.2', diff:'高',
+    risk:'丧失人情味（像 dashboard 而非招聘会）；HR 形象资产价值被削弱', riskOk:true,
+    s:{ seed:11, sky:['#060b16','#0d1730','#16305c','#1e3f74'], sun:null, sunColor:'',
+        ground:'#080d18', groundLight:'rgba(74,158,255,.14)', bldColor:'#0d1728',
+        winColor:'#58a6ff', fogColor:'#1e3f74', fogOpacity:.30, refl:'rgba(88,166,255,.3)', reflOpacity:.45, lampOn:.3 } },
+
+  { id:4, name:'混凝土粗野', cost:'1–1.5 周',
+    desc:'清水混凝土 + 锈蚀钢筋 + 安全黄警示，把招聘街区做成"诚实、笨重、不可粉饰"的工业体块。',
+    why:'概念与立意高度一致："把画的饼砌成真的山"——不粉饰、露结构；粗野风提供<em>极强剪影差异</em>，正面解决摊位同构。',
+    compat:2, blind:'6.8–7.5 / 6.8–7.2', diff:'高',
+    risk:'与 Aholo 3DGS 写实办公室资产彻底冲突（风格撕裂）；灰混凝土与品牌红金气质相冲', riskOk:false,
+    s:{ seed:7, sky:['#8d8a84','#a8a49c','#c4c0b8','#d8d4cc'], sun:[64,30], sunColor:'#fff3d8',
+        ground:'#6e6a63', groundLight:'rgba(255,255,255,.16)', bldColor:'#7d7971',
+        winColor:'#3b3733', fogColor:'#b8b2a8', fogOpacity:.28, refl:null, lampOn:.12 } },
+
+  { id:3, name:'深空赛博', cost:'1–2 周',
+    desc:'纯黑夜 + 高饱和霓虹 + 全反射路面，接近赛博朋克游戏内景。',
+    why:'视觉冲击最强，与已有霓虹资产（牌坊信标、LED）契合；但四区行业色是核心识别系统，霓虹化会将其彻底糊掉。',
+    compat:2, blind:'6.5–7.2 / 6.0–6.8', diff:'低',
+    risk:'与品牌红金冲突；四区色被霓虹淹没；2026 已严重同质化，评审疲劳', riskOk:false,
+    s:{ seed:13, sky:['#080418','#120a2e','#1c0f4a','#2a1260'], sun:null, sunColor:'',
+        ground:'#0a0618', groundLight:'rgba(198,120,221,.20)', bldColor:'#0f0a24',
+        winColor:'#ff5ad0', fogColor:'#2a1260', fogOpacity:.34, refl:'rgba(198,120,221,.45)', reflOpacity:.55, lampOn:.85 } },
+
+  { id:7, name:'东方写意', cost:'1.5–2 周',
+    desc:'水墨留白 + 青黛配色 + 写意造型，把招聘街区做成东方长卷。',
+    why:'概念独特、辨识度极高，契合"把画饼砌成山"的东方语汇；但写意模糊化与"参数精确披露"的产品本质相悖。',
+    compat:2, blind:'6.8–7.5 / 6.2–7.0', diff:'极高',
+    risk:'与参数精确性冲突；写意风格下 64 摊更难个体区分（盲审重灾区）；与 3DGS 资产冲突', riskOk:false,
+    s:{ seed:17, sky:['#cfc7b8','#ded6c6','#eae3d4','#f2ece0'], sun:[58,26], sunColor:'#f7f1e2',
+        ground:'#b9b0a0', groundLight:'rgba(247,241,226,.2)', bldColor:'#8a8378',
+        winColor:'#3d4a52', fogColor:'#e8e0d0', fogOpacity:.34, refl:null, lampOn:.1,
+        personColor:'#4a5560' } },
+
+  { id:5, name:'风格化微缩', cost:'1–1.5 周',
+    desc:'把街区做成桌面沙盘/手办场景：俯视微缩视角、饱和糖果色、清晰剪影、边缘虚化。',
+    why:'<em>信息可读性最高</em>，造型辨识度好，摊位个体差异一眼可辨；但丧失沉浸感 —— 本项目卖点是"把参数砌成真的山"。',
+    compat:2, blind:'6.5–7.0 / 6.5–7.0', diff:'中',
+    risk:'丧失临场感与真实感；与 3DGS 写实办公室风格撕裂；与街区叙事不符', riskOk:false,
+    s:{ seed:19, sky:['#8fc7f0','#b8dcf7','#e0f0fb','#f2f8fd'], sun:[50,22], sunColor:'#fff6d8',
+        ground:'#9dd0a8', groundLight:'rgba(255,255,255,.22)', bldColor:'#cbe4f5',
+        winColor:'#4a9eff', fogColor:'#e8f4fd', fogOpacity:.22, refl:null, lampOn:.2,
+        personColor:'#f0b48a' } },
+
+  { id:6, name:'侘寂留白', cost:'1.5–2 周',
+    desc:'低饱和大地色、原木与混凝土质感、大面积留白、柔和天光。安静克制。',
+    why:'气质高级、阅读性强，与"松弛感/呼吸感"文案契合；但侘寂是静态的，<em>丢掉了项目核心的时间叙事</em>，且现有夜景资产全部作废。',
+    compat:1, blind:'6.5–7.2 / 6.5–7.0', diff:'中高',
+    risk:'夜景资产全废需重做；丢掉工时叙事；品牌红金在低饱和大地色里显廉价', riskOk:false,
+    s:{ seed:23, sky:['#d8d2c6','#e4dfd3','#efe9dd','#f5f1e8'], sun:[46,24], sunColor:'#fff8e6',
+        ground:'#c4bcae', groundLight:'rgba(255,255,255,.2)', bldColor:'#cfc7b8',
+        winColor:'#8a8378', fogColor:'#efe9dd', fogOpacity:.3, refl:null, lampOn:.08,
+        personColor:'#9a9184' } },
+
+  { id:8, name:'工业朋克', cost:'1 周',
+    desc:'裸金属管道、外露电缆、警示条纹、机油污渍 —— 工厂车间式招聘会。',
+    why:'与智造区气质契合，与粗野风同源但更暖；但只适合智造区，做整条街违和，且"脏乱"与求职场景的期望不符。',
+    compat:3, blind:'6.0–6.8 / 6.0–6.5', diff:'中',
+    risk:'只适合单一区域；气质与求职期望不符；体积与噪点易显廉价', riskOk:false,
+    s:{ seed:29, sky:['#2a2018','#3d2c1e','#5a3a22','#6b4526'], sun:[38,52], sunColor:'#ff9a4a',
+        ground:'#2e2620', groundLight:'rgba(255,154,74,.16)', bldColor:'#3a2f26',
+        winColor:'#d4a72c', fogColor:'#5a3a22', fogOpacity:.26, refl:null, lampOn:.45,
+        personColor:'#b08a5a' } },
+];
+
+const grid = document.getElementById('grid');
+grid.innerHTML = OPTIONS.map(o=>{
+  const dots = n => Array.from({length:5},(_,i)=>`<i class="${i<n?'f':''}"></i>`).join('');
+  return `<article class="card ${o.star?'pick':''}">
+    ${scene({...o.s, id:o.id, name:o.name, star:o.star, cost:o.cost})}
+    <div class="body">
+      <h2><span class="num">${o.id}</span>${o.name}${o.star?' ★推荐':''}</h2>
+      <p class="desc">${o.desc}</p>
+      <p class="why">${o.why}</p>
+      <div class="meters">
+        <div class="meter"><span class="k">资产兼容</span><span class="dots">${dots(o.compat)}</span><span class="v">${'★'.repeat(o.compat)}</span></div>
+        <div class="meter"><span class="k">盲审预期</span><span class="v">${o.blind}</span></div>
+        <div class="meter"><span class="k">差异化</span><span class="v">${o.diff}</span></div>
+      </div>
+      <div class="verdict ${o.riskOk?'good':'warn'}">${o.riskOk?'✓ 可行':'⚠ 风险'}：${o.risk}</div>
+    </div>
+  </article>`;
+}).join('');
+</script>
+</body>
+</html>

@@ -1,0 +1,48 @@
+{
+  "$comment": "逛厂 UI v3 · 厂玻璃 Factory Glass — 令牌补丁。直接并入 web/design/tokens.json 后执行 npm run tokens。注意：现有 tokens.config.mjs 若未注册 shadow 类型，需先补转换（见 ui-system-v3.md §12 L2）。",
+  "glass": {
+    "fill": { "$type": "color", "$value": "rgba(255,255,255,0.72)" },
+    "fillStrong": { "$type": "color", "$value": "rgba(255,255,255,0.86)" },
+    "fillWeak": { "$type": "color", "$value": "rgba(255,255,255,0.48)" },
+    "fillDeep": { "$type": "color", "$value": "rgba(11,14,26,0.72)" },
+    "border": { "$type": "color", "$value": "rgba(255,255,255,0.55)" },
+    "highlight": { "$type": "color", "$value": "rgba(255,255,255,0.85)" },
+    "scrim": { "$type": "color", "$value": "rgba(11,14,26,0.28)" },
+    "blur": { "$type": "dimension", "$value": "28px" },
+    "saturate": { "$type": "dimension", "$value": "180%" }
+  },
+  "ink": {
+    "primary": { "$type": "color", "$value": "#0b0e1a" },
+    "secondary": { "$type": "color", "$value": "#4a5160" },
+    "muted": { "$type": "color", "$value": "#7a8494" },
+    "onBrand": { "$type": "color", "$value": "#ffffff" },
+    "goldText": { "$type": "color", "$value": "#b8860b" }
+  },
+  "elevation": {
+    "glass1": {
+      "$type": "shadow",
+      "$value": "inset 0 1px 0 0 rgba(255,255,255,0.85), 0 2px 6px -2px rgba(11,14,26,0.28), 0 12px 32px -10px rgba(11,14,26,0.45)"
+    },
+    "glass2": {
+      "$type": "shadow",
+      "$value": "inset 0 1px 0 0 rgba(255,255,255,0.9), 0 4px 10px -3px rgba(11,14,26,0.3), 0 20px 44px -14px rgba(11,14,26,0.5)"
+    },
+    "glass3": {
+      "$type": "shadow",
+      "$value": "inset 0 1px 0 0 rgba(255,255,255,0.95), 0 8px 18px -6px rgba(11,14,26,0.32), 0 32px 64px -18px rgba(11,14,26,0.55)"
+    }
+  },
+  "radius": {
+    "card": { "$type": "dimension", "$value": "20px" },
+    "panel": { "$type": "dimension", "$value": "24px" },
+    "control": { "$type": "dimension", "$value": "12px" },
+    "tile": { "$type": "dimension", "$value": "14px" }
+  },
+  "motion": {
+    "instant": { "$type": "duration", "$value": "80ms" },
+    "fast": { "$type": "duration", "$value": "120ms" },
+    "base": { "$type": "duration", "$value": "200ms" },
+    "soft": { "$type": "duration", "$value": "320ms" },
+    "exit": { "$type": "duration", "$value": "180ms" }
+  }
+}
