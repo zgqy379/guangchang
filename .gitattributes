@@ -1,0 +1,37 @@
+# 行尾与文件类型判定：跨平台稳定，避免 Windows 上 core.autocrlf 逐文件抖动
+# 索引侧全部为 LF，本文件只固定检出行为与二进制判定
+* text=auto eol=lf
+
+# 3D / 图像 / 音视频 / 打包产物：禁止任何行尾转换
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.webp  binary
+*.ico   binary
+*.svg   text
+*.mp4   binary
+*.webm  binary
+*.mov   binary
+*.glb   binary
+*.ply   binary
+*.spz   binary
+*.sog   binary
+*.fbx   binary
+*.zip   binary
+*.gz    binary
+*.wasm  binary
+*.bin   binary
+*.pdf   binary
+*.ttf   binary
+*.otf   binary
+*.woff  binary
+*.woff2 binary
+
+# 明确按 LF 检出的脚本与配置（Git Bash / Vite 构建链）
+*.sh   text eol=lf
+*.mjs  text eol=lf
+*.ts   text eol=lf
+*.tsx  text eol=lf
+*.css  text eol=lf
+*.py   text eol=lf
