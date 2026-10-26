@@ -107,13 +107,13 @@
   --twin-wire-opacity-night: 0.28;
   --twin-rim-strength-day: 0.62;
   --twin-rim-strength-night: 1.05;
-  --twin-env-intensity-day: 0.72;
+  --twin-env-intensity-day: 0.62;
   --twin-env-intensity-night: 0.5;
-  --twin-sun-intensity-day: 1.25;
+  --twin-sun-intensity-day: 1.5;
   --twin-sun-intensity-dusk: 0.85;
-  --twin-hemi-intensity-day: 0.5;
+  --twin-hemi-intensity-day: 0.36;
   --twin-hemi-intensity-night: 0.42;
-  --twin-fill-intensity-day: 0.22;
+  --twin-fill-intensity-day: 0.18;
   --twin-fill-intensity-night: 0.28;
   --twin-glass-roughness-day: 0.24;
   --twin-glass-roughness-night: 0.3;
@@ -126,7 +126,7 @@
   --twin-fog-far: 165;
   --twin-exposure-day: 1.05;
   --twin-exposure-night: 1.3;
-  --twin-shadow-map-size: 4096;
+  --twin-shadow-map-size: 2048;
   --twin-shadow-extent: 48;
   --twin-shadow-normal-bias: 0.035;
   --twin-shadow-bias: -0.0004;

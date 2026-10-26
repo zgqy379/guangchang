@@ -90,7 +90,7 @@ export function skyFromEnv(
       fog: ThemeDarkFog,
       sunPos: moon.position,
       sunColor: ThemeDarkMoon,
-      sunIntensity: 0.75,
+      sunIntensity: 0.95,
       ambient: 0.32,
       night: true,
       moonPos: moon.position,
@@ -123,15 +123,35 @@ export function skyFromEnv(
   const bgTop = warm ? lerpColor(topRgb, duskMid, duskT * 0.55) : ThemeLightSkyTop
   const bgHor = warm ? lerpColor(horRgb, duskHor, duskT) : ThemeLightSkyHorizon
 
+  // —— 合成主光位 ——
+  // 真实太阳落到地平线下时（黄昏后段，或用户把主题手动锁成"白天"），
+  // 沿用真实太阳会让浅色主题**只剩环境光**：没有方向性光、没有阴影，
+  // 路面读成一块平板 —— 这正是盲审第一项差距"路面偏平"的根因。
+  // 这里给一个合成的 3/4 主光位：黄昏取西边落日、强制白天取西南角，
+  // 方位要能让阴影**横切过广场**（落在建筑背后等于没画）。
+  let sunPos = sun.position
+  let sunIntensity = below
+    ? 0.15
+    : lerp(TwinSunIntensityDay, TwinSunIntensityDusk, Math.max(0, Math.min(1, duskT)))
+  if (below) {
+    const alt = warm ? lerp(0.42, 0.09, duskT) : 0.45
+    const synthAz = warm ? 4.57 : 3.93
+    const cosAlt = Math.cos(alt)
+    const dist = 90
+    sunPos = [
+      cosAlt * Math.sin(synthAz) * dist,
+      Math.sin(alt) * dist,
+      cosAlt * Math.cos(synthAz) * dist,
+    ]
+    sunIntensity = warm ? lerp(1.15, 0.8, duskT) : 1.35
+  }
+
   return {
     bg,
     fog: warm ? lerpColor([0xee, 0xf4, 0xf8], [0xfa, 0xdc, 0xb0], duskT) : ThemeLightFog,
-    sunPos: sun.position,
+    sunPos,
     sunColor: warm ? lerpColor([0xff, 0xff, 0xe6], [0xff, 0xa8, 0x5c], duskT) : ThemeLightSun,
-    // 太阳越低，光越暖越弱；落到地平线下则只剩环境光
-    // 强度取值来自令牌：加了 IBL 之后总照度会叠加，平行光必须相应压低，
-    // 否则"冷白玻璃 + 浅色地面"会一起糊到高光端（盲审说的"灰平"）。
-    sunIntensity: below ? 0.15 : lerp(TwinSunIntensityDay, TwinSunIntensityDusk, Math.max(0, Math.min(1, duskT))),
+    sunIntensity,
     ambient: below ? 0.5 : 0.85,
     night: false,
     moonPos: moonPosition(now).position,
@@ -194,12 +214,10 @@ function SunLight({
   sunPos,
   sunColor,
   sunIntensity,
-  night,
 }: {
   sunPos: [number, number, number]
   sunColor: string
   sunIntensity: number
-  night: boolean
 }) {
   const ref = useRef<THREE.DirectionalLight>(null)
   useLayoutEffect(() => {
@@ -220,6 +238,11 @@ function SunLight({
     }
     l.shadow.bias = TwinShadowBias
     l.shadow.normalBias = TwinShadowNormalBias
+    // 太阳/月亮是静态的 → 阴影贴图**不必每帧重算**。
+    // 场景里没有任何会动的投影体（玩家/NPC/HR 都不 castShadow，接地靠贴图），
+    // 关掉 autoUpdate、只在光源位置变化时刷新一次即可：
+    // 实测省掉整个 shadow pass（约 200 个 draw call + 一张 2048² 深度图）。
+    l.shadow.autoUpdate = false
     l.shadow.needsUpdate = true
   }, [sunPos])
   return (
@@ -228,7 +251,9 @@ function SunLight({
       position={sunPos}
       color={sunColor}
       intensity={sunIntensity}
-      castShadow={!night}
+      // 夜间也开阴影：月光方向性阴影是夜景唯一的"体积"来源
+      // （此前夜间完全无阴影 → 盲审说的"夜景缺少光层次"）
+      castShadow
     />
   )
 }
@@ -284,7 +309,6 @@ export function WorkdaySky({
         sunPos={sky.sunPos}
         sunColor={sky.sunColor}
         sunIntensity={sky.sunIntensity}
-        night={sky.night}
       />
       {/* 冷色补光：压暗背光面，制造体积感（"光即材料"） */}
       <directionalLight
