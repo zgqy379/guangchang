@@ -20,10 +20,15 @@ export function OfficeViewer({ url }: { url: string }) {
     const el = hostRef.current
     if (!el) return
     let stopped = false
+    // viewer 实例要在 cleanup 里 destroy：aholo-viewer 的 Viewer.destroy() 会
+    // "release the resource of engine and remove bounded canvas"（见其 index.d.ts）。
+    // 不销毁 → 反复切场景/换下拉项会泄漏 WebGL 上下文（浏览器上限约 8–16 个）。
+    let viewerInstance: ReturnType<typeof createViewer> | null = null
 
     ;(async () => {
       try {
         const viewer = createViewer('office-viewer', el, {})
+        viewerInstance = viewer
         const camera = new PerspectiveCamera(
           60,
           Math.max(0.1, el.clientWidth / Math.max(1, el.clientHeight)),
@@ -123,6 +128,12 @@ export function OfficeViewer({ url }: { url: string }) {
 
     return () => {
       stopped = true
+      // 释放引擎资源与 canvas（否则反复切场景会累积 WebGL 上下文）
+      try {
+        viewerInstance?.destroy()
+      } catch (e) {
+        console.warn('[office] viewer.destroy() 失败：', e)
+      }
     }
   }, [url])
 

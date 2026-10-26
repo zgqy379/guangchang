@@ -22,6 +22,10 @@ const StreetScene = lazy(() =>
 import { fictionalCompanies, companyById } from './data/fictional-companies'
 import type { Lot } from './data/street-companies'
 import { assetUrl } from './engine/asset'
+import { ErrorBoundary, SceneErrorBoundary } from './state/ErrorBoundary'
+import { RoleGate, type Role } from './components/role/RoleGate'
+import { loadRole, saveRole } from './engine/progress'
+import './components/role/role-gate.css'
 import {
   systemHour,
   resolveTheme,
@@ -94,6 +98,13 @@ function Scene({
 
 export default function App() {
   const [mode, setMode] = useState<'single' | 'compare' | 'office' | 'street'>('single')
+  // 首屏角色门禁（v1.4 双角色体系）：
+  //   首屏**不挂任何 <Canvas>** → 零 WebGL 上下文、零 3D 资产请求。
+  //   这是首屏体积能守住 5MB 红线的前提（实测：渲染 single 模式会拉
+  //   avatar-idle 3.08MB + avatar-walk 3.08MB + gc-bill-bundle 2.23MB ≈ 8.5MB）。
+  const [roleGate, setRoleGate] = useState(true)
+  const [role, setRole] = useState<Role | null>(null)
+  const [rememberedRole, setRememberedRole] = useState<Role | null>(() => loadRole())
   const [paramsA, setParamsA] = useState<CompanyParams>(defaultParams())
   const [presetA, setPresetA] = useState('custom')
   const [paramsB, setParamsB] = useState<CompanyParams>(companyById('nebula').params)
@@ -186,8 +197,33 @@ export default function App() {
     baseYuan: paramsA.annualBaseSalary,
   })
 
+  // 角色选择 → 进入 3D。求职者走街区，HR 走建厂入口（本期先落街区 + 摊主替身视角）
+  const enterAsRole = (r: Role) => {
+    setRole(r)
+    saveRole(r)
+    setMode('street')
+    setRoleGate(false)
+  }
+  const enterStreetDirectly = () => {
+    setRoleGate(false)
+    setMode('street')
+  }
+
   return (
     <div className="app" data-theme={theme}>
+      {/* 顶层错误边界：任何未捕获错误都降级为可读页，而不是整站白屏（T8 同构风险） */}
+      <ErrorBoundary>
+      {/* 首屏角色门禁：纯 SVG，零 3D 资产、零 WebGL 上下文 */}
+      {roleGate && (
+        <RoleGate
+          onPick={enterAsRole}
+          onEnterStreet={enterStreetDirectly}
+          remembered={rememberedRole}
+          onDismissRemembered={() => setRememberedRole(null)}
+        />
+      )}
+      {!roleGate && (
+      <>
       <header>
         <h1>
           逛厂 <span>把画的饼，砌成真的山</span>
@@ -201,6 +237,15 @@ export default function App() {
             aria-label={`主题：${lockMode === 'auto' ? '跟随系统时间' : lockMode === 'light' ? '强制白天' : '强制夜间'}`}
           >
             {lockMode === 'light' ? '☀' : lockMode === 'dark' ? '☾' : '◐'}
+          </button>
+          {/* 切换角色：误选必须可修正（总纲 §2.4 无死路要求） */}
+          <button
+            className="theme-lock theme-lock--auto"
+            onClick={() => setRoleGate(true)}
+            title="切换角色（求职者 / HR）"
+            aria-label="切换角色（求职者 / HR）"
+          >
+            {role === 'hr' ? 'HR' : role === 'candidate' ? '求职者' : '角色'}
           </button>
           <button className={mode === 'single' ? 'active' : ''} onClick={() => setMode('single')}>
             逛一家
@@ -350,23 +395,27 @@ export default function App() {
             </div>
           )}
           {mode === 'street' ? (
-            <Suspense fallback={<div className="office-loading">招聘街区加载中…</div>}>
-              <StreetSceneLoader
-                envHour={envHour}
-                theme={theme}
-                onEnterOffice={enterOfficeFromStreet}
-                onAddBasket={addBasket}
-                basketIds={basket.map((b) => b.id)}
-              />
-            </Suspense>
+            <SceneErrorBoundary label="招聘街区">
+              <Suspense fallback={<div className="office-loading">招聘街区加载中…</div>}>
+                <StreetSceneLoader
+                  envHour={envHour}
+                  theme={theme}
+                  onEnterOffice={enterOfficeFromStreet}
+                  onAddBasket={addBasket}
+                  basketIds={basket.map((b) => b.id)}
+                />
+              </Suspense>
+            </SceneErrorBoundary>
           ) : mode === 'office' ? (
-            <Suspense
-              fallback={
-                <div className="office-loading">3DGS 渲染引擎加载中…</div>
-              }
-            >
-              <OfficeViewer url={officeScene} />
-            </Suspense>
+            <SceneErrorBoundary label="3DGS 办公室">
+              <Suspense
+                fallback={
+                  <div className="office-loading">3DGS 渲染引擎加载中…</div>
+                }
+              >
+                <OfficeViewer url={officeScene} />
+              </Suspense>
+            </SceneErrorBoundary>
           ) : mode === 'single' ? (
             <Scene
               name={nameA ? `A · ${nameA}` : fictionalCompanies.find((c) => c.id === presetA)?.name ?? '自定义空间'}
@@ -401,6 +450,9 @@ export default function App() {
         Aholo 全球 3D AI 黑客松参赛作品 · 逛厂 GuǎngChǎng · 数据为演示样例 ·
         源码与报告见 github.com/zgqy379/guangchang
       </footer>
+      </>
+      )}
+      </ErrorBoundary>
     </div>
   )
 }

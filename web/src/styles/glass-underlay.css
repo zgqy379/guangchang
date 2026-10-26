@@ -1,0 +1,52 @@
+/* ============================================================
+   玻璃浮层垫实底（Glass Underlay）
+   ------------------------------------------------------------
+   为什么需要：--ui-glass-fill 是**半透明**的（夜间 .72 白 / 白天 .72 深），
+   它压在 3D 场景上时，合成底随背后像素变化 —— **背景是变量，不是常量**。
+
+   实测（主理人 2026-10-27 按场景实际色逐档验算）：
+     浅色主题 · 深玻璃压 theme.light.skyHorizon #f4f8fb（最亮天幕）
+       → 合成底 #4C5059 → --ui-ink-secondary 4.48:1 ❌ · --ui-ink-muted 4.20:1 ❌
+     浅色主题 · 压 skyMid #e4eef6 → muted 4.41:1 ❌
+     浅色主题 · 压 glassBody #dceaf5 → muted 4.50:1 ❌（临界）
+     夜间主题 · 全部背景达标（最差 muted 4.55:1，余量仅 0.05）
+
+   即：**玻璃浮层越透明、场景越亮，越吃亏**。UI 浮层（顶栏/HUD/名片卡/toast）
+   恰恰贴着画面上方与远处地平线 —— 全场最亮的一带。
+
+   修法：在玻璃面之下垫一层不透明实底，把"与背景相关"变成"与背景无关"。
+     --ui-glass-underlay（定义在 styles.css 的 .app / .app[data-theme='light']）
+       浅色 rgba(11,14,26,.86) → 合成 ≈#2B2F3A → secondary 7.39 · muted 6.92
+       夜间 rgba(255,255,255,.86) → 合成 ≈#DEE0E4 → secondary 7.80 · muted 6.54
+
+   ⚠️ 顺序坑（极易踩）：CSS `background` 简写会**重置** `background-color`。
+      所以 `background-color` 必须写在 `background` **之后**，否则实底被静默清掉，
+      文字对比度悄悄回落 4.48:1 —— 表面看起来"加了但没生效"。
+      本文件只用 background-color 覆盖，不重复写 background 简写，从根上避免此坑。
+   ============================================================ */
+
+/* —— 街区 HUD · 名片卡 · 导航元素 · 提示条 —— */
+.scale-note,
+.office-hint,
+.lot-card,
+.street-cta,
+.nav-pill,
+.peak-tag,
+.game-hud,
+.game-toast,
+.district-chip,
+.office-status {
+  background-color: var(--ui-glass-underlay);
+}
+
+/* —— 文字层级：muted 仅限图例/脚注，不用于正文（ui-system-v3 §6.4）——
+   垫实底后 muted 双主题都已达标，但语义上这几处承载的是正文/说明文字，
+   改用 secondary 以保证层级一致。
+   注：.game-hud-title 是 HUD 的区块标题、.office-loading 是加载提示正文，
+   都不是图例，故一并改 secondary。 */
+.lot-card-stat .k,
+.lot-card-tag,
+.game-hud-title,
+.office-loading {
+  color: var(--ui-ink-secondary);
+}

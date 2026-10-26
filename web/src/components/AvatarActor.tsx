@@ -180,5 +180,7 @@ export function AvatarActor({
   )
 }
 
-useGLTF.preload(assetUrl('/assets/avatar/avatar-idle.glb'), DRACO_PATH)
-// walk 动画不预加载：仅在漫游模式（useGLTF 实际引用）时拉取，省 3.1MB 首屏流量
+// 不做模块级 useGLTF.preload：它在模块 import 时执行 → 该模块进首屏 chunk 就立刻拉资产。
+// 实测首屏因此多拉 avatar-idle.glb 3.08MB（超 5MB 红线）。
+// 现在改由组件内 useGLTF 在渲染时才加载（进入 single 模式或街区时）。
+// walk 动画同理：仅漫游模式引用时才拉，省 3.1MB。

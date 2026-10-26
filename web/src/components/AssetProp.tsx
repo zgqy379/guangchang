@@ -42,4 +42,6 @@ export function AssetProp({
   )
 }
 
-useGLTF.preload(assetUrl('/assets/money/gc-bill-bundle.glb'), DRACO_PATH)
+// 不做模块级 useGLTF.preload：它在模块 import 时执行 → 该模块进首屏 chunk 就立刻拉资产。
+// 实测首屏因此多拉 gc-bill-bundle.glb 2.23MB（超 5MB 红线）。
+// 现在改由组件内 useGLTF 在渲染时才加载。
