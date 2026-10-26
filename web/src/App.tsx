@@ -4,11 +4,8 @@ import { Canvas } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import { CompanyParams, defaultParams, totalPackage } from './engine/params'
 import { formatValue } from './engine/dictionary'
-import { WorkdaySky } from './components/WorkdaySky'
-import { CompanyPlot } from './components/CompanyPlot'
 import { HRPanel } from './components/HRPanel'
 import { schrodingerCapNote } from './components/SchrodingerBills'
-import { RoamCamera } from './components/RoamCamera'
 import type { RoamRefs } from './components/AvatarActor'
 
 // Aholo Viewer 体积大（3DGS 渲染器），仅办公室模式按需加载
@@ -18,6 +15,22 @@ const OfficeViewer = lazy(() =>
 // 街区场景（v1.2）：十字路口四大领域招聘街区
 const StreetScene = lazy(() =>
   import('./components/street/StreetScene').then((m) => ({ default: m.StreetScene }))
+)
+// 作品廊场景（P3 作品廊）：独立 Canvas，与街区物理隔离
+const GalleryScene = lazy(() =>
+  import('./components/gallery/GalleryScene').then((m) => ({ default: m.GalleryScene }))
+)
+// 单场景（single/compare）用到的 3D 组件：改按需加载，避免静态 import 把它们
+// （含 three 依赖）打进主 chunk。首屏 roleGate 阶段不挂任何 <Canvas>，
+// 这些 chunk 也就不被请求 —— 这是首屏体积守住 5MB 红线的前提之一。
+const WorkdaySky = lazy(() =>
+  import('./components/WorkdaySky').then((m) => ({ default: m.WorkdaySky }))
+)
+const CompanyPlot = lazy(() =>
+  import('./components/CompanyPlot').then((m) => ({ default: m.CompanyPlot }))
+)
+const RoamCamera = lazy(() =>
+  import('./components/RoamCamera').then((m) => ({ default: m.RoamCamera }))
 )
 import { fictionalCompanies, companyById } from './data/fictional-companies'
 import { STREET_LOTS, type Lot } from './data/street-companies'
@@ -66,38 +79,41 @@ function Scene({
   )
   return (
     <Canvas dpr={[1, 2]} camera={{ position: [3.1, 2.1, 4.3], fov: 45 }}>
-      <WorkdaySky envHour={envHour} theme={theme} />
-      {/* 大地板：让展台坐在"地面"上而非悬空，地砖路可延伸向远方 */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.02, 0]}>
-        <planeGeometry args={[90, 90]} />
-        <meshStandardMaterial color="#10141a" roughness={1} />
-      </mesh>
-      <CompanyPlot
-        position={[0, 0, 0]}
-        name={name}
-        params={params}
-        growthKey={growthKey}
-        roam={roam}
-        roamRefs={roamRefs}
-        onGroundClick={
-          roam
-            ? (p) => {
-                targetRef.current = new THREE.Vector3(p.x, p.y, p.z)
-              }
-            : undefined
-        }
-      />
-      {roam ? (
-        <RoamCamera enabled refs={roamRefs} />
-      ) : (
-        <OrbitControls target={[-0.4, 0.7, 0]} maxPolarAngle={Math.PI / 2.1} />
-      )}
+      {/* lazy 3D 组件首次加载会挂起：Canvas 内必须有 Suspense，否则挂起冒泡到根、整树空白 */}
+      <Suspense fallback={null}>
+        <WorkdaySky envHour={envHour} theme={theme} />
+        {/* 大地板：让展台坐在"地面"上而非悬空，地砖路可延伸向远方 */}
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.02, 0]}>
+          <planeGeometry args={[90, 90]} />
+          <meshStandardMaterial color="#10141a" roughness={1} />
+        </mesh>
+        <CompanyPlot
+          position={[0, 0, 0]}
+          name={name}
+          params={params}
+          growthKey={growthKey}
+          roam={roam}
+          roamRefs={roamRefs}
+          onGroundClick={
+            roam
+              ? (p) => {
+                  targetRef.current = new THREE.Vector3(p.x, p.y, p.z)
+                }
+              : undefined
+          }
+        />
+        {roam ? (
+          <RoamCamera enabled refs={roamRefs} />
+        ) : (
+          <OrbitControls target={[-0.4, 0.7, 0]} maxPolarAngle={Math.PI / 2.1} />
+        )}
+      </Suspense>
     </Canvas>
   )
 }
 
 export default function App() {
-  const [mode, setMode] = useState<'single' | 'compare' | 'office' | 'street'>('single')
+  const [mode, setMode] = useState<'single' | 'compare' | 'office' | 'street' | 'gallery'>('single')
   // 首屏角色门禁（v1.4 双角色体系）：
   //   首屏**不挂任何 <Canvas>** → 零 WebGL 上下文、零 3D 资产请求。
   //   这是首屏体积能守住 5MB 红线的前提（实测：渲染 single 模式会拉
@@ -415,6 +431,7 @@ export default function App() {
                   envHour={envHour}
                   theme={theme}
                   onEnterOffice={enterOfficeFromStreet}
+                  onEnterGallery={() => setMode('gallery')}
                   onAddBasket={addBasket}
                   basketIds={basket.map((b) => b.id)}
                 />
@@ -428,6 +445,15 @@ export default function App() {
                 }
               >
                 <OfficeViewer url={officeScene} />
+              </Suspense>
+            </SceneErrorBoundary>
+          ) : mode === 'gallery' ? (
+            <SceneErrorBoundary label="作品廊">
+              <Suspense fallback={<div className="office-loading">作品廊加载中…</div>}>
+                <GalleryScene
+                  expectedSalary={450000}
+                  night={theme === 'dark'}
+                />
               </Suspense>
             </SceneErrorBoundary>
           ) : mode === 'single' ? (
@@ -474,6 +500,7 @@ export default function App() {
 // 街区加载遮罩：监听首帧事件，加载期显示品牌化加载态（消除黑屏窗口期）
 function StreetSceneLoader(props: {
   onEnterOffice: (lot: { industry: string }) => void
+  onEnterGallery?: () => void
   envHour: number
   theme: ThemeName
   onAddBasket: (lot: Lot) => void
@@ -492,7 +519,7 @@ function StreetSceneLoader(props: {
   }, [])
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-      <StreetScene {...props} />
+      <StreetScene {...props} onEnterGallery={props.onEnterGallery} />
       {!ready && (
         <div
           style={{
@@ -501,15 +528,16 @@ function StreetSceneLoader(props: {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            background: '#0d1117',
+            // 遮罩是不透明面板 → 用随主题反相的面板令牌（旧硬编码 #0d1117 在浅色主题下突兀）
+            background: 'var(--ui-panel-bg)',
             zIndex: 20,
-            color: '#8b949e',
+            color: 'var(--ui-panel-fg-muted)',
             fontSize: 14,
             flexDirection: 'column',
             gap: 12,
           }}
         >
-          <div style={{ fontSize: 30, fontWeight: 800, color: '#c23a2b' }}>逛厂</div>
+          <div style={{ fontSize: 30, fontWeight: 800, color: 'var(--color-brand-red-deep)' }}>逛厂</div>
           <div>招聘街区搭建中，即将开门…</div>
         </div>
       )}

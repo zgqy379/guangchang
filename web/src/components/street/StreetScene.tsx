@@ -1156,12 +1156,14 @@ export function StreetScene({
   envHour,
   theme,
   onEnterOffice,
+  onEnterGallery,
   onAddBasket,
   basketIds,
 }: {
   envHour: number
   theme: ThemeName
   onEnterOffice: (lot: Lot) => void
+  onEnterGallery?: () => void
   onAddBasket: (lot: Lot) => void
   basketIds: string[]
 }) {
@@ -1365,6 +1367,27 @@ export function StreetScene({
         night={theme === 'dark'}
         position={[0, 0, 14]}
       />
+      {/* 作品廊入口（v1.4 双角色体系）：求职者空间独立入口，不进顶栏，从街道路牌进入 */}
+      <mesh
+        position={[0, 1.5, 20]}
+        onClick={onEnterGallery}
+        onPointerOver={() => (document.body.style.cursor = 'pointer')}
+        onPointerOut={() => (document.body.style.cursor = 'default')}
+      >
+        <cylinderGeometry args={[0.6, 3, 0.6]} />
+        <meshStandardMaterial
+          color="#16C0B6"
+          emissive="#16C0B6"
+          emissiveIntensity={theme === 'dark' ? 1.5 : 0.5}
+          transparent
+          opacity={0.9}
+        />
+      </mesh>
+      <Html position={[0, 3.5, 20]} center>
+        <div style={{ color: '#16C0B6', fontWeight: 600, fontSize: 14, whiteSpace: 'nowrap' }}>
+          作品廊 · 求职者独立空间
+        </div>
+      </Html>
       </Canvas>
       <div className="scene-vignette" aria-hidden />
       <GameHud state={hudState} />
