@@ -1,0 +1,44 @@
+version: 1
+
+# 逛厂 GuǎngChǎng · Repo Wiki / 知识卡生成的前置配置
+# 权威来源：project.md（计划书）· AGENTS.md（Agent 契约）· docs/lessons.md（部署铁律）
+
+repowiki:
+  template: ""            # 不预设模板：本项目产品叙事与技术方案并重，交规划器按页面类型自行组织
+  notes:
+    - text: >-
+        project.md 是唯一权威计划书。产品决策以它最新版为准，生成的页面只引用、不复述、不改写决策结论。
+    - text: >-
+        部署铁律的归属地是 docs/lessons.md §3，Agent 操作契约是 AGENTS.md。wiki 需要提及时用路径引用，不要把内容抄进来。
+    - text: >-
+        技术栈版本固定：React 18.3 + three 0.169 + @react-three/fiber 8.17 + @react-three/drei 9.114 + Vite 5.4 + TypeScript 5.6；报告排版用 typst。
+    - text: >-
+        本项目没有后端服务，Demo 是纯静态托管。禁止把架构描述成前后端分离或存在 API 服务器。
+    - text: >-
+        dictionary/ 是产品核心资产，被 web/src/engine/dictionary.ts 以 import 方式在构建期编译进包：加一条词条即自动多一个控件，零前端改动。必须讲清这层"词典即引擎"关系。
+    - text: >-
+        部署双目标：GitHub Pages（分支 gh-pages，VITE_BASE_TOKEN=ghpages）与魔搭创空间 zgqy379/guangchang3d（VITE_BASE_TOKEN=modelscope，上传必须关闭 LFS）。仓库无 CI 工作流，勿写成流水线。
+    - text: >-
+        三条强制模式：资产 URL 一律走 engine/asset.ts 的 assetUrl()；颜色唯一来源是 design/tokens.json 经 style-dictionary 生成的 generated/design-tokens.output.*；@manycore/aholo-viewer 必须留在 vite optimizeDeps.exclude（否则丢 splat worker）。
+    - text: >-
+        合规红线：禁用人民币图样，钞票视觉一律为虚构"逛厂币"（依据 project.md 7.6）。InteriorGS 数据集与用户照片属受限素材，其数据与截图不得出现在公开仓库或公开构建；描述时只写"受限、不分发"，不得给出可访问路径。
+    - text: >-
+        tools/ 下的 Python 与 Node 脚本是离线资产管线（Lux3D 生成/绑骨/动画重定向、录屏与合成），不是运行时依赖，不进前端包；产物存档在 docs/iterations/（大二进制被 gitignore，仅 meta 与截图入库）。
+    - text: >-
+        docs/ 同时承载交付物：report.typ 编译为 report.pdf（报告书），video/ 是 Demo 视频工程，design/ 是独立盲审验收记录，iterations/ 是赛事硬性要求的资产迭代存档。
+    - text: 文档统一使用简体中文（zh-CN）。
+
+  documents: []          # 留空 = 由规划器自动规划目录（本项目采用默认）
+
+knowledgecard:
+  notes:
+    - text: >-
+        模块边界固定为四个，不要按 components 目录做细粒度拆分：web（前端渲染与 HUD）、dictionary（参数空间化词典：schema + HR/求职者两份 JSON）、tools（离线资产与视频管线）、docs（报告书、迭代存档、盲审验收）。
+    - text: >-
+        web 内部分三层且不得互相穿透：src/engine 是领域层（asset/dictionary/params/sky），src/components 是 R3F 表现层，src/data 是虚构演示数据。
+    - text: >-
+        dictionary 与 web 之间是编译期依赖（JSON import），不存在运行期调用；tools 与 web 之间只有文件产物关系（GLB/SPZ/帧序列 → web/public/assets），无代码依赖。
+    - text: >-
+        web/vite.config.ts 的 base 前缀只由非路径令牌 VITE_BASE_TOKEN 决定；写成路径形态的环境变量会被 MSYS 改写导致线上白屏（事故 T8）。
+    - text: >-
+        已实测的 Aholo 能力事实与失败样本记录在 docs/w1-api-test-checklist.md 与 docs/iterations/，知识卡引用结论时以这两处为准，不得臆造 API 行为。
