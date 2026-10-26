@@ -10,6 +10,7 @@ import { AvatarActor, RoamRefs } from '../AvatarActor'
 import { RoamCamera } from '../RoamCamera'
 import { HRStand, preloadHRModels } from './HRStand'
 import { PlaceholderHRs } from './PlaceholderHRs'
+import { OfficeFacadeInstanced } from './OfficeFacadeInstanced'
 import { BoothPoles, MoneyStacks } from './BoothProps'
 import { LotBeacons, LotNumberDecals } from './LotMarkers'
 import { NPC } from './NPC'
@@ -1215,6 +1216,8 @@ export function StreetScene({
       />
       {/* M6a：在 Canvas 内部使用 useFrame 计算近景摊位集合 */}
       <NearTracker placements={placed} nearRef={nearSetRef} />
+      {/* M6b：办公空间门面 InstancedMesh 池（替代每个摊位门面的多个独立 mesh） */}
+      <OfficeFacadeInstanced placements={placed} theme={theme} night={theme === 'dark'} />
       {/* 个体识别：地面编号牌（01–64）+ 行业色信标鳍 —— 共 2 个 draw call */}
       <LotNumberDecals />
       <LotBeacons />

@@ -18,16 +18,7 @@ import {
   ColorStateInfo,
   ThemeLightGlassHead,
   ThemeLightGlassBody,
-  ThemeLightRim,
-  ThemeLightSkyTop,
-  ThemeLightWire,
   TwinContactOpacityDay,
-  TwinEnvIntensityDay,
-  TwinEnvIntensityNight,
-  TwinGlassOpacityDay,
-  TwinGlassRoughnessDay,
-  TwinGlassRoughnessNight,
-  TwinRimStrengthDay,
 } from '../../../generated/design-tokens.output.mjs'
 import type { ThemeName } from '../../engine/theme'
 
@@ -54,31 +45,6 @@ export function preloadHRModels() {
  *
  * 实现走 onBeforeCompile：只加几条 ALU，**不增加 draw call、不增加后处理通道**。
  */
-function applyRimLight(
-  mat: THREE.MeshStandardMaterial,
-  color: string,
-  strength: number
-) {
-  mat.onBeforeCompile = (shader) => {
-    shader.uniforms.uRimColor = { value: new THREE.Color(color) }
-    shader.uniforms.uRimStrength = { value: strength }
-    shader.fragmentShader = shader.fragmentShader
-      .replace(
-        'void main() {',
-        'uniform vec3 uRimColor;\nuniform float uRimStrength;\nvoid main() {'
-      )
-      .replace(
-        '#include <emissivemap_fragment>',
-        `#include <emissivemap_fragment>
-        float gcRim = 1.0 - abs(dot(normalize(normal), normalize(vViewPosition)));
-        gcRim = pow(clamp(gcRim, 0.0, 1.0), 2.2);
-        totalEmissiveRadiance += uRimColor * gcRim * uRimStrength;`
-      )
-  }
-  mat.customProgramCacheKey = () => 'gc-twin-rim'
-  mat.needsUpdate = true
-}
-
 // 占位 HR 的西装色池（按 hrIndex 分配，避免 64 个摊位同色）
 export const OUTFITS = ['#3d4c63', '#4a3b52', '#2f4a45', '#5a4038', '#33465e', '#4a4230', '#3b3b46', '#533a44', '#304c58']
 export const HAIRS = ['#1b1b22', '#2a1d18', '#20262f', '#3a2a22', '#151a20']
@@ -88,7 +54,7 @@ export const HAIRS = ['#1b1b22', '#2a1d18', '#20262f', '#3a2a22', '#151a20']
 //                mode='night' 画原夜景（深蓝底 + 暖色亮窗）
 const FACADE_TEX = new Map<string, THREE.CanvasTexture>()
 
-function facadeTexture(floors: number, mode: 'day' | 'night' = 'night') {
+export function facadeTexture(floors: number, mode: 'day' | 'night' = 'night') {
   const key = `${floors}:${mode}`
   const cached = FACADE_TEX.get(key)
   if (cached) return cached
@@ -184,7 +150,7 @@ function facadeTexture(floors: number, mode: 'day' | 'night' = 'night') {
 // 底层玻璃幕墙：夜间=深蓝反射室内暖光；白天=浅色玻璃反射天空
 let GLASS_TEX: THREE.CanvasTexture | null = null
 let GLASS_TEX_DAY: THREE.CanvasTexture | null = null
-function glassTexture(mode: 'day' | 'night' = 'night') {
+export function glassTexture(mode: 'day' | 'night' = 'night') {
   if (mode === 'day') {
     if (GLASS_TEX_DAY) return GLASS_TEX_DAY
     const c = document.createElement('canvas')
@@ -264,7 +230,7 @@ function glassTexture(mode: 'day' | 'night' = 'night') {
 
 // 接触阴影 / 窗光外溢 / 已投递标（共享贴图）
 let SHADOW_TEX: THREE.CanvasTexture | null = null
-function shadowTexture() {
+export function shadowTexture() {
   if (SHADOW_TEX) return SHADOW_TEX
   const c = document.createElement('canvas')
   c.width = c.height = 128
@@ -280,7 +246,7 @@ function shadowTexture() {
 }
 
 let SPILL_TEX: THREE.CanvasTexture | null = null
-function spillTexture() {
+export function spillTexture() {
   if (SPILL_TEX) return SPILL_TEX
   const c = document.createElement('canvas')
   c.width = 128
@@ -297,7 +263,7 @@ function spillTexture() {
 }
 
 let DELIVERED_TEX: THREE.CanvasTexture | null = null
-function deliveredTexture() {
+export function deliveredTexture() {
   if (DELIVERED_TEX) return DELIVERED_TEX
   const c = document.createElement('canvas')
   c.width = 256
@@ -320,7 +286,7 @@ function deliveredTexture() {
 }
 
 // 钱捆贴图：扎带 + ¥ 压印（共享纹理，不增加 draw call）
-function cashTexture(base: string, dark: string) {
+export function cashTexture(base: string, dark: string) {
   const c = document.createElement('canvas')
   c.width = 256
   c.height = 64
@@ -414,59 +380,6 @@ function RealHR({ hrIndex }: { hrIndex: number }) {
 // 本文件不再直接渲染 PlaceholderHR；远景由 StreetScene 中的 <PlaceholderHRs /> 统一绘制。
 
 // 孪生体玻璃材质缓存：同一 (楼层数, 主题) 共用一个材质实例
-// —— 64 栋楼只占 4 份材质（原来每栋 6 份 → 384 份，且每份一个 draw call）
-const BODY_MATS = new Map<string, THREE.Material>()
-function bodyMaterial(floors: number, night: boolean) {
-  const key = `${floors}:${night}`
-  const cached = BODY_MATS.get(key)
-  if (cached) return cached
-  const tex = facadeTexture(floors, night ? 'night' : 'day')
-  let mat: THREE.Material
-  if (night) {
-    // 夜间立面是"自发光窗格"，用无光照材质保住窗光不被 ACES 压暗（沿用原做法）
-    mat = new THREE.MeshBasicMaterial({ map: tex })
-  } else {
-    // 白天改成**受光材质**：玻璃体块这才有天光反射与明暗面（原为无光照 → 一块白板）
-    const m = new THREE.MeshStandardMaterial({
-      map: tex,
-      transparent: true,
-      opacity: TwinGlassOpacityDay,
-      roughness: TwinGlassRoughnessDay,
-      metalness: 0.06,
-      envMapIntensity: TwinEnvIntensityDay,
-      emissive: new THREE.Color(ThemeLightSkyTop),
-      emissiveIntensity: 0.22,
-    })
-    applyRimLight(m, ThemeLightRim, TwinRimStrengthDay)
-    mat = m
-  }
-  BODY_MATS.set(key, mat)
-  return mat
-}
-
-// 实体头（剪影载体）：孪生风要求玻璃体顶部留一段不透明实体
-// 颜色按行业区分（浅色主题下向玻璃色靠拢）→ 鸟瞰时四个街区各成一色带
-const CAP_MATS = new Map<string, THREE.Material>()
-function capMaterial(industry: string, night: boolean) {
-  const key = `${industry}:${night}`
-  const cached = CAP_MATS.get(key)
-  if (cached) return cached
-  const m = new THREE.MeshStandardMaterial({
-    color: night ? ColorSceneGate : ThemeLightGlassHead,
-    roughness: night ? 0.75 : TwinGlassRoughnessNight,
-    metalness: night ? 0 : 0.12,
-    envMapIntensity: night ? TwinEnvIntensityNight : TwinEnvIntensityDay,
-  })
-  if (!night) {
-    const accent = new THREE.Color(INDUSTRIES[industry as keyof typeof INDUSTRIES]?.color ?? '#9fb3c4')
-    accent.lerp(new THREE.Color(ThemeLightGlassHead), 0.42)
-    m.color = accent
-    applyRimLight(m, ThemeLightRim, TwinRimStrengthDay * 0.8)
-  }
-  CAP_MATS.set(key, m)
-  return m
-}
-
 // 公司名牌：CanvasTexture 精灵（无 DOM，64 个摊位也便宜）
 // v4.1 美术攻关：加**编号角标** —— 盲审指出"远看分不出是哪家"，
 // 编号是唯一在鸟瞰距离也能读出的个体线索（名字在那个距离根本看不清）。
@@ -525,9 +438,7 @@ export function HRStand({ lot, onEnterOffice, delivered = false, theme = 'dark' 
   // 建筑高度：互联网平顶 / 金融尖顶 / 智造矮厂棚 / 文创坡顶
   const bHeight =
     lot.industry === 'internet' ? 8 : lot.industry === 'finance' ? 11.5 : lot.industry === 'manufacturing' ? 4.6 : 4.2
-  const bFloors = Math.max(3, Math.round(bHeight / 1.3))
-  const bodyMat = useMemo(() => bodyMaterial(bFloors, envNight), [bFloors, envNight])
-  const capMat = useMemo(() => capMaterial(lot.industry, envNight), [lot.industry, envNight])
+  // 门面主体（body/cap/glass/led）已移至 OfficeFacadeInstanced（M6b InstancedMesh 池），此处不再渲染
 
   // 就近 LOD：NEAR 内挂真形象，FAR 外卸载（滞回防抖）；GLB 按需加载（Suspense 回退占位）
   const [near, setNear] = useState(false)
@@ -717,32 +628,8 @@ export function HRStand({ lot, onEnterOffice, delivered = false, theme = 'dark' 
                   blending={THREE.AdditiveBlending}
                 />
               </mesh>
-              {/* 玻璃体块：单一材质（原为 6 材质盒 → 每栋 6 个 draw call，现 1 个） */}
-              <mesh position={[0, h / 2, 0]} material={bodyMat} castShadow receiveShadow>
-                <boxGeometry args={[6.4, h, 5.2]} />
-              </mesh>
-              {/* 实体头（剪影载体）：不透明顶盖，同时遮住玻璃盒的顶面贴图 */}
-              <mesh position={[0, h + 0.1, 0]} material={capMat} castShadow receiveShadow>
-                <boxGeometry args={[6.66, 0.42, 5.44]} />
-              </mesh>
-              {/* 孪生轮廓线框：勾出建筑体块结构（玻璃孪生的标志） */}
-              {!envNight && (
-                <lineSegments position={[0, h / 2, 0]}>
-                  <edgesGeometry args={[new THREE.BoxGeometry(6.4, h, 5.2)]} />
-                  <lineBasicMaterial color={ThemeLightWire} transparent opacity={0.55} />
-                </lineSegments>
-              )}
-              {/* 底层玻璃幕墙 */}
-              <mesh position={[0, 1.15, 2.66]}>
-                <planeGeometry args={[5.8, 2.1]} />
-                <meshBasicMaterial map={glassTexture(envNight ? 'night' : 'day')} toneMapped={!envNight} />
-              </mesh>
-              {/* 门楣 LED（公司名条，行业色发光） */}
-              <mesh position={[0, 2.62, 2.70]}>
-                <boxGeometry args={[2.9, 0.42, 0.1]} />
-                <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.85} />
-              </mesh>
-              {/* 楼层灯带（高层建筑） */}
+              {/* 玻璃体块、实体头、轮廓线、幕墙、门楣 LED 已移至 OfficeFacadeInstanced（M6b） */}
+              {/* 楼层灯带、屋顶、门继续在此渲染 */}
               {h > 6 &&
                 [3.6, 5.2, 6.8, 8.4].filter((y) => y < h - 0.6).map((y) => (
                   <mesh key={y} position={[0, y, 2.74]}>
