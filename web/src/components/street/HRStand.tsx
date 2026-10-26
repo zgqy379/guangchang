@@ -11,12 +11,9 @@ import { assetUrl } from '../../engine/asset'
 import {
   ColorSceneBillOrange,
   ColorSceneBillRed,
-  ColorSceneBooth,
   ColorSceneGate,
-  ColorSceneGateDark,
   ColorSceneWindow,
   ColorStateInfo,
-  ThemeLightGlassHead,
   ThemeLightGlassBody,
   TwinContactOpacityDay,
 } from '../../../generated/design-tokens.output.mjs'
@@ -428,13 +425,6 @@ export function HRStand({ lot, onEnterOffice, delivered = false, theme = 'dark' 
   // 参数时间语义：这家公司几点下班（与环境主题无关）
   const envNight = theme === 'dark'
 
-  // 雨棚顶色 = 行业色向玻璃色靠拢 → 鸟瞰时四个街区各成一色带（个体识别主线索）
-  const roofColor = useMemo(() => {
-    const c = new THREE.Color(color)
-    c.lerp(new THREE.Color(envNight ? ColorSceneGateDark : ThemeLightGlassHead), envNight ? 0.34 : 0.4)
-    return c.getStyle()
-  }, [color, envNight])
-
   // 建筑高度：互联网平顶 / 金融尖顶 / 智造矮厂棚 / 文创坡顶
   const bHeight =
     lot.industry === 'internet' ? 8 : lot.industry === 'finance' ? 11.5 : lot.industry === 'manufacturing' ? 4.6 : 4.2
@@ -457,91 +447,7 @@ export function HRStand({ lot, onEnterOffice, delivered = false, theme = 'dark' 
 
   return (
     <group ref={rootRef}>
-      {/* 摊位台 */}
-      <mesh position={[0, 0.07, 0]} receiveShadow castShadow>
-        <boxGeometry args={[2.2, 0.14, 2.2]} />
-        <meshStandardMaterial color={envNight ? ColorSceneBooth : ThemeLightGlassHead} roughness={envNight ? 0.9 : 0.6} />
-      </mesh>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.013, 0.12]}>
-        <planeGeometry args={[3.2, 3.2]} />
-        <meshBasicMaterial
-          map={shadowTexture()}
-          transparent
-          opacity={envNight ? 0.9 : TwinContactOpacityDay}
-          depthWrite={false}
-        />
-      </mesh>
-      {/* 摊位雨棚 + 侧招：让展位从远处就读得出"招聘摊"
-          （雨棚立柱已移到 BoothProps 的 InstancedMesh） */}
-      <group>
-        {/* 雨棚顶：四种行业剪影（平顶大板 / 尖顶金字塔 / 单坡厂棚 / 菱形坡顶）
-            —— 轮廓差异是鸟瞰距离唯一有效的个体区分手段 */}
-        {lot.industry === 'internet' && (
-          <mesh position={[0, 2.36, 0]} castShadow>
-            <boxGeometry args={[2.86, 0.08, 2.3]} />
-            <meshStandardMaterial
-              color={roofColor}
-              roughness={0.72}
-              emissive={color}
-              emissiveIntensity={envNight ? 0.3 : 0.08}
-            />
-          </mesh>
-        )}
-        {lot.industry === 'finance' && (
-          <mesh position={[0, 2.36, 0]} rotation={[0, Math.PI / 4, 0]} castShadow>
-            <coneGeometry args={[1.52, 0.88, 4]} />
-            <meshStandardMaterial
-              color={roofColor}
-              roughness={0.66}
-              emissive={color}
-              emissiveIntensity={envNight ? 0.3 : 0.08}
-            />
-          </mesh>
-        )}
-        {lot.industry === 'manufacturing' && (
-          <mesh position={[0, 2.4, 0]} rotation={[-0.17, 0, 0]} castShadow>
-            <boxGeometry args={[2.72, 0.08, 2.24]} />
-            <meshStandardMaterial
-              color={roofColor}
-              roughness={0.8}
-              emissive={color}
-              emissiveIntensity={envNight ? 0.3 : 0.08}
-            />
-          </mesh>
-        )}
-        {lot.industry === 'culture' && (
-          <mesh position={[0, 2.36, 0]} rotation={[0, Math.PI / 4, 0]} castShadow>
-            <boxGeometry args={[1.96, 0.1, 1.96]} />
-            <meshStandardMaterial
-              color={roofColor}
-              roughness={0.7}
-              emissive={color}
-              emissiveIntensity={envNight ? 0.3 : 0.08}
-            />
-          </mesh>
-        )}
-        <mesh position={[0, 2.31, 0]} rotation={[Math.PI / 2, 0, 0]}>
-          <planeGeometry args={[2.18, 1.72]} />
-          <meshBasicMaterial
-            color={delivered ? '#3ee58a' : color}
-            transparent
-            opacity={0.16}
-            side={THREE.DoubleSide}
-            depthWrite={false}
-          />
-        </mesh>
-      </group>
-      <group position={[-1.3, 0, 0.5]}>
-        <mesh position={[0, 1.52, 0]} castShadow>
-          <boxGeometry args={[0.14, 1.86, 0.42]} />
-          <meshStandardMaterial color={envNight ? "#1b232c" : "#cdd8e2"} />
-        </mesh>
-        {/* 侧招灯条：细长竖条（不是大色板）—— 大色板会像蓝门一样挡住摊位 */}
-        <mesh position={[0.075, 1.52, 0]}>
-          <planeGeometry args={[0.18, 1.46]} />
-          <meshStandardMaterial color={color} emissive={color} emissiveIntensity={delivered ? 0.18 : 0.55} side={THREE.DoubleSide} />
-        </mesh>
-      </group>
+      {/* 摊位台/阴影/雨棚/侧招/参数具象化/门前细节 已移至 BoothHardwareInstanced（M6c） */}
       {delivered && (
         <group position={[0, 3.12, 0]}>
           <sprite scale={[1.02, 0.26, 1]}>
@@ -565,44 +471,6 @@ export function HRStand({ lot, onEnterOffice, delivered = false, theme = 'dark' 
       <sprite position={[0, 2.72, 0]} scale={[1.72, 0.39, 1]}>
         <spriteMaterial map={nameTex} transparent />
       </sprite>
-      {/* 参数具象化：总包钱袋堆 + 五险切口牌
-          （钱袋堆与雨棚立柱已改为 BoothProps 里的 InstancedMesh —— 64 摊位原本
-            要画 290 + 256 个 mesh，实例化后各只剩 1 个 draw call） */}
-      <group position={[-0.62, 0.14, 0.55]}>
-        <mesh position={[0, 0.24, 0]}>
-          <boxGeometry args={[0.42, 0.48, 0.08]} />
-          <meshStandardMaterial color={envNight ? "#3d4650" : "#b6c3cf"} />
-        </mesh>
-        <mesh position={[0, 0.24 + (lot.params.socialInsuranceBaseRatio === 'full' ? 0.18 : 0.08), 0.041]}>
-          <boxGeometry args={[0.34, lot.params.socialInsuranceBaseRatio === 'full' ? 0.12 : 0.34, 0.02]} />
-          <meshStandardMaterial color={envNight ? "#8b949e" : "#94a4b3"} />
-        </mesh>
-      </group>
-      {/* 门前细节（动森式 1m 细节，破同构）：咨询桌 + 地毯 + 区域色侧旗 */}
-      <group position={[1.35, 0, 1.15]}>
-        <mesh position={[0, 0.2, 0]}>
-          <boxGeometry args={[0.95, 0.07, 0.55]} />
-          <meshStandardMaterial color={envNight ? "#3b4450" : "#c2cdd8"} roughness={0.8} />
-        </mesh>
-        <mesh position={[-0.4, 0.1, 0]}>
-          <boxGeometry args={[0.06, 0.2, 0.5]} />
-          <meshStandardMaterial color={envNight ? "#2b323b" : "#b4c1cd"} />
-        </mesh>
-        <mesh position={[0.4, 0.1, 0]}>
-          <boxGeometry args={[0.06, 0.2, 0.5]} />
-          <meshStandardMaterial color={envNight ? "#2b323b" : "#b4c1cd"} />
-        </mesh>
-      </group>
-      <group position={[-1.5, 0, -0.4]} rotation={[0, 0, (parseInt(lot.id.slice(-2), 10) % 7) * 0.02 - 0.06]}>
-        <mesh position={[0, 1.55, 0]}>
-          <cylinderGeometry args={[0.03, 0.03, 3.1, 6]} />
-          <meshStandardMaterial color={envNight ? "#39424c" : "#aebfcc"} />
-        </mesh>
-        <mesh position={[0.26, 2.5, 0]}>
-          <planeGeometry args={[0.52, 1.5]} />
-          <meshStandardMaterial color={color} side={THREE.DoubleSide} roughness={0.85} />
-        </mesh>
-      </group>
       {/* 办公空间门面：行业差异化天际线（盲审修复）+ 门楣 LED + 玻璃幕墙 */}
       <group position={[0, 0, -3.6]}>
         {(() => {

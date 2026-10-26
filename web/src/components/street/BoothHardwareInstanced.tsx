@@ -1,0 +1,343 @@
+// 摊位硬件 InstancedMesh 池（M6c：draw call 优化）
+//
+// 将 HRStand 中每个摊位重复的非交互硬件元素合并为 InstancedMesh，
+// 替代每个摊位 10+ 个独立 mesh（64 摊位 ≈ 700+ draw call → 几十个）。
+//
+// 只处理无 per-instance 交互的元素；门（onClick）、名牌（per-cot 纹理）、
+// HR 形象（近景 GLB/远景 PlaceholderHRs）仍保留在 HRStand 中。
+//
+// 合并的元素（共 13 个 InstancedMesh，13 个 draw call，替代 ~640）：
+//   1. booth  摊位台 box
+//   2. shadow 地面阴影 plane
+//   3. glow   雨棚下光环 plane（per-instance 颜色：delivered 绿 / 行业色）
+//   4. pole   侧招立柱 box
+//   5. sign   侧招灯条 plane（per-instance 颜色：行业色）
+//   6. moneyBase 参数具象化钱袋底座 box
+//   7. moneyCut 参数具象化五险切口牌 box（per-instance 高度：full/0.8/0.6）
+//   8. desk   门前咨询桌 box
+//   9. carpet 门前地毯 box（×2 实例）
+//  10. flagPole 区域色侧旗柱 cylinder
+//  11. flag    区域色侧旗旗帜 plane（per-instance 颜色：行业色）
+//  12-15. roof 雨棚顶（按 4 种行业变体分组，4 个 InstancedMesh）
+import { useEffect, useRef } from 'react'
+import * as THREE from 'three'
+import type { LotPlacement } from '../../data/street-companies'
+import { INDUSTRIES } from '../../data/street-companies'
+import type { Industry } from '../../data/street-companies'
+import type { ThemeName } from '../../engine/theme'
+
+const tempObject = new THREE.Object3D()
+const tempColor = new THREE.Color()
+
+function instanceMatrixFor(
+  pl: LotPlacement,
+  x: number,
+  y: number,
+  z: number,
+  sx = 1,
+  sy = 1,
+  sz = 1,
+  rotY = 0,
+) {
+  const r = pl.rotationY + rotY
+  const c = Math.cos(r)
+  const s = Math.sin(r)
+  const wx = pl.position[0] + x * c - z * s
+  const wz = pl.position[2] + x * s + z * c
+  tempObject.position.set(wx, y, wz)
+  tempObject.rotation.set(0, r, 0)
+  tempObject.scale.set(sx, sy, sz)
+  tempObject.updateMatrix()
+  return tempObject.matrix
+}
+
+// 行业 → 雨棚变体索引
+function roofVariant(industry: Industry): number {
+  switch (industry) {
+    case 'internet':
+      return 0
+    case 'finance':
+      return 1
+    case 'manufacturing':
+      return 2
+    case 'culture':
+      return 3
+  }
+}
+
+function roofGeometry(variant: number) {
+  switch (variant) {
+    case 0: // internet 平顶大板
+      return <boxGeometry args={[2.86, 0.08, 2.3]} />
+    case 1: // finance 尖顶金字塔
+      return <coneGeometry args={[1.52, 0.88, 4]} />
+    case 2: // manufacturing 单坡厂棚
+      return <boxGeometry args={[2.72, 0.08, 2.24]} />
+    case 3: // culture 菱形坡顶
+      return <boxGeometry args={[1.96, 0.1, 1.96]} />
+  }
+}
+
+export function BoothHardwareInstanced({
+  placements,
+  theme,
+  night,
+  delivered,
+}: {
+  placements: LotPlacement[]
+  theme: ThemeName
+  night: boolean
+  delivered: Set<string>
+}) {
+  const count = placements.length
+  const envNight = theme === 'dark'
+  const countRef = useRef(0)
+
+  const boothRef = useRef<THREE.InstancedMesh>(null)
+  const shadowRef = useRef<THREE.InstancedMesh>(null)
+  const glowRef = useRef<THREE.InstancedMesh>(null)
+  const poleRef = useRef<THREE.InstancedMesh>(null)
+  const signRef = useRef<THREE.InstancedMesh>(null)
+  const moneyBaseRef = useRef<THREE.InstancedMesh>(null)
+  const moneyCutRef = useRef<THREE.InstancedMesh>(null)
+  const deskRef = useRef<THREE.InstancedMesh>(null)
+  const carpetRef = useRef<THREE.InstancedMesh>(null)
+  const flagPoleRef = useRef<THREE.InstancedMesh>(null)
+  const flagRef = useRef<THREE.InstancedMesh>(null)
+
+  const roofRefs = {
+    internet: useRef<THREE.InstancedMesh>(null),
+    finance: useRef<THREE.InstancedMesh>(null),
+    manufacturing: useRef<THREE.InstancedMesh>(null),
+    culture: useRef<THREE.InstancedMesh>(null),
+  } as const
+
+  const industryList: Industry[] = ['internet', 'finance', 'manufacturing', 'culture']
+
+  // ---------- 初始化 count ----------
+  useEffect(() => {
+    countRef.current = count
+    const setCount = (ref: React.RefObject<THREE.InstancedMesh> | null, n: number) => {
+      const m = ref?.current
+      if (m) m.count = n
+    }
+    setCount(boothRef, count)
+    setCount(shadowRef, count)
+    setCount(glowRef, count)
+    setCount(poleRef, count)
+    setCount(signRef, count)
+    setCount(moneyBaseRef, count)
+    setCount(moneyCutRef, count)
+    setCount(deskRef, count)
+    setCount(carpetRef, count * 2)
+    setCount(flagPoleRef, count)
+    setCount(flagRef, count)
+    industryList.forEach((ind) => setCount(roofRefs[ind], count))
+  }, [count])
+
+  // ---------- 每帧更新 matrix / 颜色 ----------
+  useEffect(() => {
+    const setMat = (ref: React.RefObject<THREE.InstancedMesh>, fn: (m: THREE.InstancedMesh) => void) => {
+      const m = ref.current
+      if (m) fn(m)
+    }
+
+    // booth
+    setMat(boothRef, (m) => {
+      placements.forEach((pl, i) => {
+        m.setMatrixAt(i, instanceMatrixFor(pl, 0, 0.07, 0, 2.2, 0.14, 2.2))
+      })
+      m.instanceMatrix.needsUpdate = true
+    })
+
+    // shadow
+    setMat(shadowRef, (m) => {
+      placements.forEach((pl, i) => {
+        m.setMatrixAt(i, instanceMatrixFor(pl, 0, 0.013, 0.12, 3.2, 3.2, 1, -Math.PI / 2))
+      })
+      m.instanceMatrix.needsUpdate = true
+    })
+
+    // glow（per-instance 颜色）
+    setMat(glowRef, (m) => {
+      placements.forEach((pl, i) => {
+        m.setMatrixAt(i, instanceMatrixFor(pl, 0, 2.31, 0, 2.18, 1.72, 1, Math.PI / 2))
+        tempColor.set(delivered.has(pl.lot.id) ? '#3ee58a' : INDUSTRIES[pl.lot.industry].color)
+        m.setColorAt(i, tempColor)
+      })
+      m.instanceMatrix.needsUpdate = true
+      m.instanceColor!.needsUpdate = true
+    })
+
+    // pole
+    setMat(poleRef, (m) => {
+      placements.forEach((pl, i) => {
+        m.setMatrixAt(i, instanceMatrixFor(pl, -1.3, 1.52, 0.5, 0.14, 1.86, 0.42))
+      })
+      m.instanceMatrix.needsUpdate = true
+    })
+
+    // sign（per-instance 颜色：行业色）
+    setMat(signRef, (m) => {
+      placements.forEach((pl, i) => {
+        m.setMatrixAt(i, instanceMatrixFor(pl, -1.225, 1.52, 0.5, 0.18, 1.46, 1))
+        tempColor.set(INDUSTRIES[pl.lot.industry].color)
+        m.setColorAt(i, tempColor)
+      })
+      m.instanceMatrix.needsUpdate = true
+      m.instanceColor!.needsUpdate = true
+    })
+
+    // moneyBase / moneyCut
+    setMat(moneyBaseRef, (m) => {
+      placements.forEach((pl, i) => {
+        m.setMatrixAt(i, instanceMatrixFor(pl, -0.62, 0.24, 0.55, 0.42, 0.48, 0.08))
+      })
+      m.instanceMatrix.needsUpdate = true
+    })
+    setMat(moneyCutRef, (m) => {
+      placements.forEach((pl, i) => {
+        const ratio = pl.lot.params.socialInsuranceBaseRatio
+        const cutH = ratio === 'full' ? 0.12 : 0.34
+        const cutY = 0.24 + (ratio === 'full' ? 0.18 : 0.08)
+        m.setMatrixAt(i, instanceMatrixFor(pl, -0.62, cutY, 0.571, 0.34, cutH, 0.02))
+      })
+      m.instanceMatrix.needsUpdate = true
+    })
+
+    // desk / carpet（carpet ×2 实例）
+    setMat(deskRef, (m) => {
+      placements.forEach((pl, i) => {
+        m.setMatrixAt(i, instanceMatrixFor(pl, 1.35, 0.2, 1.15, 0.95, 0.07, 0.55))
+      })
+      m.instanceMatrix.needsUpdate = true
+    })
+    setMat(carpetRef, (m) => {
+      placements.forEach((pl, i) => {
+        m.setMatrixAt(i, instanceMatrixFor(pl, -0.4, 0.1, 1.15, 0.06, 0.2, 0.5))
+        m.setMatrixAt(i + count, instanceMatrixFor(pl, 0.4, 0.1, 1.15, 0.06, 0.2, 0.5))
+      })
+      m.instanceMatrix.needsUpdate = true
+    })
+
+    // flagPole / flag（per-instance 颜色：行业色）
+    setMat(flagPoleRef, (m) => {
+      placements.forEach((pl, i) => {
+        const rotY = (parseInt(pl.lot.id.slice(-2), 10) % 7) * 0.02 - 0.06
+        m.setMatrixAt(i, instanceMatrixFor(pl, -1.5, 1.55, -0.4, 0.03, 3.1, 0.03, rotY))
+      })
+      m.instanceMatrix.needsUpdate = true
+    })
+    setMat(flagRef, (m) => {
+      placements.forEach((pl, i) => {
+        const rotY = (parseInt(pl.lot.id.slice(-2), 10) % 7) * 0.02 - 0.06
+        m.setMatrixAt(i, instanceMatrixFor(pl, -1.24, 2.5, -0.4, 0.52, 1.5, 1, rotY))
+        tempColor.set(INDUSTRIES[pl.lot.industry].color)
+        m.setColorAt(i, tempColor)
+      })
+      m.instanceMatrix.needsUpdate = true
+      m.instanceColor!.needsUpdate = true
+    })
+
+    // roof 按行业分组
+    industryList.forEach((ind) => {
+      const mesh = roofRefs[ind].current
+      if (!mesh) return
+      const indices: number[] = []
+      placements.forEach((pl, i) => {
+        if (roofVariant(pl.lot.industry) === roofVariant(ind)) indices.push(i)
+      })
+      mesh.count = indices.length
+      indices.forEach((jj, idx) => {
+        const pl = placements[jj]
+        const v = roofVariant(pl.lot.industry)
+        const rotY = v === 1 ? Math.PI / 4 : v === 2 ? -0.17 : v === 3 ? Math.PI / 4 : 0
+        const [sx, sy, sz] =
+          v === 0 ? [2.86, 0.08, 2.3] : v === 1 ? [1.52, 0.88, 4] : v === 2 ? [2.72, 0.08, 2.24] : [1.96, 0.1, 1.96]
+        const [rx, ry, rz] = v === 0 ? [0, 2.36, 0] : v === 1 ? [0, 2.36, 0] : v === 2 ? [0, 2.4, 0] : [0, 2.36, 0]
+        mesh.setMatrixAt(idx, instanceMatrixFor(pl, rx, ry, rz, sx, sy, sz, rotY))
+      })
+      mesh.instanceMatrix.needsUpdate = true
+    })
+  }, [placements, count, night, envNight, delivered])
+
+  return (
+    <group>
+      {/* booth */}
+      <instancedMesh ref={boothRef} args={[undefined, undefined, count]}>
+        <boxGeometry args={[2.2, 0.14, 2.2]} />
+        <meshStandardMaterial color={night ? '#1b232c' : '#cdd8e2'} roughness={night ? 0.9 : 0.6} />
+      </instancedMesh>
+      {/* shadow */}
+      <instancedMesh ref={shadowRef} args={[undefined, undefined, count]}>
+        <planeGeometry args={[3.2, 3.2]} />
+        <meshBasicMaterial transparent opacity={night ? 0.9 : 0.45} depthWrite={false} />
+      </instancedMesh>
+      {/* glow */}
+      <instancedMesh ref={glowRef} args={[undefined, undefined, count]}>
+        <planeGeometry args={[2.18, 1.72]} />
+        <meshBasicMaterial vertexColors transparent opacity={0.16} side={THREE.DoubleSide} depthWrite={false} />
+      </instancedMesh>
+      {/* pole */}
+      <instancedMesh ref={poleRef} args={[undefined, undefined, count]}>
+        <boxGeometry args={[0.14, 1.86, 0.42]} />
+        <meshStandardMaterial color={night ? '#1b232c' : '#cdd8e2'} />
+      </instancedMesh>
+      {/* sign */}
+      <instancedMesh ref={signRef} args={[undefined, undefined, count]}>
+        <planeGeometry args={[0.18, 1.46]} />
+        <meshStandardMaterial vertexColors emissiveIntensity={0.55} side={THREE.DoubleSide} />
+      </instancedMesh>
+      {/* moneyBase */}
+      <instancedMesh ref={moneyBaseRef} args={[undefined, undefined, count]}>
+        <boxGeometry args={[0.42, 0.48, 0.08]} />
+        <meshStandardMaterial color={night ? '#3d4650' : '#b6c3cf'} />
+      </instancedMesh>
+      {/* moneyCut */}
+      <instancedMesh ref={moneyCutRef} args={[undefined, undefined, count]}>
+        <boxGeometry args={[0.34, 0.12, 0.02]} />
+        <meshStandardMaterial color={night ? '#8b949e' : '#94a4b3'} />
+      </instancedMesh>
+      {/* desk */}
+      <instancedMesh ref={deskRef} args={[undefined, undefined, count]}>
+        <boxGeometry args={[0.95, 0.07, 0.55]} />
+        <meshStandardMaterial color={night ? '#3b4450' : '#c2cdd8'} roughness={0.8} />
+      </instancedMesh>
+      {/* carpet */}
+      <instancedMesh ref={carpetRef} args={[undefined, undefined, count * 2]}>
+        <boxGeometry args={[0.06, 0.2, 0.5]} />
+        <meshStandardMaterial color={night ? '#2b323b' : '#b4c1cd'} />
+      </instancedMesh>
+      {/* flagPole */}
+      <instancedMesh ref={flagPoleRef} args={[undefined, undefined, count]}>
+        <cylinderGeometry args={[0.03, 0.03, 3.1, 6]} />
+        <meshStandardMaterial color={night ? '#39424c' : '#aebfcc'} />
+      </instancedMesh>
+      {/* flag */}
+      <instancedMesh ref={flagRef} args={[undefined, undefined, count]}>
+        <planeGeometry args={[0.52, 1.5]} />
+        <meshStandardMaterial vertexColors side={THREE.DoubleSide} roughness={0.85} />
+      </instancedMesh>
+      {/* roof 按行业分组 */}
+      {industryList.map((ind) => {
+        const v = roofVariant(ind)
+        return (
+          <instancedMesh
+            key={ind}
+            ref={roofRefs[ind]}
+            args={[undefined, undefined, count]}
+            castShadow
+          >
+            {roofGeometry(v)}
+            <meshStandardMaterial
+              color={night ? '#1b232c' : INDUSTRIES[ind].color}
+              roughness={night ? 0.7 : 0.72}
+              emissive={INDUSTRIES[ind].color}
+              emissiveIntensity={night ? 0.3 : 0.08}
+            />
+          </instancedMesh>
+        )
+      })}
+    </group>
+  )
+}

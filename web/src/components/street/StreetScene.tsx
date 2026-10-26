@@ -11,6 +11,7 @@ import { RoamCamera } from '../RoamCamera'
 import { HRStand, preloadHRModels } from './HRStand'
 import { PlaceholderHRs } from './PlaceholderHRs'
 import { OfficeFacadeInstanced } from './OfficeFacadeInstanced'
+import { BoothHardwareInstanced } from './BoothHardwareInstanced'
 import { BoothPoles, MoneyStacks } from './BoothProps'
 import { LotBeacons, LotNumberDecals } from './LotMarkers'
 import { NPC } from './NPC'
@@ -1218,6 +1219,8 @@ export function StreetScene({
       <NearTracker placements={placed} nearRef={nearSetRef} />
       {/* M6b：办公空间门面 InstancedMesh 池（替代每个摊位门面的多个独立 mesh） */}
       <OfficeFacadeInstanced placements={placed} theme={theme} night={theme === 'dark'} />
+      {/* M6c：摊位硬件 InstancedMesh 池（替代每个摊位的摊位台/雨棚/侧招/参数具象化/门前细节） */}
+      <BoothHardwareInstanced placements={placed} theme={theme} night={theme === 'dark'} delivered={delivered} />
       {/* 个体识别：地面编号牌（01–64）+ 行业色信标鳍 —— 共 2 个 draw call */}
       <LotNumberDecals />
       <LotBeacons />
