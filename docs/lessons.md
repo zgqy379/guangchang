@@ -102,6 +102,9 @@
 - static 空间经 `<user>-<space>.ms.show` **根域名** iframe 托管——vite base 必须是 `/`（按 `/studios/...` 前缀构建会白屏）
 - **LFS 黑屏（2026-10-26 实测）**：SDK 默认把 >64KB 文件走 Git LFS；ms.show 静态托管**直接返回 LFS pointer（132 字节）**，主 JS 变 pointer → 两个浏览器都黑屏（GitHub Pages 同构建正常）。修复：上传前 set `MODELSCOPE_UPLOAD_LFS_FORCE_THRESHOLD=524288000`（500MB）+ `MODELSCOPE_UPLOAD_COMMIT_MAX_INLINE_BYTES=67108864`，上传报告必须是 `Normal committed 27 / LFS 0`；再点一次重新部署。验证：`curl ms.show/assets/index-*.js` 应是 1MB 级 JS，不是 `version https://git-lfs...`
 - 文件更新后需 UI"重新部署→确认部署"才生效；状态轮询 `GET /api/v1/studio/{owner}/{name}/status`
+- **E1020 大批次 commit 超时（2026-10-26 实测）**：`COMMIT_MAX_INLINE_BYTES=64MB` 时 31 文件/65MB 会合成 1-2 个大批次，魔搭服务端对超大批次 commit 一律 `Connection aborted / write timed out`（重试 5 次仍挂，且"瞬时故障"重跑也过不去）。修复：把 `MODELSCOPE_UPLOAD_COMMIT_MAX_INLINE_BYTES` 降到 **12MB**，同样 31 文件拆成 6 批，44.7s 全部 committed。经验：上传卡 E1020 先怀疑批次太大，不要干等重试
+- **ms.show 直连会被弹回门户（2026-10-26 实测）**：浏览器顶层访问 `<user>-<space>.ms.show/` 会 302 回 `modelscope.cn/studios/...?mode=full`，应用实际跑在门户页 iframe 里（src 带**一次性 studio_token**，取自 iframe 属性后顶层直连也无效——token 绑定嵌入上下文）。线上验收正确姿势：打开门户 `?mode=full` 截图看 iframe 实况（GLB 角色渲染=Draco 链路通）；纯 `curl` 无 UA 会被 WAF 403，须带浏览器 UA
+- 重部署 cookies 不必现导现用：egolite 配置文件自带魔搭登录态时，直接在 egolite 里 goto settings 页点"重新部署→确认部署"即可（`C:/Users/dqy/AppData/Local/Temp/ms-cookies.json` 被清理后照样能跑）
 
 ### 7.5 多 Agent 协作纪律
 
@@ -149,3 +152,42 @@
 - **路面路牌**：四区名字画进道路（`districtSignTexture`，地面 y=0.026、`depthWrite=false`），配合细引导带（0.16m）比 0.8m 发光带干净
 - **录像合成目录必须先清空**：`frames_cap_v8/` 残留上一轮帧会让片尾卡被顶掉（视频时长对不上）；渲染前删除 `f_*.jpg`
 - **盲审分数因评审而异**：同一批截图三位评审给 6.5/6.1、6.0/6.0、5.5/4.5；共性问题是灯光电影感/摊位识别/地图导航。不要把单一分数当成硬指标，按共性清单逐项收
+
+## 八、UI 层重构（2026-10-26 · 厂玻璃 v3）
+
+### 8.1 本轮产出
+
+| 产物 | 路径 | 说明 |
+|---|---|---|
+| 设计规格 | `docs/design/ui-system-v3.md` | IA / 导航 / 流程 / 视觉 / 组件 / 响应式 / 可访问性 / 落地清单 |
+| 可交互原型 | `docs/design/prototype/gc-glass-v3.html` | 纯静态零依赖，双击打开；含桌面/平板/手机三档预览 |
+| 令牌补丁 | `docs/design/prototype/tokens-glass-v3.json` | 可直接并入 `web/design/tokens.json` |
+
+### 8.2 视觉方向：亮玻璃压在暗夜街区
+
+- **决策**：UI 从"深色实心块"改为**亮色液态玻璃 + 深墨字**（`rgba(255,255,255,.82→.60)` + `backdrop-filter: blur(28px) saturate(180%)` + 1px 内高光 + 双层阴影）。夜景街区上亮玻璃天然成为视觉焦点，对比度从"勉强"提到"优秀"——这是本轮最大的视觉杠杆
+- **玻璃厚度不靠更透明获得**，靠 模糊 + 内高光 + 双层阴影三者叠加，这是浏览器里做出可信玻璃的最小成本组合
+- **配色硬约束（必须进 code review checklist）**：实心红按钮**必须** `#C23A2B`（5.41:1）——`#FF5A3C` 配白字仅 3.10:1 不达 AA；行业色**禁止**承载白字（互联网蓝配白字仅 2.76:1）；金色文字用 `#B8860B`（配浅玻璃），`#FFD24A` 只作进度条填充
+- **场景自适应**：天空随下班时间变（黄昏↔深夜），玻璃需 `data-scene-tone` 三态（dark/dusk/light），明亮室内切深玻璃变体——阈值取自天空组件实际曝光参数，不另设魔法数
+
+### 8.3 信息架构：把"演示形态"从"产品导航"里拆出来
+
+- 顶栏原本把「逛一家 / A-B 对比 / 办公室漫游 / 招聘街区」四个 **Demo 形态**平级并置 → 观众分不清"我在哪个世界"。新方案顶栏只留产品级导航（招聘街区/对比/我的），形态切换收进右下**折叠式演示控制台**并标注"正式版将移除"
+- **浮层职责互斥**：HUD 只答"我的进度如何"、名片卡只答"这一家怎么样"、导航器只答"我在哪+怎么过去"——三者信息不得重复（旧版 HUD 与名片同时显示行业标签）
+- **术语统一**：旧版"收藏/对比篮/A-B 对比"三指一事 → 全站统一为**对比篮**
+- **反馈收敛**：旧版一次投递 4 处反馈（toast+XP+绿章+摊位光）→ 改为 **1 主反馈（按钮态+绿章）+ 1 辅助（toast/XP）+ 1 世界反馈（场景层）**，UI 层只剩 2 处
+
+### 8.4 三条布局铁律（原型实测得出，不跑真渲染必踩）
+
+1. **同侧浮层必须共用一个 flex 栈**：齿轮与导航器各自 `position:fixed; right:12px` 时齿轮直接压在导航器面板上。改 `.nav-stack{display:flex;flex-direction:column;align-items:flex-end;gap:10px}` 包裹两者即彻底消除。**右下浮层会增长，不能靠各自 fixed 偏移手工避让**
+2. **移动端 HUD 与名片卡必须垂直分区**：二者都贴底时 HUD 计数行被名片卡盖住（390px 实测 HUD 底 712px > 卡顶）。解法：HUD 上移为顶栏下方**横向胶囊条**（等级+XP+三计数一行），名片卡独占底部
+3. **SVG 罗盘文字会被 viewBox 裁切**：区名放 `x=8`/`x=123` 时 `getBBox()` 超界即裁。标签内收到安全区（`x=19`/`x=113`），外圈半径 58→50 留文字空间
+
+### 8.5 本机浏览器验证配方（与 egolite 互补）
+
+- **Playwright 直接驱动系统 Chrome 可用**（绕过缺失的 headless shell）：
+  `require('C:/Users/dqy/.workbuddy/binaries/node/workspace/node_modules/playwright')` + `chromium.launch({channel:'chrome'})`
+- Windows 下 **ESM 导入需 `file://` URL**（`import ... from 'C:/...'` 报 `ERR_UNSUPPORTED_ESM_URL_SCHEME`）→ 用 CommonJS `.cjs`
+- **纯 UI 原型用 `file://` 直接打开**即可，不需起服务器（后台服务器随命令结束被回收）
+- **布局验证要量化而非目测**：`getBoundingClientRect()` 求交判定重叠 + `getBBox()` 查 SVG 越界 + `scrollWidth > innerWidth` 查横向溢出 + 遍历 button 量触控尺寸——这四项能自动抓出肉眼难察的问题
+
