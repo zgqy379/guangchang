@@ -1,0 +1,365 @@
+/* 求职者形象面板样式（P2 候选人侧） */
+.gc-avatar-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  font-size: 13px;
+  font-family: 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+  color: var(--ui-ink-primary);
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 20px;
+  background: var(--ui-glass-fill);
+  background: var(--ui-glass-underlay);
+  border: 1px solid var(--ui-glass-border);
+  border-radius: 12px;
+  box-shadow: var(--ui-shadow);
+}
+
+.gc-ap__header {
+  text-align: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--ui-border-soft);
+}
+
+.gc-ap__title {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 6px;
+  color: var(--ui-ink-primary);
+}
+
+.gc-ap__sub {
+  margin: 0;
+  font-size: 12px;
+  color: var(--ui-ink-secondary);
+}
+
+/* 四条路径 */
+.gc-ap__paths {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.gc-ap__path {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--ui-glass-border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--ui-ink-primary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.gc-ap__path:hover {
+  border-color: var(--ui-accent-orange);
+  background: rgba(154, 70, 6, 0.08);
+}
+
+.gc-ap__path--active {
+  border-color: var(--ui-accent-orange);
+  background: rgba(154, 70, 6, 0.12);
+}
+
+.gc-ap__path--replay {
+  border-color: #6e5a00;
+  background: rgba(110, 90, 0, 0.1);
+}
+
+.gc-ap__path-icon {
+  font-size: 20px;
+}
+
+.gc-ap__path-body {
+  flex: 1;
+}
+
+.gc-ap__path-title {
+  font-weight: 600;
+  font-size: 13px;
+  display: block;
+}
+
+.gc-ap__path-desc {
+  font-size: 11px;
+  color: var(--ui-ink-secondary);
+  display: block;
+  margin-top: 2px;
+}
+
+.gc-ap__replay-chip {
+  font-size: 10px;
+  background: rgba(110, 90, 0, 0.2);
+  color: #d4a017;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-top: 4px;
+  display: inline-block;
+}
+
+/* 各路径区块 */
+.gc-ap__section {
+  margin-top: 16px;
+  padding: 14px;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+}
+
+.gc-ap__section--photo {
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px dashed rgba(16, 185, 129, 0.4);
+}
+
+.gc-ap__section--preset {
+  background: rgba(59, 130, 246, 0.08);
+  border: 1px dashed rgba(59, 130, 246, 0.4);
+}
+
+.gc-ap__section--replay {
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px dashed rgba(245, 158, 11, 0.4);
+}
+
+.gc-ap__section--later {
+  background: rgba(107, 114, 128, 0.08);
+  border: 1px dashed rgba(107, 114, 128, 0.4);
+}
+
+.gc-ap__section-title {
+  font-weight: 600;
+  font-size: 13px;
+  margin: 0 0 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* 照片贴入 */
+.gc-ap__file-input {
+  margin-bottom: 10px;
+}
+
+.gc-ap__photo-preview {
+  margin-top: 10px;
+  text-align: center;
+}
+
+.gc-ap__photo-preview img {
+  max-width: 120px;
+  max-height: 120px;
+  border-radius: 8px;
+  border: 1px solid var(--ui-glass-border);
+}
+
+.gc-ap__photo-note {
+  font-size: 11px;
+  color: var(--ui-ink-secondary);
+  margin-top: 6px;
+  display: block;
+}
+
+.gc-ap__processing {
+  margin-top: 10px;
+  font-size: 12px;
+  color: #10b981;
+  font-weight: 600;
+  animation: gc-ap-pulse 1.5s infinite;
+}
+
+@keyframes gc-ap-pulse {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+
+.gc-ap__btn {
+  width: 100%;
+  padding: 10px;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.gc-ap__btn--primary {
+  background: var(--ui-accent-orange);
+  color: #fff;
+}
+
+.gc-ap__btn--primary:not(:disabled):hover {
+  background: #b45309;
+}
+
+.gc-ap__btn--primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 预设形象 */
+.gc-ap__presets {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.gc-ap__preset {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 10px;
+  border: 1px solid var(--ui-glass-border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--ui-ink-primary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.gc-ap__preset:hover {
+  border-color: var(--ui-accent-orange);
+}
+
+.gc-ap__preset-thumb {
+  font-size: 28px;
+  margin-bottom: 4px;
+}
+
+.gc-ap__preset-label {
+  font-size: 12px;
+}
+
+/* 演示回放 */
+.gc-ap__replay-stages {
+  margin: 12px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.gc-ap__replay-stage {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.gc-ap__replay-stage--done {
+  opacity: 0.7;
+}
+
+.gc-ap__replay-stage--current {
+  background: rgba(154, 70, 6, 0.15);
+  border-left: 3px solid var(--ui-accent-orange);
+}
+
+.gc-ap__replay-stage-name {
+  font-weight: 600;
+  min-width: 110px;
+}
+
+.gc-ap__replay-stage-desc {
+  flex: 1;
+  color: var(--ui-ink-secondary);
+  font-size: 11px;
+}
+
+.gc-ap__replay-timer {
+  margin: 10px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ui-accent-orange);
+}
+
+.gc-ap__replay-honesty {
+  font-size: 11px;
+  color: var(--ui-ink-muted);
+  font-style: italic;
+  margin-bottom: 10px;
+}
+
+/* 稍后再定制 */
+.gc-ap__later-note {
+  font-size: 12px;
+  color: var(--ui-ink-secondary);
+  margin: 0 0 12px;
+  line-height: 1.5;
+}
+
+/* 期望薪资与暴露模式 */
+.gc-ap__salary-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 10px 0;
+}
+
+.gc-ap__salary-label {
+  flex: 0 0 70px;
+  font-size: 12px;
+}
+
+.gc-ap__salary-slider {
+  flex: 1;
+}
+
+.gc-ap__salary-value {
+  flex: 0 0 50px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ui-accent-orange);
+  font-variant-numeric: tabular-nums;
+}
+
+.gc-ap__expose-row {
+  margin-top: 10px;
+}
+
+.gc-ap__expose-label {
+  display: block;
+  font-size: 12px;
+  margin-bottom: 6px;
+  color: var(--ui-ink-secondary);
+}
+
+.gc-ap__expose-options {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.gc-ap__expose-btn {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid var(--ui-glass-border);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--ui-ink-primary);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.gc-ap__expose-btn:hover {
+  border-color: var(--ui-accent-orange);
+}
+
+.gc-ap__expose-btn--active {
+  border-color: var(--ui-accent-orange);
+  background: rgba(154, 70, 6, 0.12);
+  color: var(--ui-accent-orange);
+}
+
+.gc-ap__expose-hint {
+  font-size: 10px;
+  color: var(--ui-ink-muted);
+  font-style: italic;
+}
