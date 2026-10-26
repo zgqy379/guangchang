@@ -35,6 +35,9 @@ body,
      文字色阶必须远离玻璃底色：夜间用深墨，白天用浅色。 */
   --ui-glass-fill: rgba(255, 255, 255, 0.72);
   --ui-glass-fill-strong: rgba(255, 255, 255, 0.86);
+  /* 玻璃垫实底：半透明玻璃会透出 3D 场景，最亮背景下次级文字会掉到 4.48:1。
+     新增玻璃浮层必须垫这层实底（background-color 必须写在 background 之后）。 */
+  --ui-glass-underlay: rgba(255, 255, 255, 0.86);
   --ui-glass-border: rgba(255, 255, 255, 0.55);
   --ui-glass-highlight: rgba(255, 255, 255, 0.85);
   --ui-ink-primary: #0b0e1a;    /* 10.4:1 ✓AAA */
@@ -55,6 +58,8 @@ body,
   /* 白天浅色场景：UI 转为深玻璃 + 浅色字（对比度按深玻璃底重算） */
   --ui-glass-fill: rgba(11, 14, 26, 0.72);
   --ui-glass-fill-strong: rgba(11, 14, 26, 0.86);
+  /* 浅色主题：深玻璃垫实底（合成 ≈ rgb(43,47,58)，次级/弱化文字均 ≥6.9:1） */
+  --ui-glass-underlay: rgba(11, 14, 26, 0.86);
   --ui-glass-border: rgba(255, 255, 255, 0.18);
   --ui-glass-highlight: rgba(255, 255, 255, 0.22);
   --ui-ink-primary: #e6edf3;    /*  8.1:1 ✓AAA */
@@ -757,16 +762,186 @@ button:disabled {
     transform: translate(-50%, 0);
   }
 }
-.mini-map {
+/* ===== 街区导航器 GcNavigator（ui-system-v3 §8.5）=====
+   布局铁律：同侧浮层共用一个 flex 栈，右下浮层会增长，不能各自 fixed 偏移手避 */
+.nav-stack {
   position: fixed;
   right: 12px;
   bottom: 42px;
   z-index: 14;
-  width: 188px;
-  height: 188px;
-  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
   pointer-events: none;
-  filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.45));
+}
+.nav-stack > * {
+  pointer-events: auto;
+}
+.gc-nav {
+  width: 248px;
+  padding: 10px 12px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--ui-glass-border);
+  /* 玻璃垫实底：background-color 必须写在 background 之后才压得住渐变/底色 */
+  background: var(--ui-glass-fill);
+  background-color: var(--ui-glass-underlay);
+  backdrop-filter: blur(18px) saturate(170%);
+  -webkit-backdrop-filter: blur(18px) saturate(170%);
+  box-shadow: var(--ui-shadow);
+  color: var(--ui-ink-primary);
+  transition: background-color 600ms ease, color 600ms ease;
+}
+.gc-nav-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.gc-nav-district {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 2px 9px;
+  border: 1px solid;
+  border-radius: 999px;
+}
+.gc-nav-title {
+  font-size: var(--font-size-xs);
+  color: var(--ui-ink-muted);
+  letter-spacing: 0.08em;
+}
+.gc-nav-compass {
+  display: block;
+  margin: 0 auto;
+}
+.gc-nav-section {
+  margin: 7px 0 3px;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--ui-ink-muted);
+  border-top: 1px solid var(--ui-border-soft);
+  padding-top: 5px;
+}
+.gc-nav-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.gc-nav-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 24px;
+  padding: 1px 6px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ui-ink-primary);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+.gc-nav-row:hover {
+  background: var(--ui-surface-hover);
+}
+.gc-nav-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+.gc-nav-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.gc-nav-ind {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ui-ink-muted);
+  flex: 0 0 auto;
+}
+.gc-nav-dist {
+  font-size: 12px;
+  color: var(--ui-ink-secondary);
+  font-variant-numeric: tabular-nums;
+  flex: 0 0 auto;
+  min-width: 34px;
+  text-align: right;
+}
+.gc-nav-state {
+  flex: 0 0 auto;
+  width: 16px;
+  display: inline-grid;
+  place-items: center;
+}
+.gc-nav-state--delivered {
+  color: var(--color-state-success);
+}
+.gc-nav-state--basket {
+  color: var(--color-state-info);
+}
+.gc-nav-state--visited {
+  color: var(--ui-ink-muted);
+}
+.gc-nav-districts {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.gc-nav-district-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 22px; /* ui-system-v3 §8.4：区进度行高 22 */
+  padding: 0 6px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--ui-ink-secondary);
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.gc-nav-district-row:hover {
+  background: var(--ui-surface-hover);
+}
+.gc-nav-district-row.is-active {
+  border-color: var(--ui-border-soft);
+  background: var(--ui-surface);
+  color: var(--ui-ink-primary);
+}
+.gc-nav-ind-name {
+  width: 46px;
+  text-align: left;
+  flex: 0 0 auto;
+}
+.gc-nav-count {
+  width: 34px;
+  font-weight: 700;
+  color: var(--ui-ink-primary);
+  font-variant-numeric: tabular-nums;
+  flex: 0 0 auto;
+}
+.gc-nav-bar {
+  flex: 1;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--ui-surface);
+  overflow: hidden;
+}
+.gc-nav-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
 }
 .district-chip {
   position: fixed;
@@ -815,10 +990,19 @@ button:disabled {
     width: calc(100vw - 24px);
     bottom: 38px;
   }
-  .mini-map {
-    width: 128px;
-    height: 128px;
-    bottom: 38px;
+  /* 移动端：导航器收窄（罗盘缩到 120，列表留 2 行），仍共用 .nav-stack */
+  .nav-stack {
+    right: 8px;
+    bottom: 36px;
+  }
+  .gc-nav {
+    width: 208px;
+    padding: 10px 10px 12px;
+    border-radius: 16px;
+  }
+  .gc-nav-compass {
+    width: 120px;
+    height: 120px;
   }
 }
 
