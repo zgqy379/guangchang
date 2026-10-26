@@ -12,7 +12,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const cssPath = path.resolve(__dirname, '../src/styles.css')
+const cssPath = path.resolve(__dirname, '../web/src/styles.css')
 const css = fs.readFileSync(cssPath, 'utf8')
 
 // 不透明面板底色使用的变量

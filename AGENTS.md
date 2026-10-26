@@ -63,11 +63,12 @@ npx gh-pages -d dist -b gh-pages
 
 ## 并发协作铁律（2026-10-27 事故后新增）
 
-- **同一工作区禁止两个 Agent 并发改同一批文件**（历史上冲突三次）。派多路前**必须先画文件边界**，不能靠"运气不重叠"
-- **禁止用 `git checkout <commit> -- <file>` 做基线还原**：它会**覆盖工作区里的未提交改动**（10.27 美术侧用它做基线，覆盖了主理人的未提交修正，迫使历史重建）。正确做法：`git stash`，或 `git worktree add` 起独立目录
-- **`git commit --amend` 前必须 `git show --stat HEAD` 复核范围**：10.27 一次 amend 把另一 Agent 的 18 个文件卷进了自己的提交
+- **同一工作区禁止两个 Agent 并发改同一批文件**（历史上冲突三次）。派多路前**必须先画文件边界**，不能靠"运气不重叠"；边界要双向声明（我避让谁 + 谁避让我）
+- **禁止用 `git checkout <commit> -- <file>` 做基线还原**：它会**覆盖工作区里的未提交改动**（10.27 美术侧用它做基线，覆盖了主理人的未提交修正，迫使历史重建）。正确做法：`git worktree add <临时目录> <commit>` 起独立目录，或 `git stash`（**注意：stash 会把别人的未提交改动一起收走**，用前先确认工作区只有自己的改动）
+- **`git commit --amend` 前必须用 `git diff --cached --stat` 复核范围**（**不是 `git show --stat HEAD`** —— 那看的是已提交内容，不含本次暂存的改动）：10.27 一次 amend 把另一 Agent 的 18 个文件卷进了自己的提交
 - **提交前必须 `git status` 确认暂存区内容**；`git add <具体文件>` 而不是 `git add .`
 - **同一文件的改动用脚本化 patch 应用**（如 `tools/apply-*.mjs` 带匹配数校验），不要手写 Edit 覆盖他人并发改动
+- **仓库根 `tools/` 是守门脚本的归属目录**（构建期跑的非 src 代码不放 `web/src`）
 
 ## Aholo 素材生成
 
