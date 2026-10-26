@@ -97,6 +97,7 @@
 - git http 推送对 SDK 令牌一律 Access denied（写权限令牌也不行）——**正确通道 = modelscope Python SDK**：`HubApi.login(token)` + `upload_folder(repo_id, repo_type='studio', folder_path)`（pip install modelscope）
 - 令牌要用**"写权限令牌"**类型（新建访问令牌下拉选择）；API 建令牌：POST `/api/v1/users/tokens` body=`{TokenName}`（需页面 cookie）；令牌明文在 `/api/v1/users/tokens/list` 可读
 - static 空间经 `<user>-<space>.ms.show` **根域名** iframe 托管——vite base 必须是 `/`（按 `/studios/...` 前缀构建会白屏）
+- **LFS 黑屏（2026-10-26 实测）**：SDK 默认把 >64KB 文件走 Git LFS；ms.show 静态托管**直接返回 LFS pointer（132 字节）**，主 JS 变 pointer → 两个浏览器都黑屏（GitHub Pages 同构建正常）。修复：上传前 set `MODELSCOPE_UPLOAD_LFS_FORCE_THRESHOLD=524288000`（500MB）+ `MODELSCOPE_UPLOAD_COMMIT_MAX_INLINE_BYTES=67108864`，上传报告必须是 `Normal committed 27 / LFS 0`；再点一次重新部署。验证：`curl ms.show/assets/index-*.js` 应是 1MB 级 JS，不是 `version https://git-lfs...`
 - 文件更新后需 UI"重新部署→确认部署"才生效；状态轮询 `GET /api/v1/studio/{owner}/{name}/status`
 
 ### 7.5 多 Agent 协作纪律
