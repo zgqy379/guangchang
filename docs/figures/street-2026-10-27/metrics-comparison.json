@@ -1,0 +1,440 @@
+{
+  "说明": "改前基线 = git checkout 7ced9c0 还原到改动前实测（同一脚本、同一台机、1280×720）",
+  "机器": "ANGLE (AMD, AMD Radeon(TM) Graphics Direct3D11) 虚拟 GPU，fps 噪声大（同一份代码重复测 hero 在 26–41 之间跳）",
+  "桌面1280x720": {
+    "hero(鸟瞰)": {
+      "before": {
+        "drawCalls": 2797,
+        "triangles": 1526240,
+        "fps": 33.8,
+        "fpsRounds": [
+          36,
+          33.8,
+          31.2
+        ]
+      },
+      "after": {
+        "drawCalls": 2146,
+        "drawCallsMin": 2146,
+        "triangles": 1529264,
+        "fps": 41.2,
+        "fpsRounds": [
+          42.7,
+          41.2,
+          38.8
+        ]
+      },
+      "delta": {
+        "drawCalls": -651,
+        "drawCallsPct": -23.3,
+        "fps": 7.400000000000006
+      }
+    },
+    "walk(越肩)": {
+      "before": {
+        "drawCalls": 931,
+        "triangles": 7973713,
+        "fps": 44.1,
+        "fpsRounds": [
+          44.8,
+          44.1,
+          40.5
+        ]
+      },
+      "after": {
+        "drawCalls": 709,
+        "drawCallsMin": 326,
+        "triangles": 7981837,
+        "fps": 36.9,
+        "fpsRounds": [
+          37.2,
+          36.9,
+          35.6
+        ]
+      },
+      "delta": {
+        "drawCalls": -222,
+        "drawCallsPct": -23.8,
+        "fps": -7.200000000000003
+      }
+    },
+    "focus(特写)": {
+      "before": {
+        "drawCalls": 935,
+        "triangles": 7711441,
+        "fps": 42.6,
+        "fpsRounds": [
+          44.2,
+          42.6,
+          41.8
+        ]
+      },
+      "after": {
+        "drawCalls": 709,
+        "drawCallsMin": 709,
+        "triangles": 7719573,
+        "fps": 33.9,
+        "fpsRounds": [
+          39.7,
+          33.9,
+          31
+        ]
+      },
+      "delta": {
+        "drawCalls": -226,
+        "drawCallsPct": -24.2,
+        "fps": -8.700000000000003
+      }
+    },
+    "deliver(投递)": {
+      "before": {
+        "drawCalls": 938,
+        "triangles": 7986019,
+        "fps": 40.8,
+        "fpsRounds": [
+          42,
+          40.8,
+          37.9
+        ]
+      },
+      "after": {
+        "drawCalls": 712,
+        "drawCallsMin": 711,
+        "triangles": 7994151,
+        "fps": 33.9,
+        "fpsRounds": [
+          40.5,
+          33.9,
+          33.8
+        ]
+      },
+      "delta": {
+        "drawCalls": -226,
+        "drawCallsPct": -24.1,
+        "fps": -6.899999999999999
+      }
+    }
+  },
+  "夜间1280x720": {
+    "hero(鸟瞰)": {
+      "drawCalls": 2091,
+      "triangles": 1529390,
+      "fps": 29.5,
+      "fpsRounds": [
+        31.5,
+        29.5,
+        28.8
+      ]
+    },
+    "walk(越肩)": {
+      "drawCalls": 679,
+      "triangles": 7981843,
+      "fps": 37.5,
+      "fpsRounds": [
+        41.5,
+        37.5,
+        36.6
+      ]
+    },
+    "focus(特写)": {
+      "drawCalls": 684,
+      "triangles": 7719573,
+      "fps": 33,
+      "fpsRounds": [
+        35.5,
+        33,
+        32.8
+      ]
+    },
+    "deliver(投递)": {
+      "drawCalls": 687,
+      "triangles": 7994151,
+      "fps": 30.1,
+      "fpsRounds": [
+        31.7,
+        30.1,
+        26.1
+      ]
+    }
+  },
+  "移动端390x844": {
+    "metrics": {
+      "hero(鸟瞰)": {
+        "drawCalls": 725,
+        "drawCallsMin": 723,
+        "triangles": 1442188,
+        "fps": 73.5,
+        "fpsRounds": [
+          74.6,
+          73.5,
+          71.9
+        ]
+      },
+      "walk(越肩)": {
+        "drawCalls": 475,
+        "drawCallsMin": 125,
+        "triangles": 8248260,
+        "fps": 39.7,
+        "fpsRounds": [
+          40,
+          39.7,
+          36.9
+        ]
+      },
+      "focus(特写)": {
+        "drawCalls": 439,
+        "drawCallsMin": 439,
+        "triangles": 7708801,
+        "fps": 42.9,
+        "fpsRounds": [
+          44.2,
+          42.9,
+          39.8
+        ]
+      },
+      "deliver(投递)": {
+        "drawCalls": 441,
+        "drawCallsMin": 441,
+        "triangles": 7708915,
+        "fps": 36.6,
+        "fpsRounds": [
+          37.7,
+          36.6,
+          33.3
+        ]
+      }
+    },
+    "layout": {
+      "boxes": [
+        {
+          "sel": ".game-hud",
+          "x": 183,
+          "y": 99,
+          "w": 197,
+          "h": 126
+        },
+        {
+          "sel": ".gc-nav",
+          "x": 0,
+          "y": 0,
+          "w": 0,
+          "h": 0
+        },
+        {
+          "sel": ".lot-card-dock",
+          "x": 16,
+          "y": 638,
+          "w": 358,
+          "h": 168
+        },
+        {
+          "sel": ".nav-stack",
+          "x": 286,
+          "y": 374,
+          "w": 96,
+          "h": 96
+        }
+      ],
+      "overlaps": [],
+      "clipped": [],
+      "small": [],
+      "navParts": [
+        {
+          "cls": "gc-nav-head",
+          "h": 0,
+          "visible": false
+        },
+        {
+          "cls": {},
+          "h": 0,
+          "visible": false
+        },
+        {
+          "cls": "gc-nav-section",
+          "h": 0,
+          "visible": false
+        },
+        {
+          "cls": "gc-nav-list",
+          "h": 0,
+          "visible": false
+        },
+        {
+          "cls": "gc-nav-section",
+          "h": 0,
+          "visible": false
+        },
+        {
+          "cls": "gc-nav-districts",
+          "h": 0,
+          "visible": false
+        }
+      ],
+      "navHeight": 0,
+      "navBottom": 0,
+      "viewportH": 844,
+      "navOverflowsViewport": false,
+      "hOverflow": false
+    },
+    "折叠态": {
+      "toggle": {
+        "x": 286,
+        "y": 374,
+        "w": 96,
+        "h": 96
+      },
+      "panel": {
+        "x": 0,
+        "y": 0,
+        "w": 0,
+        "h": 0
+      },
+      "card": {
+        "x": 16,
+        "y": 638,
+        "w": 358,
+        "h": 168
+      },
+      "hud": {
+        "x": 183,
+        "y": 99,
+        "w": 197,
+        "h": 126
+      },
+      "toggleVsCard": {
+        "ox": 88,
+        "oy": -168
+      },
+      "toggleVsHud": {
+        "ox": 94,
+        "oy": -149
+      },
+      "panelVsCard": {
+        "ox": -16,
+        "oy": -638
+      },
+      "viewport": {
+        "w": 390,
+        "h": 844
+      },
+      "hOverflow": false
+    },
+    "展开态": {
+      "toggle": {
+        "x": 286,
+        "y": 374,
+        "w": 96,
+        "h": 96
+      },
+      "panel": {
+        "x": 8,
+        "y": 56,
+        "w": 374,
+        "h": 780
+      },
+      "card": {
+        "x": 16,
+        "y": 638,
+        "w": 358,
+        "h": 168
+      },
+      "hud": {
+        "x": 183,
+        "y": 99,
+        "w": 197,
+        "h": 126
+      },
+      "toggleVsCard": {
+        "ox": 88,
+        "oy": -168
+      },
+      "toggleVsHud": {
+        "ox": 94,
+        "oy": -149
+      },
+      "panelVsCard": {
+        "ox": 358,
+        "oy": 168
+      },
+      "viewport": {
+        "w": 390,
+        "h": 844
+      },
+      "hOverflow": false
+    }
+  },
+  "布局验收": {
+    "桌面": {
+      "boxes": [
+        {
+          "sel": ".game-hud",
+          "x": 1006,
+          "y": 66,
+          "w": 264,
+          "h": 136
+        },
+        {
+          "sel": ".gc-nav",
+          "x": 1020,
+          "y": 233,
+          "w": 248,
+          "h": 445
+        },
+        {
+          "sel": ".lot-card-dock",
+          "x": 16,
+          "y": 508,
+          "w": 340,
+          "h": 168
+        },
+        {
+          "sel": ".nav-stack",
+          "x": 1020,
+          "y": 233,
+          "w": 248,
+          "h": 445
+        }
+      ],
+      "overlaps": [],
+      "clipped": [],
+      "small": [],
+      "navParts": [
+        {
+          "cls": "gc-nav-head",
+          "h": 42,
+          "visible": true
+        },
+        {
+          "cls": {},
+          "h": 132,
+          "visible": true
+        },
+        {
+          "cls": "gc-nav-section",
+          "h": 20,
+          "visible": true
+        },
+        {
+          "cls": "gc-nav-list",
+          "h": 72,
+          "visible": true
+        },
+        {
+          "cls": "gc-nav-section",
+          "h": 20,
+          "visible": true
+        },
+        {
+          "cls": "gc-nav-districts",
+          "h": 108,
+          "visible": true
+        }
+      ],
+      "navHeight": 445,
+      "navBottom": 678,
+      "viewportH": 720,
+      "navOverflowsViewport": false,
+      "hOverflow": false
+    }
+  }
+}
