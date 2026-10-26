@@ -1,0 +1,104 @@
+{
+  "label": "baseline-before",
+  "url": "http://127.0.0.1:4173/",
+  "theme": "light",
+  "viewport": "1280x720",
+  "metrics": [
+    {
+      "tag": "hero(鸟瞰)",
+      "drawCalls": 2797,
+      "triangles": 1526240,
+      "fps": 33.8,
+      "fpsRounds": [
+        36,
+        33.8,
+        31.2
+      ],
+      "memory": {
+        "geometries": 2395,
+        "textures": 81,
+        "programs": 19
+      },
+      "webgl2": true,
+      "renderer": "ANGLE (AMD, AMD Radeon(TM) Graphics (0x00001681) Direct3D11 vs_5_0 ps_5_0, D3D11)"
+    },
+    {
+      "tag": "walk(越肩)",
+      "drawCalls": 931,
+      "triangles": 7973713,
+      "fps": 44.1,
+      "fpsRounds": [
+        44.8,
+        44.1,
+        40.5
+      ],
+      "memory": {
+        "geometries": 2485,
+        "textures": 143,
+        "programs": 34
+      },
+      "webgl2": true,
+      "renderer": "ANGLE (AMD, AMD Radeon(TM) Graphics (0x00001681) Direct3D11 vs_5_0 ps_5_0, D3D11)"
+    },
+    {
+      "tag": "focus(特写)",
+      "drawCalls": 935,
+      "triangles": 7711441,
+      "fps": 42.6,
+      "fpsRounds": [
+        44.2,
+        42.6,
+        41.8
+      ],
+      "memory": {
+        "geometries": 2485,
+        "textures": 143,
+        "programs": 34
+      },
+      "webgl2": true,
+      "renderer": "ANGLE (AMD, AMD Radeon(TM) Graphics (0x00001681) Direct3D11 vs_5_0 ps_5_0, D3D11)"
+    },
+    {
+      "tag": "deliver(投递)",
+      "drawCalls": 938,
+      "triangles": 7986019,
+      "fps": 40.8,
+      "fpsRounds": [
+        42,
+        40.8,
+        37.9
+      ],
+      "memory": {
+        "geometries": 2482,
+        "textures": 144,
+        "programs": 46
+      },
+      "webgl2": true,
+      "renderer": "ANGLE (AMD, AMD Radeon(TM) Graphics (0x00001681) Direct3D11 vs_5_0 ps_5_0, D3D11)"
+    }
+  ],
+  "layout": {
+    "boxes": [
+      {
+        "sel": ".game-hud",
+        "x": 1006,
+        "y": 66,
+        "w": 264,
+        "h": 219
+      },
+      {
+        "sel": ".lot-card-dock",
+        "x": 16,
+        "y": 508,
+        "w": 340,
+        "h": 168
+      }
+    ],
+    "overlaps": [],
+    "clipped": [],
+    "small": [],
+    "hOverflow": false
+  },
+  "consoleErrors": [],
+  "out": "C:\\Users\\dqy\\AppData\\Local\\Temp\\gc-baseline2"
+}

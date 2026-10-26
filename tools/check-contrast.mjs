@@ -36,10 +36,21 @@ const NIGHT_SCENE = [15, 20, 30] // 夜间场景典型底（深靛）
 const DAY_SCENE = [195, 205, 215] // 白天场景典型底（冷白玻璃/浅地面）
 const nightGlass = blend([255, 255, 255], 0.72, NIGHT_SCENE)
 const lightGlass = blend([11, 14, 26], 0.72, DAY_SCENE)
+// —— 玻璃垫实底（--ui-glass-underlay）——
+// 新增玻璃浮层（导航器等）必须垫这层实底，否则压最亮天幕时次级文字掉到 4.48:1
+const nightUnderlay = blend([255, 255, 255], 0.86, NIGHT_SCENE)
+const lightUnderlay = blend([11, 14, 26], 0.86, DAY_SCENE)
+// 最坏背景：浅色主题压 skyHorizon(#f4f8fb)，夜间主题压 skyTop(#0a1020)
+const WORST_DAY = [244, 248, 251]
+const WORST_NIGHT = [10, 16, 32]
+const nightUnderlayWorst = blend([255, 255, 255], 0.86, WORST_NIGHT)
+const lightUnderlayWorst = blend([11, 14, 26], 0.86, WORST_DAY)
 
 const THEMES = {
   '夜间主题（亮玻璃 + 深墨字）': {
     base: nightGlass,
+    underlay: nightUnderlay,
+    underlayWorst: nightUnderlayWorst,
     ink: {
       primary: [11, 14, 26], // #0b0e1a
       secondary: [57, 65, 77], // #39414d
@@ -48,6 +59,8 @@ const THEMES = {
   },
   '白天主题（深玻璃 + 浅色字）': {
     base: lightGlass,
+    underlay: lightUnderlay,
+    underlayWorst: lightUnderlayWorst,
     ink: {
       primary: [230, 237, 243], // #e6edf3
       secondary: [183, 194, 204], // #b7c2cc
@@ -64,6 +77,18 @@ for (const [name, t] of Object.entries(THEMES)) {
   console.log(`  合成底色 rgb(${t.base.join(',')})`)
   for (const [k, c] of Object.entries(t.ink)) {
     const r = ratio(c, t.base)
+    const ok = r >= 4.5
+    if (!ok) failed++
+    console.log(
+      `  ${k.padEnd(10)} rgb(${c.join(',')})`.padEnd(40) +
+        `${r.toFixed(2)}:1  ${grade(r)}`
+    )
+  }
+  // 垫实底后的最坏背景验算（新增玻璃浮层的验收口径）
+  console.log(`  —— 垫实底 --ui-glass-underlay 后（最坏背景）——`)
+  console.log(`  合成底色 rgb(${t.underlayWorst.join(',')})`)
+  for (const [k, c] of Object.entries(t.ink)) {
+    const r = ratio(c, t.underlayWorst)
     const ok = r >= 4.5
     if (!ok) failed++
     console.log(

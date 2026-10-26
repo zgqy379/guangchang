@@ -1,0 +1,279 @@
+// 街区实拍脚本：1280×720 四张（hero / focus / walk / deliver）+ draw call 与 fps 实测
+//
+// 用法（web 目录下）：
+//   npx vite preview --port 4173        # 另开一个终端
+//   node ../tools/shoot-street.cjs --out ../docs/figures/street-2026-10-27 --label after
+//
+// 为什么用 CommonJS：Windows 下 ESM 导入需 file:// URL（lessons §8.5）
+// 为什么用 headed Chrome：本机 headless Edge 的 WebGL 截图不可靠（team-lead 铁律）
+const path = require('path')
+const fs = require('fs')
+const { chromium } = require('C:/Users/dqy/.workbuddy/binaries/node/workspace/node_modules/playwright')
+
+const args = process.argv.slice(2)
+function arg(name, def) {
+  const i = args.indexOf('--' + name)
+  return i >= 0 ? args[i + 1] : def
+}
+const OUT = path.resolve(arg('out', '../docs/figures/street-2026-10-27'))
+const LABEL = arg('label', 'shot')
+const URL = arg('url', 'http://localhost:4173/')
+const THEME = arg('theme', 'light') // light | dark
+const W = 1280
+const H = 720
+
+fs.mkdirSync(OUT, { recursive: true })
+
+/** 在页面内做世界坐标 → 屏幕坐标投影（不依赖页面暴露 THREE）；显式挂 window，initScript 字符串按函数体执行 */
+const PROJECT_FN = `
+window.__project = function (cam, x, y, z) {
+  const e = cam.matrixWorldInverse.elements
+  const vx = e[0]*x + e[4]*y + e[8]*z + e[12]
+  const vy = e[1]*x + e[5]*y + e[9]*z + e[13]
+  const vz = e[2]*x + e[6]*y + e[10]*z + e[14]
+  const p = cam.projectionMatrix.elements
+  const cx = p[0]*vx, cy = p[5]*vy, cw = -vz
+  // 注意：画布不是整个窗口（顶栏/页脚占位），必须用 canvas 的 rect 换算
+  const c = document.querySelector('canvas')
+  const r = c ? c.getBoundingClientRect() : { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }
+  return { x: r.left + (cx/cw*0.5+0.5)*r.width, y: r.top + (1-(cy/cw*0.5+0.5))*r.height }
+}
+window.__renderer = function () {
+  if (window.__gl) return window.__gl
+  const c = document.querySelector('canvas')
+  if (!c) return null
+  if (c.__r3f && c.__r3f.root && c.__r3f.root.getState) {
+    try { const st = c.__r3f.root.getState(); if (st && st.gl) return st.gl } catch (e) {}
+  }
+  return null
+}
+`
+
+async function measure(page, label) {
+  return page.evaluate(
+    async (tag) => {
+      const gl = __renderer()
+      // 采样 3 轮 × 60 帧，取各轮中位帧间隔的中位数（机器噪声大，单轮不可信）
+      const rounds = []
+      let maxCalls = -1
+      let minCalls = Infinity
+      let maxTris = -1
+      for (let round = 0; round < 3; round++) {
+        const samples = []
+        await new Promise((res) => {
+          let n = 0
+          let last = performance.now()
+          const tick = () => {
+            const now = performance.now()
+            samples.push({
+              calls: gl ? gl.info.render.calls : -1,
+              tris: gl ? gl.info.render.triangles : -1,
+              dt: now - last,
+            })
+            last = now
+            if (++n < 60) requestAnimationFrame(tick)
+            else res()
+          }
+          requestAnimationFrame(tick)
+        })
+        const dts = samples.slice(10).map((s) => s.dt).sort((a, b) => a - b)
+        rounds.push(dts[Math.floor(dts.length / 2)] || 0)
+        const cs = samples.map((s) => s.calls).filter((c) => c >= 0)
+        const ts = samples.map((s) => s.tris).filter((c) => c >= 0)
+        if (cs.length) { maxCalls = Math.max(maxCalls, ...cs); minCalls = Math.min(minCalls, ...cs) }
+        if (ts.length) maxTris = Math.max(maxTris, ...ts)
+      }
+      rounds.sort((a, b) => a - b)
+      const med = rounds[Math.floor(rounds.length / 2)] || 0
+      return {
+        tag,
+        drawCalls: maxCalls,
+        drawCallsMin: minCalls === Infinity ? -1 : minCalls,
+        triangles: maxTris,
+        fps: med > 0 ? +(1000 / med).toFixed(1) : -1,
+        fpsRounds: rounds.map((d) => (d > 0 ? +(1000 / d).toFixed(1) : -1)),
+        memory: gl ? { geometries: gl.info.memory.geometries, textures: gl.info.memory.textures, programs: gl.info.programs?.length ?? -1 } : null,
+        webgl2: gl ? gl.capabilities.isWebGL2 : null,
+        renderer: gl ? (() => { try { const d = gl.getContext().getExtension('WEBGL_debug_renderer_info'); return d ? gl.getContext().getParameter(d.UNMASKED_RENDERER_WEBGL) : 'n/a' } catch (e) { return 'n/a' } })() : null,
+      }
+    },
+    label
+  )
+}
+
+async function shoot(page, name) {
+  const file = path.join(OUT, `${name}.png`)
+  await page.screenshot({ path: file })
+  console.log('  ✓', path.relative(process.cwd(), file))
+  return file
+}
+
+;(async () => {
+  const browser = await chromium.launch({
+    channel: 'chrome',
+    headless: false,
+    args: ['--disable-gpu-sandbox', '--enable-unsafe-swiftshader'],
+  })
+  const ctx = await browser.newContext({ viewport: { width: W, height: H }, deviceScaleFactor: 1 })
+  const page = await ctx.newPage()
+  // 诊断函数注入全局（投影/渲染器读取）
+  await page.addInitScript(PROJECT_FN)
+  const errors = []
+  page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text().slice(0, 200)) })
+  page.on('pageerror', (e) => errors.push('PAGEERROR ' + String(e).slice(0, 200)))
+
+  console.log('→ goto', URL)
+  await page.goto(URL, { waitUntil: 'load', timeout: 60000 })
+  await page.waitForSelector('.mode-switch, .gc-role-gate', { timeout: 30000 })
+
+  // 角色选择门（2026-10-27 由轨道B 引入）：先选「求职者」，再进街区
+  const gate = await page.locator('.gc-role-gate').count()
+  if (gate) {
+    console.log('→ 检测到角色门，选择「求职者」')
+    const card = page.locator('.gc-role-card--candidate').first()
+    if (await card.count()) await card.click()
+    else await page.locator('.gc-role-card').first().click()
+  }
+  await page.waitForSelector('.mode-switch', { timeout: 30000 })
+
+  // 主题锁定：auto → light → dark → auto。点一次即强制白天（孪生风主色）
+  if (THEME === 'light') {
+    await page.click('.theme-lock')
+    await page.waitForTimeout(400)
+  } else if (THEME === 'dark') {
+    await page.click('.theme-lock')
+    await page.waitForTimeout(300)
+    await page.click('.theme-lock')
+    await page.waitForTimeout(400)
+  }
+
+  // 进街区
+  await page.getByRole('button', { name: /招聘街区/ }).click()
+  console.log('→ 等待街区场景就绪')
+  await page.waitForFunction(() => !!window.__st, null, { timeout: 60000 })
+  await page.waitForTimeout(4500) // 等 GLB / 贴图 / 阴影稳定
+
+  const theme = await page.getAttribute('.app', 'data-theme')
+  console.log('  主题 =', theme)
+
+  // —— 1. hero（鸟瞰，未交互）——
+  await shoot(page, 'hero')
+  const hero = await measure(page, 'hero(鸟瞰)')
+
+  // —— 2/3. walk（越肩行走）→ focus（摊位特写）——
+  // 一次地面点击驱动两段：玩家从 (8,2) 走到 (14,3.9)，
+  // 途中是越肩机位（walk），抵达后摊位在 3.5m 内 → 触发 3/4 特写（focus）。
+  const groundClick = async (wx, wz) => {
+    const pt = await page.evaluate(
+      ([x, z]) => {
+        const cam = window.__cam
+        return __project(cam, x, 0.02, z)
+      },
+      [wx, wz]
+    )
+    if (pt.x < 0 || pt.y < 0 || pt.x > W || pt.y > H) {
+      console.log(`  !! 目标点 (${wx},${wz}) 不在视口内：`, pt)
+      return false
+    }
+    await page.mouse.click(Math.round(pt.x), Math.round(pt.y))
+    return true
+  }
+  const clicked = await groundClick(14, 3.9)
+  await page.waitForTimeout(2400)
+  await shoot(page, 'walk')
+  const walk = await measure(page, 'walk(越肩)')
+
+  // 等玩家走到位（target 清空）+ 特写相机 lerp 到位
+  try {
+    await page.waitForFunction(() => window.__roam && !window.__roam.target.current, null, { timeout: 30000 })
+    console.log('  玩家已到位')
+  } catch (e) {
+    console.log('  !! 玩家未在 30s 内到位')
+  }
+  await page.waitForTimeout(3000)
+  const hasCard = await page.locator('.lot-card-dock').count()
+  console.log('  名片卡 =', hasCard, '| 地面点击 =', clicked)
+  await shoot(page, 'focus')
+  const focus = await measure(page, 'focus(特写)')
+
+  // —— 4. deliver（投递后）——
+  const btn = page.locator('.lot-card-dock button', { hasText: '投简历' })
+  if (await btn.count()) {
+    await btn.first().click()
+    await page.waitForTimeout(850)
+    await shoot(page, 'deliver')
+  } else {
+    console.log('  !! 找不到投简历按钮')
+    await shoot(page, 'deliver')
+  }
+  const deliver = await measure(page, 'deliver(投递)')
+
+  // —— 布局量化验收（lessons §8.5：量化而非目测）——
+  // ① 同侧浮层是否重叠（HUD vs 导航器 vs 名片卡）
+  // ② SVG 罗盘文字是否被 viewBox 裁切（getBBox 越界）
+  // ③ 是否有横向溢出
+  const layout = await page.evaluate(() => {
+    const rect = (sel) => {
+      const el = document.querySelector(sel)
+      if (!el) return null
+      const r = el.getBoundingClientRect()
+      return { sel, x: Math.round(r.x), y: Math.round(r.y), w: Math.round(r.width), h: Math.round(r.height) }
+    }
+    const boxes = ['.game-hud', '.gc-nav', '.lot-card-dock', '.nav-stack'].map(rect).filter(Boolean)
+    const overlaps = []
+    for (let i = 0; i < boxes.length; i++) {
+      for (let j = i + 1; j < boxes.length; j++) {
+        const a = boxes[i]
+        const b = boxes[j]
+        const ox = Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x)
+        const oy = Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y)
+        if (ox > 0 && oy > 0) overlaps.push({ a: a.sel, b: b.sel, ox: Math.round(ox), oy: Math.round(oy) })
+      }
+    }
+    // SVG 文字越界检查
+    const svg = document.querySelector('.gc-nav-compass')
+    const clipped = []
+    if (svg) {
+      const vb = svg.viewBox.baseVal
+      svg.querySelectorAll('text').forEach((t) => {
+        const b = t.getBBox()
+        if (b.x < 0 || b.y < 0 || b.x + b.width > vb.width || b.y + b.height > vb.height) {
+          clipped.push({ text: t.textContent, x: +b.x.toFixed(1), y: +b.y.toFixed(1), w: +b.width.toFixed(1), h: +b.height.toFixed(1) })
+        }
+      })
+    }
+    // 触控尺寸（≥24px 高）
+    const small = []
+    document.querySelectorAll('.gc-nav button').forEach((b) => {
+      const r = b.getBoundingClientRect()
+      if (r.height < 22 || r.width < 22) small.push({ cls: b.className, w: Math.round(r.width), h: Math.round(r.height) })
+    })
+    return {
+      boxes,
+      overlaps,
+      clipped,
+      small,
+      hOverflow: document.documentElement.scrollWidth > window.innerWidth,
+    }
+  })
+  console.log('\n=== LAYOUT ===')
+  console.log(JSON.stringify(layout, null, 2))
+
+  const report = {
+    label: LABEL,
+    url: URL,
+    theme,
+    viewport: `${W}x${H}`,
+    metrics: [hero, walk, focus, deliver],
+    layout,
+    consoleErrors: errors.slice(0, 10),
+    out: OUT,
+  }
+  fs.writeFileSync(path.join(OUT, `metrics-${LABEL}.json`), JSON.stringify(report, null, 2))
+  console.log('\n=== METRICS ===')
+  console.log(JSON.stringify(report, null, 2))
+  await browser.close()
+})().catch((e) => {
+  console.error('FATAL', e)
+  process.exit(1)
+})
