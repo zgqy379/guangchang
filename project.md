@@ -87,7 +87,7 @@
 2. **街区视觉修复**：牌坊旋转修正为跨街 + 区色信标；路灯 InstancedMesh 矩阵改 useLayoutEffect + 地面光池；车道虚线；远景天际线；中央图腾光柱；HUD/名片毛玻璃；暗角
 3. **相机**：鸟瞰 → 越肩跟随 → 靠近摊位静止自动 3/4 特写（focus camera）；解决"名片指着的摊位被玩家挡住"
 4. **街角布局修复**：摊位起点 10m→14m、间距 4.2m→3.6m，避免街角摊位被相邻街办公体块吞没
-5. **真 HR GLB 降级**：9 个真 HR 近景姿态异常（T-pose 横躺/轴向），暂用低模占位（发型/西装色池/五官）；真模修复列入 P0，报告书如实声明
+5. **真 HR GLB 修复**：9 个真 HR 自身直立，但自带 idle clip 为 T-pose；确认与玩家同 52 根 Mixamo 骨后，运行时改用玩家 idle clip 驱动近景真模（西装/提包），占位仅用于远景/加载回退
 6. **设计令牌全链路**：`web/design/tokens.json` → `npm run tokens` → CSS/.mjs/.d.mts；styles.css 与 3D 场景（MoneyMountain/HRStand/street-companies/StreetScene）全部接令牌；`npm run build` 自动 prebuild tokens
 7. **验收**：独立盲审视觉 6.7 / 空间 6.1（≥7 门禁可上线，8+ 冲刺继续）；报告 `report.typ` 加入街区实拍 4 图 + 办公室实拍并编译
 

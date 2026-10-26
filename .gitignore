@@ -29,3 +29,5 @@ docs/video/frames/
 docs/video/*.mp4
 docs/video/frames_cap/
 docs/video/check*.jpg
+
+/.qoder-credits/

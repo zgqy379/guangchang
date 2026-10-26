@@ -2,7 +2,7 @@
 //（钱袋层数∝总包 / 五险切口牌 / 头顶日月）③身后办公空间门面（点击进 3DGS）
 import { Suspense, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
-import { useGLTF } from '@react-three/drei'
+import { useAnimations, useGLTF } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
 import { clone as skeletonClone } from 'three/examples/jsm/utils/SkeletonUtils.js'
 import type { Lot } from '../../data/street-companies'
@@ -30,18 +30,56 @@ const HR_POOL = [
   'hr-f01', 'hr-f02', 'hr-f03', 'hr-f04', 'hr-f05',
   'hr-m01', 'hr-m02', 'hr-m03', 'hr-m04',
 ]
-const NEAR = 0 // 真 HR GLB 近景姿态异常（横躺 T-pose，2026-10-26 诊断），修复前用占位形象
+const NEAR = 18 // 真 HR GLB 自带 idle clip 为 T-pose；近景改用玩家 Avatar 的 idle clip（同 52 根 Mixamo 骨）
 const FAR = 26
 
 // 占位 HR 的西装色池（按 hrIndex 分配，避免 64 个摊位同色）
 const OUTFITS = ['#3d4c63', '#4a3b52', '#2f4a45', '#5a4038', '#33465e', '#4a4230', '#3b3b46', '#533a44', '#304c58']
 const HAIRS = ['#1b1b22', '#2a1d18', '#20262f', '#3a2a22', '#151a20']
 
-// 真 HR 形象：SkeletonUtils 克隆共享场景（保蒙皮）+ 手动 AnimationMixer 播 Idle，身高归一 1.6m
+// 钱捆贴图：扎带 + ¥ 压印（共享纹理，不增加 draw call）
+function cashTexture(base: string, dark: string) {
+  const c = document.createElement('canvas')
+  c.width = 256
+  c.height = 64
+  const ctx = c.getContext('2d')!
+  ctx.fillStyle = base
+  ctx.fillRect(0, 0, 256, 64)
+  ctx.strokeStyle = dark
+  ctx.lineWidth = 4
+  ctx.strokeRect(3, 3, 250, 58)
+  // 中央扎带
+  ctx.fillStyle = dark
+  ctx.fillRect(122, 0, 12, 64)
+  ctx.fillStyle = 'rgba(255,255,255,0.55)'
+  ctx.fillRect(123, 20, 10, 2)
+  ctx.fillRect(123, 42, 10, 2)
+  // ¥ 与面额
+  ctx.fillStyle = '#f6e7d0'
+  ctx.font = '700 30px "Microsoft YaHei", sans-serif'
+  ctx.textAlign = 'center'
+  ctx.fillText('¥', 62, 42)
+  ctx.font = '700 16px "Microsoft YaHei", sans-serif'
+  ctx.fillText('100', 196, 38)
+  ctx.font = '600 10px sans-serif'
+  ctx.fillText('逛厂币', 196, 52)
+  const t = new THREE.CanvasTexture(c)
+  t.colorSpace = THREE.SRGBColorSpace
+  return t
+}
+const CASH_TEX = {
+  base: cashTexture(ColorSceneBillRed, '#7d1f14'),
+  inc: cashTexture(ColorSceneBillOrange, '#8a5312'),
+}
+
+// 真 HR 形象：HR GLB 负责外观，动画借用玩家 Avatar 的 idle（HR 自带 clip 是 T-pose，2026-10-26 隔离验证）
 function RealHR({ hrIndex }: { hrIndex: number }) {
   const file = HR_POOL[hrIndex % HR_POOL.length]
-  const { scene, animations } = useGLTF(assetUrl(`/assets/hr/${file}-idle.glb`), DRACO_PATH)
+  const { scene } = useGLTF(assetUrl(`/assets/hr/${file}-idle.glb`), DRACO_PATH)
+  // 同一套 52 根 Mixamo 骨：玩家的 idle clip 可以直接驱动 HR
+  const { animations: avatarAnims } = useGLTF(assetUrl('/assets/avatar/avatar-idle.glb'), DRACO_PATH)
   const ref = useRef<THREE.Group>(null)
+  const { actions } = useAnimations(avatarAnims, ref)
   const clone = useMemo(() => {
     const c = skeletonClone(scene)
     c.traverse((o) => {
@@ -64,7 +102,6 @@ function RealHR({ hrIndex }: { hrIndex: number }) {
     })
     return c
   }, [scene])
-  const mixer = useMemo(() => new THREE.AnimationMixer(clone), [clone])
 
   useLayoutEffect(() => {
     const g = ref.current
@@ -74,13 +111,12 @@ function RealHR({ hrIndex }: { hrIndex: number }) {
     const s = 1.6 / (size.y || 1)
     g.scale.setScalar(s)
     g.position.y = -box.min.y * s
-    const clip = animations[0]
-    if (clip) mixer.clipAction(clip).reset().play()
+    const clip = Object.keys(actions)[0]
+    actions[clip]?.reset().fadeIn(0.3).play()
     return () => {
-      mixer.stopAllAction()
+      actions[clip]?.stop()
     }
-  }, [animations, clone, mixer])
-  useFrame((_, dt) => mixer.update(dt))
+  }, [actions, clone])
 
   return (
     <group ref={ref} dispose={null}>
@@ -222,9 +258,11 @@ export function HRStand({ lot, onEnterOffice }: { lot: Lot; onEnterOffice: (lot:
           <mesh key={i} position={[0, 0.06 + i * 0.12, 0]}>
             <boxGeometry args={[0.5, 0.115, 0.32]} />
             <meshStandardMaterial
-              color={i === layers - 1 && lot.params.salaryStructure > 12 ? ColorSceneBillOrange : ColorSceneBillRed}
-              emissive={i === layers - 1 && lot.params.salaryStructure > 12 ? ColorSceneBillOrange : ColorSceneBillRed}
-              emissiveIntensity={0.25}
+              map={i === layers - 1 && lot.params.salaryStructure > 12 ? CASH_TEX.inc : CASH_TEX.base}
+              emissiveMap={i === layers - 1 && lot.params.salaryStructure > 12 ? CASH_TEX.inc : CASH_TEX.base}
+              emissive="#ffffff"
+              emissiveIntensity={0.12}
+              roughness={0.62}
             />
           </mesh>
         ))}
@@ -254,10 +292,6 @@ export function HRStand({ lot, onEnterOffice }: { lot: Lot; onEnterOffice: (lot:
           <meshStandardMaterial color="#2b323b" />
         </mesh>
       </group>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0.6, 0.015, 1.9]}>
-        <planeGeometry args={[1.5, 1.0]} />
-        <meshStandardMaterial color={color} roughness={0.95} />
-      </mesh>
       <group position={[-1.5, 0, -0.4]} rotation={[0, 0, (parseInt(lot.id.slice(-2), 10) % 7) * 0.02 - 0.06]}>
         <mesh position={[0, 1.55, 0]}>
           <cylinderGeometry args={[0.03, 0.03, 3.1, 6]} />

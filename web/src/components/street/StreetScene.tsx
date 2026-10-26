@@ -22,28 +22,56 @@ import {
   ColorSceneLamp,
   ColorSceneRoad,
   ColorStateInfo,
-  ColorStateSuccess,
   ColorTextPrimary,
   ColorTextSecondary,
-  ColorSceneWindowDim,
+  ColorSceneBarOff,
+  ColorSceneBarOn,
 } from '../../../generated/design-tokens.output.mjs'
 
 const placed = placeLots()
 const fmtClock = (h: number) => `${String(Math.floor(h)).padStart(2, '0')}:${h % 1 ? '30' : '00'}`
 
 // ---------- 街景静态元素 ----------
+function asphaltTexture() {
+  const c = document.createElement('canvas')
+  c.width = c.height = 256
+  const ctx = c.getContext('2d')!
+  ctx.fillStyle = '#ffffff'
+  ctx.fillRect(0, 0, 256, 256)
+  for (let i = 0; i < 2600; i++) {
+    const g = 200 + Math.floor(Math.random() * 45)
+    ctx.fillStyle = `rgba(${g},${g},${g},${0.12 + Math.random() * 0.18})`
+    ctx.fillRect(Math.random() * 256, Math.random() * 256, 1.5, 1.5)
+  }
+  ctx.strokeStyle = 'rgba(120,130,145,0.28)'
+  ctx.lineWidth = 1
+  for (let i = 0; i < 4; i++) {
+    const y = Math.random() * 256
+    ctx.beginPath()
+    ctx.moveTo(0, y)
+    ctx.lineTo(256, y + (Math.random() - 0.5) * 8)
+    ctx.stroke()
+  }
+  const t = new THREE.CanvasTexture(c)
+  t.wrapS = t.wrapT = THREE.RepeatWrapping
+  t.repeat.set(24, 24)
+  t.colorSpace = THREE.SRGBColorSpace
+  return t
+}
+const ASPHALT = asphaltTexture()
+
 function Roads() {
   return (
     <group>
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.02, 0]} receiveShadow>
         <planeGeometry args={[240, 240]} />
-        <meshStandardMaterial color={ColorSceneFloor} roughness={1} />
+        <meshStandardMaterial color={ColorSceneFloor} map={ASPHALT} roughness={1} />
       </mesh>
       {/* 十字两条路（albedo 提亮一档，盲审：黑地不可读） */}
       {[0, Math.PI / 2].map((rot, i) => (
         <mesh key={i} rotation={[-Math.PI / 2, 0, rot]} position={[0, 0, 0]}>
           <planeGeometry args={[180, 10.4]} />
-          <meshStandardMaterial color={ColorSceneRoad} roughness={0.85} />
+          <meshStandardMaterial color={ColorSceneRoad} map={ASPHALT} roughness={0.85} />
         </mesh>
       ))}
       {/* 中央斑马线（收窄至 0.5m，尺度校正） */}
@@ -122,7 +150,7 @@ function ParamSteles() {
         o.scale.set(0.18, 0.06, 0.02)
         o.updateMatrix()
         br.setMatrixAt(barIndex, o.matrix)
-        br.setColorAt(barIndex, col.set(j < lit ? ColorStateSuccess : ColorSceneWindowDim))
+        br.setColorAt(barIndex, col.set(j < lit ? ColorSceneBarOn : ColorSceneBarOff))
         barIndex++
       }
       // 顶灯
@@ -546,6 +574,7 @@ function NearRing({ lot }: { lot: Lot }) {
   const pl = placed.find((p) => p.lot.id === lot.id)
   const ring = useRef<THREE.Mesh>(null)
   const outer = useRef<THREE.Mesh>(null)
+  const focusTarget = useMemo(() => new THREE.Object3D(), [])
   useFrame((state, dt) => {
     const t = state.clock.elapsedTime
     if (ring.current) ring.current.scale.setScalar(1 + Math.sin(t * 3) * 0.05)
@@ -568,21 +597,29 @@ function NearRing({ lot }: { lot: Lot }) {
           depthWrite={false}
         />
       </mesh>
-      {/* 选中摊位补光：宽光压住立面，近距前侧光把 HR 从暗面里拉出来 */}
-      <pointLight
-        position={[Math.sin(pl.rotationY) * 1.2, 1.4, Math.cos(pl.rotationY) * 1.2]}
-        color={ColorBrandGold}
-        intensity={5}
-        distance={5}
+      {/* 选中摊位：45° 暖主光打在 HR 正面 + 后方冷轮廓光 + 脚下接影 */}
+      <primitive object={focusTarget} position={[0, 1.0, 0]} />
+      <spotLight
+        position={[Math.sin(pl.rotationY) * 1.8, 2.6, Math.cos(pl.rotationY) * 1.8]}
+        target={focusTarget}
+        color="#ffd7b0"
+        intensity={45}
+        distance={8}
+        angle={0.5}
+        penumbra={0.7}
         decay={2}
       />
       <pointLight
-        position={[Math.sin(pl.rotationY) * 0.75, 1.15, Math.cos(pl.rotationY) * 0.75]}
-        color="#ffe2b0"
-        intensity={3}
-        distance={2.6}
+        position={[Math.sin(pl.rotationY) * -1.1, 1.7, Math.cos(pl.rotationY) * -1.1]}
+        color="#6ea8ff"
+        intensity={8}
+        distance={4}
         decay={2}
       />
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.155, 0]}>
+        <circleGeometry args={[0.4, 24]} />
+        <meshBasicMaterial color="#000000" transparent opacity={0.42} depthWrite={false} />
+      </mesh>
     </group>
   )
 }
@@ -885,13 +922,13 @@ export function StreetScene({
           const cz = axisX ? 0 : sign * (8 + len / 2)
           return (
             <mesh key={ind} rotation={[-Math.PI / 2, 0, axisX ? 0 : Math.PI / 2]} position={[cx, 0.02, cz]}>
-              <planeGeometry args={[len, 1.1]} />
+              <planeGeometry args={[len, 0.8]} />
               <meshStandardMaterial
                 color={INDUSTRIES[ind].color}
                 emissive={INDUSTRIES[ind].color}
                 emissiveIntensity={0.3}
                 transparent
-                opacity={0.45}
+                opacity={0.35}
               />
             </mesh>
           )

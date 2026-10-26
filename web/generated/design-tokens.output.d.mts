@@ -35,6 +35,8 @@ export declare const ColorSceneGlass: string
 export declare const ColorSceneGlassLit: string
 export declare const ColorSceneWindow: string
 export declare const ColorSceneWindowDim: string
+export declare const ColorSceneBarOn: string
+export declare const ColorSceneBarOff: string
 export declare const ColorSceneSkin: string
 export declare const ColorSceneSun: string
 export declare const ColorSceneMoon: string

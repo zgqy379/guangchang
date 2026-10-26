@@ -38,8 +38,10 @@
   --color-scene-facade: #272f3a;
   --color-scene-glass: #12314e;
   --color-scene-glass-lit: #1b4a78;
-  --color-scene-window: #ffd28a;
+  --color-scene-window: #c9b58e;
   --color-scene-window-dim: #22303c;
+  --color-scene-bar-on: #58e39b;
+  --color-scene-bar-off: #233028;
   --color-scene-skin: #e8b98a;
   --color-scene-sun: #ffd4b0;
   --color-scene-moon: #e8edf5;
