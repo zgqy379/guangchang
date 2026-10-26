@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import type { RoamRefs } from '../AvatarActor'
 import { INDUSTRIES, placeLots, STREET_BOUNDS } from '../../data/street-companies'
 
-const SIZE = 168
+const SIZE = 188
 
 export function GameMiniMap({
   refs,
@@ -37,10 +37,10 @@ export function GameMiniMap({
         ? 'manufacturing'
         : 'culture'
   const arms = [
-    { ind: 'internet' as const, x1: c, y1: c, x2: c + r, y2: c, lx: c + r - 20, ly: c + 14, text: '互联网' },
-    { ind: 'finance' as const, x1: c, y1: c, x2: c - r, y2: c, lx: c - r + 20, ly: c + 14, text: '金融' },
-    { ind: 'manufacturing' as const, x1: c, y1: c, x2: c, y2: c - r, lx: c, ly: c - r + 18, text: '智造' },
-    { ind: 'culture' as const, x1: c, y1: c, x2: c, y2: c + r, lx: c, ly: c + r - 10, text: '文创' },
+    { ind: 'internet' as const, x1: c, y1: c, x2: c + r, y2: c, lx: c + r - 18, ly: c + 16, text: '互联网' },
+    { ind: 'finance' as const, x1: c, y1: c, x2: c - r, y2: c, lx: c - r + 18, ly: c + 16, text: '金融' },
+    { ind: 'manufacturing' as const, x1: c, y1: c, x2: c, y2: c - r, lx: c, ly: c - r + 20, text: '智造' },
+    { ind: 'culture' as const, x1: c, y1: c, x2: c, y2: c + r, lx: c, ly: c + r - 12, text: '文创' },
   ]
   return (
     <>
@@ -76,7 +76,7 @@ export function GameMiniMap({
                 x={a.lx}
                 y={a.ly}
                 fill={INDUSTRIES[a.ind].color}
-                fontSize={8}
+                fontSize={10}
                 fontWeight={700}
                 textAnchor="middle"
                 paintOrder="stroke"
@@ -92,7 +92,7 @@ export function GameMiniMap({
               key={pl.lot.id}
               cx={c + pl.position[0] * scale}
               cy={c - pl.position[2] * scale}
-              r={delivered.has(pl.lot.id) ? 2.1 : 1.4}
+              r={delivered.has(pl.lot.id) ? 2.6 : 1.7}
               fill={INDUSTRIES[pl.lot.industry].color}
               opacity={delivered.has(pl.lot.id) ? 1 : 0.42}
             />

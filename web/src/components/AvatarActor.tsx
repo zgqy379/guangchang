@@ -138,6 +138,8 @@ export function AvatarActor({
     }
 
     const moving = dir.lengthSq() > 0.001
+    // 特写机位时收起玩家，避免后背挡住 HR/摊位（移动立即恢复）
+    if (roam) g.visible = !(refs?.focus?.current && !moving)
     if (moving) {
       dir.normalize()
       g.position.addScaledVector(dir, SPEED * dt)

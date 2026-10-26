@@ -15,13 +15,10 @@ import {
   ColorSceneBooth,
   ColorSceneFacade,
   ColorSceneGate,
-  ColorSceneGlass,
-  ColorSceneGlassLit,
   ColorSceneMoon,
   ColorSceneSkin,
   ColorSceneSun,
   ColorSceneWindow,
-  ColorSceneWindowDim,
   ColorStateInfo,
 } from '../../../generated/design-tokens.output.mjs'
 
@@ -41,6 +38,161 @@ export function preloadHRModels() {
 // 占位 HR 的西装色池（按 hrIndex 分配，避免 64 个摊位同色）
 const OUTFITS = ['#3d4c63', '#4a3b52', '#2f4a45', '#5a4038', '#33465e', '#4a4230', '#3b3b46', '#533a44', '#304c58']
 const HAIRS = ['#1b1b22', '#2a1d18', '#20262f', '#3a2a22', '#151a20']
+
+// 办公楼夜景立面：程序化窗格（同一楼层数共享纹理，避免 64 份贴图）
+const FACADE_TEX = new Map<number, THREE.CanvasTexture>()
+
+function facadeTexture(floors: number) {
+  const cached = FACADE_TEX.get(floors)
+  if (cached) return cached
+  const c = document.createElement('canvas')
+  c.width = 512
+  c.height = 512
+  const ctx = c.getContext('2d')!
+  const bg = ctx.createLinearGradient(0, 0, 0, 512)
+  bg.addColorStop(0, '#1a2431')
+  bg.addColorStop(1, '#0f161f')
+  ctx.fillStyle = bg
+  ctx.fillRect(0, 0, 512, 512)
+
+  const cols = 6
+  const fh = 512 / floors
+  const cw = 512 / cols
+  for (let f = 0; f < floors; f++) {
+    ctx.fillStyle = '#090e14'
+    ctx.fillRect(0, f * fh, 512, 2)
+    ctx.fillStyle = '#2b3745'
+    ctx.fillRect(0, f * fh + 2, 512, 1)
+    for (let col = 0; col < cols; col++) {
+      const x = col * cw + cw * 0.17
+      const y = f * fh + fh * 0.24
+      const w = cw * 0.66
+      const h = fh * 0.48
+      ctx.fillStyle = '#080c11'
+      ctx.fillRect(x - 2, y - 2, w + 4, h + 4)
+      const lit = Math.random() < 0.58
+      if (lit) {
+        const warm = Math.random() < 0.68
+        const glass = ctx.createLinearGradient(x, y, x, y + h)
+        glass.addColorStop(0, warm ? '#f2d9a4' : '#c7dcea')
+        glass.addColorStop(1, warm ? '#a87a45' : '#7595ad')
+        ctx.fillStyle = glass
+        ctx.fillRect(x, y, w, h)
+        ctx.fillStyle = 'rgba(255,255,255,0.16)'
+        ctx.fillRect(x + w * 0.1, y + h * 0.08, w * 0.14, h * 0.84)
+      } else {
+        ctx.fillStyle = Math.random() < 0.5 ? '#14202c' : '#1a2836'
+        ctx.fillRect(x, y, w, h)
+      }
+    }
+  }
+  for (let col = 1; col < cols; col++) {
+    ctx.fillStyle = 'rgba(6,10,14,0.6)'
+    ctx.fillRect(col * cw - 2, 0, 4, 512)
+  }
+  const tex = new THREE.CanvasTexture(c)
+  tex.anisotropy = 4
+  FACADE_TEX.set(floors, tex)
+  return tex
+}
+
+// 底层玻璃幕墙：渐变 + 竖梃 + 室内暖光，避免近景一大片纯蓝
+let GLASS_TEX: THREE.CanvasTexture | null = null
+function glassTexture() {
+  if (GLASS_TEX) return GLASS_TEX
+  const c = document.createElement('canvas')
+  c.width = 256
+  c.height = 96
+  const ctx = c.getContext('2d')!
+  const g = ctx.createLinearGradient(0, 0, 0, 96)
+  g.addColorStop(0, '#1d4260')
+  g.addColorStop(0.55, '#102b42')
+  g.addColorStop(1, '#0a1a28')
+  ctx.fillStyle = g
+  ctx.fillRect(0, 0, 256, 96)
+  // 室内暖光/工位
+  for (let i = 0; i < 5; i++) {
+    const x = 14 + i * 48
+    ctx.fillStyle = i % 2 === 0 ? 'rgba(240,200,130,0.5)' : 'rgba(150,200,235,0.28)'
+    ctx.fillRect(x, 46, 26, 10)
+    ctx.fillStyle = 'rgba(255,224,170,0.18)'
+    ctx.fillRect(x, 30, 26, 14)
+  }
+  // 斜向反射
+  ctx.strokeStyle = 'rgba(210,235,255,0.10)'
+  ctx.lineWidth = 10
+  for (let i = 0; i < 4; i++) {
+    ctx.beginPath()
+    ctx.moveTo(-20 + i * 70, 96)
+    ctx.lineTo(40 + i * 70, 0)
+    ctx.stroke()
+  }
+  // 竖梃 + 横梁
+  ctx.fillStyle = 'rgba(5,12,18,0.85)'
+  for (let i = 1; i < 4; i++) ctx.fillRect(i * 64 - 2, 0, 4, 96)
+  ctx.fillRect(0, 44, 256, 3)
+  const tex = new THREE.CanvasTexture(c)
+  tex.colorSpace = THREE.SRGBColorSpace
+  GLASS_TEX = tex
+  return tex
+}
+
+// 接触阴影 / 窗光外溢 / 已投递标（共享贴图）
+let SHADOW_TEX: THREE.CanvasTexture | null = null
+function shadowTexture() {
+  if (SHADOW_TEX) return SHADOW_TEX
+  const c = document.createElement('canvas')
+  c.width = c.height = 128
+  const ctx = c.getContext('2d')!
+  const g = ctx.createRadialGradient(64, 64, 4, 64, 64, 64)
+  g.addColorStop(0, 'rgba(0,0,0,0.62)')
+  g.addColorStop(0.55, 'rgba(0,0,0,0.34)')
+  g.addColorStop(1, 'rgba(0,0,0,0)')
+  ctx.fillStyle = g
+  ctx.fillRect(0, 0, 128, 128)
+  SHADOW_TEX = new THREE.CanvasTexture(c)
+  return SHADOW_TEX
+}
+
+let SPILL_TEX: THREE.CanvasTexture | null = null
+function spillTexture() {
+  if (SPILL_TEX) return SPILL_TEX
+  const c = document.createElement('canvas')
+  c.width = 128
+  c.height = 128
+  const ctx = c.getContext('2d')!
+  const g = ctx.createLinearGradient(0, 0, 0, 128)
+  g.addColorStop(0, 'rgba(255,190,120,0.55)')
+  g.addColorStop(0.5, 'rgba(255,170,100,0.16)')
+  g.addColorStop(1, 'rgba(255,160,90,0)')
+  ctx.fillStyle = g
+  ctx.fillRect(0, 0, 128, 128)
+  SPILL_TEX = new THREE.CanvasTexture(c)
+  return SPILL_TEX
+}
+
+let DELIVERED_TEX: THREE.CanvasTexture | null = null
+function deliveredTexture() {
+  if (DELIVERED_TEX) return DELIVERED_TEX
+  const c = document.createElement('canvas')
+  c.width = 256
+  c.height = 64
+  const ctx = c.getContext('2d')!
+  ctx.fillStyle = 'rgba(10,22,16,0.92)'
+  ctx.beginPath()
+  ctx.roundRect(2, 2, 252, 60, 10)
+  ctx.fill()
+  ctx.strokeStyle = '#3ee58a'
+  ctx.lineWidth = 2
+  ctx.stroke()
+  ctx.fillStyle = '#7dffb0'
+  ctx.font = '600 26px "Microsoft YaHei", sans-serif'
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText('✓ 已投递', 128, 34)
+  DELIVERED_TEX = new THREE.CanvasTexture(c)
+  return DELIVERED_TEX
+}
 
 // 钱捆贴图：扎带 + ¥ 压印（共享纹理，不增加 draw call）
 function cashTexture(base: string, dark: string) {
@@ -214,7 +366,7 @@ function useNameTexture(name: string, industry: string) {
   }, [name, industry])
 }
 
-export function HRStand({ lot, onEnterOffice }: { lot: Lot; onEnterOffice: (lot: Lot) => void }) {
+export function HRStand({ lot, onEnterOffice, delivered = false }: { lot: Lot; onEnterOffice: (lot: Lot) => void; delivered?: boolean }) {
   const nameTex = useNameTexture(lot.name, lot.industry)
   const color = INDUSTRIES[lot.industry].color
   const total = totalPackage(lot.params)
@@ -243,6 +395,54 @@ export function HRStand({ lot, onEnterOffice }: { lot: Lot; onEnterOffice: (lot:
         <boxGeometry args={[2.2, 0.14, 2.2]} />
         <meshStandardMaterial color={ColorSceneBooth} roughness={0.9} />
       </mesh>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.013, 0.12]}>
+        <planeGeometry args={[3.2, 3.2]} />
+        <meshBasicMaterial map={shadowTexture()} transparent opacity={0.9} depthWrite={false} />
+      </mesh>
+      {/* 摊位雨棚 + 侧招：让展位从远处就读得出"招聘摊" */}
+      <group>
+        {[[-1.08, -0.82], [1.08, -0.82], [-1.08, 0.82], [1.08, 0.82]].map(([px, pz], i) => (
+          <mesh key={i} position={[px, 1.16, pz]}>
+            <cylinderGeometry args={[0.022, 0.022, 2.32, 6]} />
+            <meshStandardMaterial color="#39424c" />
+          </mesh>
+        ))}
+        <mesh position={[0, 2.36, 0]}>
+          <boxGeometry args={[2.46, 0.09, 2.02]} />
+          <meshStandardMaterial color="#1b232c" roughness={0.85} />
+        </mesh>
+        <mesh position={[0, 2.31, 0]} rotation={[Math.PI / 2, 0, 0]}>
+          <planeGeometry args={[2.18, 1.72]} />
+          <meshBasicMaterial
+            color={delivered ? '#3ee58a' : color}
+            transparent
+            opacity={0.16}
+            side={THREE.DoubleSide}
+            depthWrite={false}
+          />
+        </mesh>
+      </group>
+      <group position={[-1.3, 0, 0.5]}>
+        <mesh position={[0, 1.52, 0]}>
+          <boxGeometry args={[0.14, 1.86, 0.42]} />
+          <meshStandardMaterial color="#1b232c" />
+        </mesh>
+        <mesh position={[0.075, 1.52, 0]}>
+          <planeGeometry args={[0.34, 1.58]} />
+          <meshStandardMaterial color={color} emissive={color} emissiveIntensity={delivered ? 0.18 : 0.7} side={THREE.DoubleSide} />
+        </mesh>
+      </group>
+      {delivered && (
+        <group position={[0, 3.12, 0]}>
+          <sprite scale={[1.02, 0.26, 1]}>
+            <spriteMaterial map={deliveredTexture()} transparent depthTest={false} />
+          </sprite>
+          <mesh position={[0, -0.2, 0]}>
+            <sphereGeometry args={[0.06, 8, 8]} />
+            <meshBasicMaterial color="#3ee58a" />
+          </mesh>
+        </group>
+      )}
       {/* HR 形象（near 时真 GLB，Suspense 加载期回退占位） */}
       <group position={[0, 0.14, 0]}>
         {near ? (
@@ -314,14 +514,40 @@ export function HRStand({ lot, onEnterOffice }: { lot: Lot; onEnterOffice: (lot:
             lot.industry === 'internet' ? 8 : lot.industry === 'finance' ? 11.5 : lot.industry === 'manufacturing' ? 4.6 : 4.2
           return (
             <>
+              <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.015, 0]}>
+                <planeGeometry args={[7.8, 6.6]} />
+                <meshBasicMaterial map={shadowTexture()} transparent opacity={0.95} depthWrite={false} />
+              </mesh>
+              <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.018, 2.9]}>
+                <planeGeometry args={[5.4, 2.8]} />
+                <meshBasicMaterial
+                  map={spillTexture()}
+                  transparent
+                  opacity={0.5}
+                  depthWrite={false}
+                  blending={THREE.AdditiveBlending}
+                />
+              </mesh>
               <mesh position={[0, h / 2, 0]}>
                 <boxGeometry args={[6.4, h, 5.2]} />
-                <meshStandardMaterial color={ColorSceneFacade} roughness={0.9} emissive="#0d1117" emissiveIntensity={0.5} />
+                {(() => {
+                  const tex = facadeTexture(Math.max(3, Math.round(h / 1.3)))
+                  return (
+                    <>
+                      <meshBasicMaterial attach="material-0" map={tex} toneMapped={false} />
+                      <meshBasicMaterial attach="material-1" map={tex} toneMapped={false} />
+                      <meshStandardMaterial attach="material-2" color={ColorSceneFacade} roughness={0.9} emissive="#0d1117" emissiveIntensity={0.5} />
+                      <meshStandardMaterial attach="material-3" color={ColorSceneFacade} roughness={0.9} emissive="#0d1117" emissiveIntensity={0.5} />
+                      <meshBasicMaterial attach="material-4" map={tex} toneMapped={false} />
+                      <meshBasicMaterial attach="material-5" map={tex} toneMapped={false} />
+                    </>
+                  )
+                })()}
               </mesh>
               {/* 底层玻璃幕墙 */}
               <mesh position={[0, 1.15, 2.66]}>
                 <planeGeometry args={[5.8, 2.1]} />
-                <meshStandardMaterial color={ColorSceneGlass} emissive={ColorSceneGlassLit} emissiveIntensity={0.55} metalness={0.4} roughness={0.25} />
+                <meshBasicMaterial map={glassTexture()} toneMapped={false} />
               </mesh>
               {/* 门楣 LED（公司名条，行业色发光） */}
               <mesh position={[0, 2.62, 2.70]}>
@@ -370,20 +596,13 @@ export function HRStand({ lot, onEnterOffice }: { lot: Lot; onEnterOffice: (lot:
             </>
           )
         })()}
-        {/* 发光窗（仅低层保留，高层用灯带替代） */}
-        {[-2.2, -0.9, 0.9, 2.2].map((wx, i) =>
-          [1.4, 2.9].map((wy, j) => (
-            <mesh key={`${i}-${j}`} position={[wx, wy, 2.78]}>
-              <planeGeometry args={[0.9, 0.8]} />
-              <meshBasicMaterial
-                color={(i + j) % 3 === 0 ? ColorSceneWindow : ColorSceneWindowDim}
-              />
-            </mesh>
-          ))
-        )}
         <mesh position={[0, 1.05, 2.82]}>
           <planeGeometry args={[1.1, 2.1]} />
-          <meshStandardMaterial color={ColorSceneGlass} emissive={ColorSceneGlassLit} emissiveIntensity={0.5} />
+          <meshBasicMaterial color="#0a1a28" />
+        </mesh>
+        <mesh position={[0.4, 1.0, 2.84]}>
+          <boxGeometry args={[0.035, 0.5, 0.03]} />
+          <meshBasicMaterial color={ColorSceneWindow} />
         </mesh>
         <mesh
           position={[0, 2.35, 2.86]}

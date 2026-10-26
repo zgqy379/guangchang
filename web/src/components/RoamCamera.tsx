@@ -24,13 +24,14 @@ export function RoamCamera({ enabled, refs }: { enabled: boolean; refs: RoamRefs
       const fz = dz / len
       const sx = -fz
       const sz = fx
-      const candA = { x: focus.x - fx * 5.0 + sx * 3.8, z: focus.z - fz * 5.0 + sz * 3.8 }
-      const candB = { x: focus.x - fx * 5.0 - sx * 3.8, z: focus.z - fz * 5.0 - sz * 3.8 }
+      const candA = { x: focus.x - fx * 5.8 + sx * 4.2, z: focus.z - fz * 5.8 + sz * 4.2 }
+      const candB = { x: focus.x - fx * 5.8 - sx * 4.2, z: focus.z - fz * 5.8 - sz * 4.2 }
       // 优先落在道路廊道内（离任一道路中心线更近），避免钻进街角建筑
       const roadness = (c: { x: number; z: number }) => Math.min(Math.abs(c.x), Math.abs(c.z))
       const pick = roadness(candA) <= roadness(candB) ? candA : candB
-      desired.set(pick.x, p.y + 2.8, pick.z)
-      look.set(focus.x, p.y + 1.2, focus.z)
+      // 人眼高度：从雨棚下看进去，避免棚顶遮住 HR
+      desired.set(pick.x, p.y + 1.85, pick.z)
+      look.set(focus.x, p.y + 1.15, focus.z)
     } else if (refs.heading) {
       const h = refs.heading.current
       // 越肩视角：角色后上方 5.2m、右偏 2.2m，视线看向角色前方 3.2m

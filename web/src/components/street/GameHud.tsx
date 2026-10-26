@@ -69,14 +69,8 @@ export function GameHud({ state }: { state: HudState }) {
             <span className="district-count">
               {r.got}/{r.total}
             </span>
-            <span className="district-pips">
-              {Array.from({ length: r.total }).map((_, i) => (
-                <i
-                  key={i}
-                  className={i < r.got ? 'pip on' : 'pip'}
-                  style={i < r.got ? { background: r.color } : undefined}
-                />
-              ))}
+            <span className="district-bar">
+              <i style={{ width: `${r.total ? (r.got / r.total) * 100 : 0}%`, background: r.color }} />
             </span>
           </div>
         ))}

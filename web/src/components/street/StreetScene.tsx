@@ -287,6 +287,53 @@ function RoadLanes() {
   )
 }
 
+// 路面区域路牌：把四区名字画进 3D 世界（不只靠小地图）
+const DISTRICT_SIGN_TEX = new Map<string, THREE.CanvasTexture>()
+function districtSignTexture(ind: keyof typeof INDUSTRIES) {
+  const cached = DISTRICT_SIGN_TEX.get(ind)
+  if (cached) return cached
+  const { label, color } = INDUSTRIES[ind]
+  const c = document.createElement('canvas')
+  c.width = 512
+  c.height = 192
+  const ctx = c.getContext('2d')!
+  ctx.clearRect(0, 0, 512, 192)
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.font = '800 78px "Microsoft YaHei", sans-serif'
+  ctx.lineWidth = 10
+  ctx.strokeStyle = 'rgba(6,10,15,0.85)'
+  ctx.strokeText(label, 256, 82)
+  ctx.fillStyle = color
+  ctx.fillText(label, 256, 82)
+  ctx.font = '600 24px "Microsoft YaHei", sans-serif'
+  ctx.fillStyle = 'rgba(230,237,243,0.75)'
+  ctx.fillText('RECRUITING STREET', 256, 150)
+  const tex = new THREE.CanvasTexture(c)
+  tex.colorSpace = THREE.SRGBColorSpace
+  DISTRICT_SIGN_TEX.set(ind, tex)
+  return tex
+}
+
+function DistrictRoadSigns() {
+  const arms: { ind: keyof typeof INDUSTRIES; x: number; z: number; rot: number }[] = [
+    { ind: 'internet', x: 13.5, z: 0, rot: Math.PI / 2 },
+    { ind: 'finance', x: -13.5, z: 0, rot: -Math.PI / 2 },
+    { ind: 'manufacturing', x: 0, z: 13.5, rot: 0 },
+    { ind: 'culture', x: 0, z: -13.5, rot: Math.PI },
+  ]
+  return (
+    <group>
+      {arms.map((a) => (
+        <mesh key={a.ind} rotation={[-Math.PI / 2, 0, a.rot]} position={[a.x, 0.026, a.z]}>
+          <planeGeometry args={[5.2, 1.95]} />
+          <meshBasicMaterial map={districtSignTexture(a.ind)} transparent opacity={0.62} depthWrite={false} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
 // 远景天际线：四街尽头的灯塔塔楼 + 斜向中层楼群（雾中剪影）
 function DistantSkyline() {
   const bodies = useRef<THREE.InstancedMesh>(null)
@@ -328,6 +375,22 @@ function DistantSkyline() {
 }
 
 // 路灯（每街两侧 8 盏 × 4 街 = 64，实例化）
+let LAMP_GLOW_TEX: THREE.CanvasTexture | null = null
+function lampGlowTexture() {
+  if (LAMP_GLOW_TEX) return LAMP_GLOW_TEX
+  const c = document.createElement('canvas')
+  c.width = c.height = 64
+  const ctx = c.getContext('2d')!
+  const g = ctx.createRadialGradient(32, 32, 0, 32, 32, 32)
+  g.addColorStop(0, 'rgba(255,220,170,1)')
+  g.addColorStop(0.35, 'rgba(255,190,120,0.55)')
+  g.addColorStop(1, 'rgba(255,170,90,0)')
+  ctx.fillStyle = g
+  ctx.fillRect(0, 0, 64, 64)
+  LAMP_GLOW_TEX = new THREE.CanvasTexture(c)
+  return LAMP_GLOW_TEX
+}
+
 function StreetLamps() {
   const ref = useRef<THREE.InstancedMesh>(null)
   const headRef = useRef<THREE.InstancedMesh>(null)
@@ -361,6 +424,15 @@ function StreetLamps() {
     t.colorSpace = THREE.SRGBColorSpace
     return t
   }, [])
+  const glowPositions = useMemo(() => {
+    const arr = new Float32Array(mats.length * 3)
+    mats.forEach((p, i) => {
+      arr[i * 3] = p[0]
+      arr[i * 3 + 1] = 3.68
+      arr[i * 3 + 2] = p[2]
+    })
+    return arr
+  }, [mats])
   useLayoutEffect(() => {
     const m = ref.current
     const h = headRef.current
@@ -395,6 +467,22 @@ function StreetLamps() {
         <sphereGeometry args={[0.17, 10, 8]} />
         <meshStandardMaterial color={ColorSceneLamp} emissive={ColorSceneLamp} emissiveIntensity={2.6} />
       </instancedMesh>
+      {/* 灯头光晕：点精灵，64 盏一次 draw call */}
+      <points>
+        <bufferGeometry>
+          <bufferAttribute attach="attributes-position" args={[glowPositions, 3]} />
+        </bufferGeometry>
+        <pointsMaterial
+          map={lampGlowTexture()}
+          color={ColorSceneLamp}
+          size={1.15}
+          sizeAttenuation
+          transparent
+          opacity={0.8}
+          depthWrite={false}
+          blending={THREE.AdditiveBlending}
+        />
+      </points>
       {/* 地面暖光池（廉价假光，替代 64 个点光源） */}
       <instancedMesh ref={poolRef} args={[undefined, undefined, mats.length]}>
         <planeGeometry args={[3.4, 3.4]} />
@@ -908,7 +996,7 @@ export function StreetScene({
     <Canvas
       dpr={[1, 2]}
       camera={{ position: [22, 44, 22], fov: 45 }}
-      gl={{ toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.4 }}
+      gl={{ toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.55 }}
       onCreated={({ camera, scene }) => {
         // 场景图诊断钩子（T9 排查工具链沿用）：window.__st / __cam
         ;(window as unknown as { __st: THREE.Scene; __cam: THREE.Camera }).__st = scene
@@ -923,11 +1011,12 @@ export function StreetScene({
     >
       <WorkdaySky offworkHour={offworkHour} fogNear={30} fogFar={170} />
       {/* 商业级光照基线：天光半球 + 月光平行光 + 暖色反向补光（压暗侧立面可读） */}
-      <hemisphereLight args={['#ffc3a0', '#243049', 0.65]} />
+      <hemisphereLight args={['#ffc3a0', '#243049', 0.95]} />
       <directionalLight position={[12, 14, 8]} color="#8fa8ff" intensity={0.75} />
       <directionalLight position={[-16, 9, 12]} color="#ffb08a" intensity={0.4} />
       <Roads />
       <RoadLanes />
+      <DistrictRoadSigns />
       <DistantSkyline />
       <StreetLamps />
       <ArchWay industry="internet" axisX sign={1} />
@@ -951,20 +1040,20 @@ export function StreetScene({
           const cz = axisX ? 0 : sign * (8 + len / 2)
           return (
             <mesh key={ind} rotation={[-Math.PI / 2, 0, axisX ? 0 : Math.PI / 2]} position={[cx, 0.02, cz]}>
-              <planeGeometry args={[len, 0.8]} />
+              <planeGeometry args={[len, 0.16]} />
               <meshStandardMaterial
                 color={INDUSTRIES[ind].color}
                 emissive={INDUSTRIES[ind].color}
-                emissiveIntensity={0.3}
+                emissiveIntensity={0.32}
                 transparent
-                opacity={0.35}
+                opacity={0.45}
               />
             </mesh>
           )
         })}
       {placed.map((pl) => (
         <group key={pl.lot.id} position={pl.position} rotation={[0, pl.rotationY, 0]}>
-          <HRStand lot={pl.lot} onEnterOffice={onEnterOffice} />
+          <HRStand lot={pl.lot} onEnterOffice={onEnterOffice} delivered={delivered.has(pl.lot.id)} />
         </group>
       ))}
       <ParamSteles />
