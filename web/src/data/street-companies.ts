@@ -18,6 +18,8 @@ export interface Lot {
   tagline: string
   params: CompanyParams
   hrIndex: number // HR 形象池索引（生成完成后替换占位形象）
+  /** 全街唯一编号 01–64（名牌角标 + 地面编号牌用；也是个体识别的主线索） */
+  lotNo: number
 }
 
 export const INDUSTRIES: Record<Industry, { label: string; color: string }> = {
@@ -98,6 +100,8 @@ function buildLots(): Lot[] {
           socialInsuranceBaseRatio: ratio,
         },
         hrIndex: (i + ii * 3) % 10,
+        // 全街唯一编号：按行业顺序（互联网→金融→智造→文创）连号，01–64
+        lotNo: ii * 16 + i + 1,
       })
     })
   })

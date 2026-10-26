@@ -7,14 +7,13 @@ import { useFrame } from '@react-three/fiber'
 import { clone as skeletonClone } from 'three/examples/jsm/utils/SkeletonUtils.js'
 import type { Lot } from '../../data/street-companies'
 import { INDUSTRIES } from '../../data/street-companies'
-import { totalPackage } from '../../engine/params'
 import { assetUrl } from '../../engine/asset'
 import {
   ColorSceneBillOrange,
   ColorSceneBillRed,
   ColorSceneBooth,
-  ColorSceneFacade,
   ColorSceneGate,
+  ColorSceneGateDark,
   ColorSceneMoon,
   ColorSceneSkin,
   ColorSceneSun,
@@ -22,8 +21,16 @@ import {
   ColorStateInfo,
   ThemeLightGlassHead,
   ThemeLightGlassBody,
+  ThemeLightRim,
   ThemeLightSkyTop,
   ThemeLightWire,
+  TwinContactOpacityDay,
+  TwinEnvIntensityDay,
+  TwinEnvIntensityNight,
+  TwinGlassOpacityDay,
+  TwinGlassRoughnessDay,
+  TwinGlassRoughnessNight,
+  TwinRimStrengthDay,
 } from '../../../generated/design-tokens.output.mjs'
 import type { ThemeName } from '../../engine/theme'
 
@@ -38,6 +45,41 @@ const FAR = 34
 export function preloadHRModels() {
   useGLTF.preload(assetUrl('/assets/avatar/avatar-idle.glb'), DRACO_PATH)
   for (const f of HR_POOL) useGLTF.preload(assetUrl(`/assets/hr/${f}-idle.glb`), DRACO_PATH)
+}
+
+/**
+ * 玻璃孪生体的**边缘光（rim light）**：在标准材质的自发光项上叠加一个 Fresnel 项。
+ *
+ * 为什么必须手写而不是用现成材质：
+ *   孪生风的关键是"半透明体块在浅色背景上也要读出轮廓"。纯漫反射的玻璃体在
+ *   冷白天幕前会和背景糊成一片（这正是盲审说的"摊位同构 / 读不出体积"）。
+ *   Fresnel 项让视角越掠（轮廓）越亮 —— 这正是玻璃/全息语汇的边缘辉光。
+ *
+ * 实现走 onBeforeCompile：只加几条 ALU，**不增加 draw call、不增加后处理通道**。
+ */
+function applyRimLight(
+  mat: THREE.MeshStandardMaterial,
+  color: string,
+  strength: number
+) {
+  mat.onBeforeCompile = (shader) => {
+    shader.uniforms.uRimColor = { value: new THREE.Color(color) }
+    shader.uniforms.uRimStrength = { value: strength }
+    shader.fragmentShader = shader.fragmentShader
+      .replace(
+        'void main() {',
+        'uniform vec3 uRimColor;\nuniform float uRimStrength;\nvoid main() {'
+      )
+      .replace(
+        '#include <emissivemap_fragment>',
+        `#include <emissivemap_fragment>
+        float gcRim = 1.0 - abs(dot(normalize(normal), normalize(vViewPosition)));
+        gcRim = pow(clamp(gcRim, 0.0, 1.0), 2.2);
+        totalEmissiveRadiance += uRimColor * gcRim * uRimStrength;`
+      )
+  }
+  mat.customProgramCacheKey = () => 'gc-twin-rim'
+  mat.needsUpdate = true
 }
 
 // 占位 HR 的西装色池（按 hrIndex 分配，避免 64 个摊位同色）
@@ -130,6 +172,12 @@ function facadeTexture(floors: number, mode: 'day' | 'night' = 'night') {
     ctx.fillStyle = day ? 'rgba(90,120,142,0.75)' : 'rgba(6,10,14,0.6)'
     ctx.fillRect(col * cw - 2, 0, 4, 512)
   }
+  // 底部环境光遮蔽（AO）：贴图烘焙，不花任何 draw call 就让体块"落地"
+  const ao = ctx.createLinearGradient(0, 512, 0, 512 * 0.62)
+  ao.addColorStop(0, day ? 'rgba(24,38,54,0.46)' : 'rgba(0,0,0,0.55)')
+  ao.addColorStop(1, 'rgba(0,0,0,0)')
+  ctx.fillStyle = ao
+  ctx.fillRect(0, 512 * 0.62, 512, 512 * 0.38)
   const tex = new THREE.CanvasTexture(c)
   tex.anisotropy = 4
   FACADE_TEX.set(key, tex)
@@ -308,6 +356,8 @@ const CASH_TEX = {
   base: cashTexture(ColorSceneBillRed, '#7d1f14'),
   inc: cashTexture(ColorSceneBillOrange, '#8a5312'),
 }
+/** 钱捆贴图对（供 BoothProps 的 InstancedMesh 复用，避免每个摊位各画 2–7 个 mesh） */
+export const CASH_TEXTURES = CASH_TEX
 
 // 真 HR 形象：HR GLB 负责外观，动画借用玩家 Avatar 的 idle（HR 自带 clip 是 T-pose，2026-10-26 隔离验证）
 function RealHR({ hrIndex }: { hrIndex: number }) {
@@ -421,40 +471,123 @@ function PlaceholderHR({
   )
 }
 
+// 孪生体玻璃材质缓存：同一 (楼层数, 主题) 共用一个材质实例
+// —— 64 栋楼只占 4 份材质（原来每栋 6 份 → 384 份，且每份一个 draw call）
+const BODY_MATS = new Map<string, THREE.Material>()
+function bodyMaterial(floors: number, night: boolean) {
+  const key = `${floors}:${night}`
+  const cached = BODY_MATS.get(key)
+  if (cached) return cached
+  const tex = facadeTexture(floors, night ? 'night' : 'day')
+  let mat: THREE.Material
+  if (night) {
+    // 夜间立面是"自发光窗格"，用无光照材质保住窗光不被 ACES 压暗（沿用原做法）
+    mat = new THREE.MeshBasicMaterial({ map: tex })
+  } else {
+    // 白天改成**受光材质**：玻璃体块这才有天光反射与明暗面（原为无光照 → 一块白板）
+    const m = new THREE.MeshStandardMaterial({
+      map: tex,
+      transparent: true,
+      opacity: TwinGlassOpacityDay,
+      roughness: TwinGlassRoughnessDay,
+      metalness: 0.06,
+      envMapIntensity: TwinEnvIntensityDay,
+      emissive: new THREE.Color(ThemeLightSkyTop),
+      emissiveIntensity: 0.22,
+    })
+    applyRimLight(m, ThemeLightRim, TwinRimStrengthDay)
+    mat = m
+  }
+  BODY_MATS.set(key, mat)
+  return mat
+}
+
+// 实体头（剪影载体）：孪生风要求玻璃体顶部留一段不透明实体
+// 颜色按行业区分（浅色主题下向玻璃色靠拢）→ 鸟瞰时四个街区各成一色带
+const CAP_MATS = new Map<string, THREE.Material>()
+function capMaterial(industry: string, night: boolean) {
+  const key = `${industry}:${night}`
+  const cached = CAP_MATS.get(key)
+  if (cached) return cached
+  const m = new THREE.MeshStandardMaterial({
+    color: night ? ColorSceneGate : ThemeLightGlassHead,
+    roughness: night ? 0.75 : TwinGlassRoughnessNight,
+    metalness: night ? 0 : 0.12,
+    envMapIntensity: night ? TwinEnvIntensityNight : TwinEnvIntensityDay,
+  })
+  if (!night) {
+    const accent = new THREE.Color(INDUSTRIES[industry as keyof typeof INDUSTRIES]?.color ?? '#9fb3c4')
+    accent.lerp(new THREE.Color(ThemeLightGlassHead), 0.42)
+    m.color = accent
+    applyRimLight(m, ThemeLightRim, TwinRimStrengthDay * 0.8)
+  }
+  CAP_MATS.set(key, m)
+  return m
+}
+
 // 公司名牌：CanvasTexture 精灵（无 DOM，64 个摊位也便宜）
-function useNameTexture(name: string, industry: string) {
+// v4.1 美术攻关：加**编号角标** —— 盲审指出"远看分不出是哪家"，
+// 编号是唯一在鸟瞰距离也能读出的个体线索（名字在那个距离根本看不清）。
+function useNameTexture(name: string, industry: string, lotNo: number) {
   return useMemo(() => {
+    const W = 320
+    const H = 72
     const c = document.createElement('canvas')
-    c.width = 256
-    c.height = 64
+    c.width = W
+    c.height = H
     const ctx = c.getContext('2d')!
-    ctx.fillStyle = 'rgba(13,17,23,0.88)'
+    const accent = INDUSTRIES[industry as keyof typeof INDUSTRIES]?.color ?? '#30363d'
+    ctx.fillStyle = 'rgba(13,17,23,0.9)'
     ctx.beginPath()
-    ctx.roundRect(2, 2, 252, 60, 8)
+    ctx.roundRect(2, 2, W - 4, H - 4, 10)
     ctx.fill()
-    ctx.strokeStyle = INDUSTRIES[industry as keyof typeof INDUSTRIES]?.color ?? '#30363d'
+    ctx.strokeStyle = accent
     ctx.lineWidth = 2
     ctx.stroke()
-    ctx.fillStyle = '#e6edf3'
-    ctx.font = '600 26px "Microsoft YaHei", sans-serif'
+    // 编号角标：行业色底 + 深色数字（保证远距离仍能分辨"第几家"）
+    const badge = 54
+    ctx.fillStyle = accent
+    ctx.beginPath()
+    ctx.roundRect(10, 9, badge, H - 18, 8)
+    ctx.fill()
+    ctx.fillStyle = '#0b0e1a'
+    ctx.font = '800 32px "Segoe UI", Arial, sans-serif'
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
-    ctx.fillText(name.slice(0, 8), 128, 34)
+    ctx.fillText(String(lotNo).padStart(2, '0'), 10 + badge / 2, H / 2 + 1)
+    // 公司名
+    ctx.fillStyle = '#e6edf3'
+    ctx.font = '600 27px "Microsoft YaHei", sans-serif'
+    ctx.textAlign = 'left'
+    ctx.fillText(name.slice(0, 7), 10 + badge + 12, H / 2 + 1)
     const tex = new THREE.CanvasTexture(c)
     tex.colorSpace = THREE.SRGBColorSpace
+    tex.anisotropy = 4
     return tex
-  }, [name, industry])
+  }, [name, industry, lotNo])
 }
 
 export function HRStand({ lot, onEnterOffice, delivered = false, theme = 'dark' }: { lot: Lot; onEnterOffice: (lot: Lot) => void; delivered?: boolean; theme?: ThemeName }) {
-  const nameTex = useNameTexture(lot.name, lot.industry)
+  const nameTex = useNameTexture(lot.name, lot.industry, lot.lotNo)
   const color = INDUSTRIES[lot.industry].color
-  const total = totalPackage(lot.params)
-  const layers = Math.max(2, Math.min(7, Math.round(total / 100000)))
   // 参数时间语义：这家公司几点下班（与环境主题无关）
   const night = lot.params.offworkTime >= 20
   // 环境主题：决定立面是浅色玻璃幕墙还是夜景
   const envNight = theme === 'dark'
+
+  // 雨棚顶色 = 行业色向玻璃色靠拢 → 鸟瞰时四个街区各成一色带（个体识别主线索）
+  const roofColor = useMemo(() => {
+    const c = new THREE.Color(color)
+    c.lerp(new THREE.Color(envNight ? ColorSceneGateDark : ThemeLightGlassHead), envNight ? 0.34 : 0.4)
+    return c.getStyle()
+  }, [color, envNight])
+
+  // 建筑高度：互联网平顶 / 金融尖顶 / 智造矮厂棚 / 文创坡顶
+  const bHeight =
+    lot.industry === 'internet' ? 8 : lot.industry === 'finance' ? 11.5 : lot.industry === 'manufacturing' ? 4.6 : 4.2
+  const bFloors = Math.max(3, Math.round(bHeight / 1.3))
+  const bodyMat = useMemo(() => bodyMaterial(bFloors, envNight), [bFloors, envNight])
+  const capMat = useMemo(() => capMaterial(lot.industry, envNight), [lot.industry, envNight])
 
   // 就近 LOD：NEAR 内挂真形象，FAR 外卸载（滞回防抖）；GLB 按需加载（Suspense 回退占位）
   const [near, setNear] = useState(false)
@@ -474,26 +607,68 @@ export function HRStand({ lot, onEnterOffice, delivered = false, theme = 'dark' 
   return (
     <group ref={rootRef}>
       {/* 摊位台 */}
-      <mesh position={[0, 0.07, 0]} receiveShadow>
+      <mesh position={[0, 0.07, 0]} receiveShadow castShadow>
         <boxGeometry args={[2.2, 0.14, 2.2]} />
         <meshStandardMaterial color={envNight ? ColorSceneBooth : ThemeLightGlassHead} roughness={envNight ? 0.9 : 0.6} />
       </mesh>
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.013, 0.12]}>
         <planeGeometry args={[3.2, 3.2]} />
-        <meshBasicMaterial map={shadowTexture()} transparent opacity={0.9} depthWrite={false} />
+        <meshBasicMaterial
+          map={shadowTexture()}
+          transparent
+          opacity={envNight ? 0.9 : TwinContactOpacityDay}
+          depthWrite={false}
+        />
       </mesh>
-      {/* 摊位雨棚 + 侧招：让展位从远处就读得出"招聘摊" */}
+      {/* 摊位雨棚 + 侧招：让展位从远处就读得出"招聘摊"
+          （雨棚立柱已移到 BoothProps 的 InstancedMesh） */}
       <group>
-        {[[-1.08, -0.82], [1.08, -0.82], [-1.08, 0.82], [1.08, 0.82]].map(([px, pz], i) => (
-          <mesh key={i} position={[px, 1.16, pz]}>
-            <cylinderGeometry args={[0.022, 0.022, 2.32, 6]} />
-            <meshStandardMaterial color={envNight ? "#39424c" : "#aebfcc"} />
+        {/* 雨棚顶：四种行业剪影（平顶大板 / 尖顶金字塔 / 单坡厂棚 / 菱形坡顶）
+            —— 轮廓差异是鸟瞰距离唯一有效的个体区分手段 */}
+        {lot.industry === 'internet' && (
+          <mesh position={[0, 2.36, 0]} castShadow>
+            <boxGeometry args={[2.86, 0.08, 2.3]} />
+            <meshStandardMaterial
+              color={roofColor}
+              roughness={0.72}
+              emissive={color}
+              emissiveIntensity={envNight ? 0.3 : 0.08}
+            />
           </mesh>
-        ))}
-        <mesh position={[0, 2.36, 0]}>
-          <boxGeometry args={[2.46, 0.09, 2.02]} />
-          <meshStandardMaterial color={envNight ? "#1b232c" : "#cdd8e2"} roughness={0.85} />
-        </mesh>
+        )}
+        {lot.industry === 'finance' && (
+          <mesh position={[0, 2.36, 0]} rotation={[0, Math.PI / 4, 0]} castShadow>
+            <coneGeometry args={[1.52, 0.88, 4]} />
+            <meshStandardMaterial
+              color={roofColor}
+              roughness={0.66}
+              emissive={color}
+              emissiveIntensity={envNight ? 0.3 : 0.08}
+            />
+          </mesh>
+        )}
+        {lot.industry === 'manufacturing' && (
+          <mesh position={[0, 2.4, 0]} rotation={[-0.17, 0, 0]} castShadow>
+            <boxGeometry args={[2.72, 0.08, 2.24]} />
+            <meshStandardMaterial
+              color={roofColor}
+              roughness={0.8}
+              emissive={color}
+              emissiveIntensity={envNight ? 0.3 : 0.08}
+            />
+          </mesh>
+        )}
+        {lot.industry === 'culture' && (
+          <mesh position={[0, 2.36, 0]} rotation={[0, Math.PI / 4, 0]} castShadow>
+            <boxGeometry args={[1.96, 0.1, 1.96]} />
+            <meshStandardMaterial
+              color={roofColor}
+              roughness={0.7}
+              emissive={color}
+              emissiveIntensity={envNight ? 0.3 : 0.08}
+            />
+          </mesh>
+        )}
         <mesh position={[0, 2.31, 0]} rotation={[Math.PI / 2, 0, 0]}>
           <planeGeometry args={[2.18, 1.72]} />
           <meshBasicMaterial
@@ -506,13 +681,14 @@ export function HRStand({ lot, onEnterOffice, delivered = false, theme = 'dark' 
         </mesh>
       </group>
       <group position={[-1.3, 0, 0.5]}>
-        <mesh position={[0, 1.52, 0]}>
+        <mesh position={[0, 1.52, 0]} castShadow>
           <boxGeometry args={[0.14, 1.86, 0.42]} />
           <meshStandardMaterial color={envNight ? "#1b232c" : "#cdd8e2"} />
         </mesh>
+        {/* 侧招灯条：细长竖条（不是大色板）—— 大色板会像蓝门一样挡住摊位 */}
         <mesh position={[0.075, 1.52, 0]}>
-          <planeGeometry args={[0.34, 1.58]} />
-          <meshStandardMaterial color={color} emissive={color} emissiveIntensity={delivered ? 0.18 : 0.7} side={THREE.DoubleSide} />
+          <planeGeometry args={[0.18, 1.46]} />
+          <meshStandardMaterial color={color} emissive={color} emissiveIntensity={delivered ? 0.18 : 0.55} side={THREE.DoubleSide} />
         </mesh>
       </group>
       {delivered && (
@@ -537,24 +713,12 @@ export function HRStand({ lot, onEnterOffice, delivered = false, theme = 'dark' 
         )}
       </group>
       {/* 名牌 */}
-      <sprite position={[0, 2.7, 0]} scale={[1.3, 0.33, 1]}>
+      <sprite position={[0, 2.72, 0]} scale={[1.72, 0.39, 1]}>
         <spriteMaterial map={nameTex} transparent />
       </sprite>
-      {/* 参数具象化：总包钱袋堆 + 五险切口牌 */}
-      <group position={[0.62, 0.14, 0.55]}>
-        {Array.from({ length: layers }).map((_, i) => (
-          <mesh key={i} position={[0, 0.06 + i * 0.12, 0]}>
-            <boxGeometry args={[0.5, 0.115, 0.32]} />
-            <meshStandardMaterial
-              map={i === layers - 1 && lot.params.salaryStructure > 12 ? CASH_TEX.inc : CASH_TEX.base}
-              emissiveMap={i === layers - 1 && lot.params.salaryStructure > 12 ? CASH_TEX.inc : CASH_TEX.base}
-              emissive="#ffffff"
-              emissiveIntensity={0.12}
-              roughness={0.62}
-            />
-          </mesh>
-        ))}
-      </group>
+      {/* 参数具象化：总包钱袋堆 + 五险切口牌
+          （钱袋堆与雨棚立柱已改为 BoothProps 里的 InstancedMesh —— 64 摊位原本
+            要画 290 + 256 个 mesh，实例化后各只剩 1 个 draw call） */}
       <group position={[-0.62, 0.14, 0.55]}>
         <mesh position={[0, 0.24, 0]}>
           <boxGeometry args={[0.42, 0.48, 0.08]} />
@@ -593,13 +757,17 @@ export function HRStand({ lot, onEnterOffice, delivered = false, theme = 'dark' 
       {/* 办公空间门面：行业差异化天际线（盲审修复）+ 门楣 LED + 玻璃幕墙 */}
       <group position={[0, 0, -3.6]}>
         {(() => {
-          const h =
-            lot.industry === 'internet' ? 8 : lot.industry === 'finance' ? 11.5 : lot.industry === 'manufacturing' ? 4.6 : 4.2
+          const h = bHeight
           return (
             <>
               <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.015, 0]}>
                 <planeGeometry args={[7.8, 6.6]} />
-                <meshBasicMaterial map={shadowTexture()} transparent opacity={0.95} depthWrite={false} />
+                <meshBasicMaterial
+                  map={shadowTexture()}
+                  transparent
+                  opacity={envNight ? 0.95 : TwinContactOpacityDay}
+                  depthWrite={false}
+                />
               </mesh>
               <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.018, 2.9]}>
                 <planeGeometry args={[5.4, 2.8]} />
@@ -611,60 +779,13 @@ export function HRStand({ lot, onEnterOffice, delivered = false, theme = 'dark' 
                   blending={THREE.AdditiveBlending}
                 />
               </mesh>
-              <mesh position={[0, h / 2, 0]}>
+              {/* 玻璃体块：单一材质（原为 6 材质盒 → 每栋 6 个 draw call，现 1 个） */}
+              <mesh position={[0, h / 2, 0]} material={bodyMat} castShadow receiveShadow>
                 <boxGeometry args={[6.4, h, 5.2]} />
-                {(() => {
-                  const tex = facadeTexture(Math.max(3, Math.round(h / 1.3)), envNight ? 'night' : 'day')
-                  return (
-                    <>
-                      {/* 白天：半透明玻璃（透出天光）+ 低粗糙度（产生环境反射） */}
-                      <meshBasicMaterial
-                        attach="material-0"
-                        map={tex}
-                        toneMapped={!envNight}
-                        transparent={!envNight}
-                        opacity={envNight ? 1 : 0.88}
-                      />
-                      <meshBasicMaterial
-                        attach="material-1"
-                        map={tex}
-                        toneMapped={!envNight}
-                        transparent={!envNight}
-                        opacity={envNight ? 1 : 0.88}
-                      />
-                      <meshStandardMaterial
-                        attach="material-2"
-                        color={envNight ? ColorSceneFacade : ThemeLightGlassHead}
-                        roughness={envNight ? 0.9 : 0.22}
-                        metalness={envNight ? 0 : 0.12}
-                        emissive={envNight ? '#0d1117' : ThemeLightSkyTop}
-                        emissiveIntensity={envNight ? 0.5 : 0.25}
-                      />
-                      <meshStandardMaterial
-                        attach="material-3"
-                        color={envNight ? ColorSceneFacade : ThemeLightGlassHead}
-                        roughness={envNight ? 0.9 : 0.22}
-                        metalness={envNight ? 0 : 0.12}
-                        emissive={envNight ? '#0d1117' : ThemeLightSkyTop}
-                        emissiveIntensity={envNight ? 0.5 : 0.25}
-                      />
-                      <meshBasicMaterial
-                        attach="material-4"
-                        map={tex}
-                        toneMapped={!envNight}
-                        transparent={!envNight}
-                        opacity={envNight ? 1 : 0.88}
-                      />
-                      <meshBasicMaterial
-                        attach="material-5"
-                        map={tex}
-                        toneMapped={!envNight}
-                        transparent={!envNight}
-                        opacity={envNight ? 1 : 0.88}
-                      />
-                    </>
-                  )
-                })()}
+              </mesh>
+              {/* 实体头（剪影载体）：不透明顶盖，同时遮住玻璃盒的顶面贴图 */}
+              <mesh position={[0, h + 0.1, 0]} material={capMat} castShadow receiveShadow>
+                <boxGeometry args={[6.66, 0.42, 5.44]} />
               </mesh>
               {/* 孪生轮廓线框：勾出建筑体块结构（玻璃孪生的标志） */}
               {!envNight && (
@@ -727,7 +848,12 @@ export function HRStand({ lot, onEnterOffice, delivered = false, theme = 'dark' 
         })()}
         <mesh position={[0, 1.05, 2.82]}>
           <planeGeometry args={[1.1, 2.1]} />
-          <meshBasicMaterial color={envNight ? "#0a1a28" : "#2c3a48"} />
+          {/* 浅色主题下深藏青门会读成"黑洞"，改成受光的中调玻璃门 */}
+          <meshStandardMaterial
+            color={envNight ? '#0a1a28' : '#7f92a4'}
+            roughness={envNight ? 0.85 : 0.28}
+            metalness={envNight ? 0 : 0.18}
+          />
         </mesh>
         <mesh position={[0.4, 1.0, 2.84]}>
           <boxGeometry args={[0.035, 0.5, 0.03]} />

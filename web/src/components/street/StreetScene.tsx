@@ -5,9 +5,12 @@ import { Canvas, ThreeEvent } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
 import { WorkdaySky } from '../WorkdaySky'
+import { TwinEnvironment } from './TwinEnvironment'
 import { AvatarActor, RoamRefs } from '../AvatarActor'
 import { RoamCamera } from '../RoamCamera'
 import { HRStand, preloadHRModels } from './HRStand'
+import { BoothPoles, MoneyStacks } from './BoothProps'
+import { LotBeacons, LotNumberDecals } from './LotMarkers'
 import { NPC } from './NPC'
 import { GameHud, rarityOf } from './GameHud'
 import { GameMiniMap } from './GameMiniMap'
@@ -31,6 +34,18 @@ import {
   ThemeLightGlassHead,
   ThemeLightGlassBody,
   ThemeLightSkyTop,
+  ThemeLightReflect,
+  ThemeDarkReflect,
+  TwinFogFar,
+  TwinFogNear,
+  TwinGroundEnvIntensity,
+  TwinGridOpacityDay,
+  TwinGridOpacityNight,
+  TwinReflectOpacityDay,
+  TwinReflectOpacityNight,
+  TwinRoadRoughnessDay,
+  TwinRoadRoughnessNight,
+  TwinGroundRoughnessDay,
 } from '../../../generated/design-tokens.output.mjs'
 import type { ThemeName } from '../../engine/theme'
 
@@ -88,25 +103,42 @@ function Roads({ theme }: { theme: ThemeName }) {
   const night = theme === 'dark'
   return (
     <group>
+      {/* 地面：低粗糙度 + 环境反射 → 磨砂玻璃般的反射（孪生风经典语汇） */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.02, 0]} receiveShadow>
         <planeGeometry args={[240, 240]} />
         <meshStandardMaterial
           color={night ? ColorSceneFloor : ThemeLightGround}
           map={ASPHALT}
-          roughness={night ? 1 : 0.9}
+          roughness={night ? 0.9 : TwinGroundRoughnessDay}
+          metalness={night ? 0 : 0.04}
+          envMapIntensity={TwinGroundEnvIntensity}
         />
       </mesh>
-      {/* 十字两条路（白天浅色沥青，夜间深色） */}
+      {/* 十字两条路（白天浅色沥青，夜间深色）；路面更光 → 读出"湿/磨砂"反射 */}
       {[0, Math.PI / 2].map((rot, i) => (
         <mesh key={i} rotation={[-Math.PI / 2, 0, rot]} position={[0, 0, 0]} receiveShadow>
           <planeGeometry args={[180, 10.4]} />
           <meshStandardMaterial
             color={night ? ColorSceneRoad : ThemeLightRoad}
             map={ASPHALT}
-            roughness={night ? 0.85 : 0.72}
+            roughness={night ? TwinRoadRoughnessNight : TwinRoadRoughnessDay}
+            metalness={night ? 0 : 0.08}
+            envMapIntensity={TwinGroundEnvIntensity}
           />
         </mesh>
       ))}
+      {/* 天光反射带：路面上一条极淡的镜面渐变（给"湿地/磨砂玻璃"再补一层） */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.006, 0]}>
+        <planeGeometry args={[96, 96]} />
+        <meshBasicMaterial
+          map={reflectTexture()}
+          color={night ? ThemeDarkReflect : ThemeLightReflect}
+          transparent
+          opacity={night ? TwinReflectOpacityNight : TwinReflectOpacityDay}
+          depthWrite={false}
+          blending={THREE.AdditiveBlending}
+        />
+      </mesh>
       {/* 中央斑马线（收窄至 0.5m，尺度校正） */}
       {[0, Math.PI / 2].map((rot, i) => (
         <group key={`z${i}`} rotation={[0, rot, 0]}>
@@ -123,11 +155,12 @@ function Roads({ theme }: { theme: ThemeName }) {
         </group>
       ))}
       {/* 中央转盘基石 */}
-      <mesh position={[0, 0.06, 0]} receiveShadow>
+      <mesh position={[0, 0.06, 0]} receiveShadow castShadow>
         <cylinderGeometry args={[3.4, 3.6, 0.12, 32]} />
         <meshStandardMaterial
           color={night ? ColorSceneGateDark : ThemeLightGlassHead}
           roughness={0.85}
+          envMapIntensity={TwinGroundEnvIntensity}
         />
       </mesh>
       {/* 孪生网格地面：淡青线框叠加（玻璃数字孪生的标志性元素） */}
@@ -136,12 +169,33 @@ function Roads({ theme }: { theme: ThemeName }) {
         <meshBasicMaterial
           map={twinGridTexture()}
           transparent
-          opacity={night ? 0.28 : 0.18}
+          opacity={night ? TwinGridOpacityNight : TwinGridOpacityDay}
           depthWrite={false}
         />
       </mesh>
     </group>
   )
+}
+
+// 天光反射带贴图：中心亮、边缘淡的径向渐变（叠在路面上模拟磨砂玻璃反射）
+let REFLECT_TEX: THREE.CanvasTexture | null = null
+function reflectTexture() {
+  if (REFLECT_TEX) return REFLECT_TEX
+  const size = 256
+  const c = document.createElement('canvas')
+  c.width = c.height = size
+  const ctx = c.getContext('2d')!
+  const g = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2)
+  g.addColorStop(0, 'rgba(255,255,255,0.85)')
+  g.addColorStop(0.35, 'rgba(255,255,255,0.34)')
+  g.addColorStop(0.72, 'rgba(255,255,255,0.08)')
+  g.addColorStop(1, 'rgba(255,255,255,0)')
+  ctx.fillStyle = g
+  ctx.fillRect(0, 0, size, size)
+  const t = new THREE.CanvasTexture(c)
+  t.colorSpace = THREE.SRGBColorSpace
+  REFLECT_TEX = t
+  return t
 }
 
 // 孪生网格贴图：程序化生成淡青网格线（每 6m 一格）
@@ -248,7 +302,7 @@ function ParamSteles({ theme }: { theme: ThemeName }) {
   }, [data])
   return (
     <group>
-      <instancedMesh ref={body} args={[undefined, undefined, data.length]}>
+      <instancedMesh ref={body} args={[undefined, undefined, data.length]} castShadow receiveShadow>
         <boxGeometry args={[1, 1, 1]} />
         <meshStandardMaterial color={night ? ColorSceneGateDark : ThemeLightGlassHead} roughness={night ? 0.85 : 0.5} />
       </instancedMesh>
@@ -604,7 +658,7 @@ function ArchWay({ industry, axisX, sign, theme }: { industry: keyof typeof INDU
     <group rotation={[0, axisX ? Math.PI / 2 : 0, 0]} position={[axisX ? sign * 22 : 0, 0, axisX ? 0 : sign * 22]}>
       {[-4.8, 4.8].map((x) => (
         <group key={x} position={[x, 0, 0]}>
-          <mesh position={[0, 2.65, 0]}>
+          <mesh position={[0, 2.65, 0]} castShadow>
             <boxGeometry args={[0.42, 5.3, 0.42]} />
             <meshStandardMaterial color={night ? ColorSceneGate : ThemeLightGlassHead} roughness={night ? 0.7 : 0.35} metalness={night ? 0 : 0.1} emissive={color} emissiveIntensity={night ? 0.12 : 0.35} />
           </mesh>
@@ -619,7 +673,7 @@ function ArchWay({ industry, axisX, sign, theme }: { industry: keyof typeof INDU
           </mesh>
         </group>
       ))}
-      <mesh position={[0, 5.6, 0]}>
+      <mesh position={[0, 5.6, 0]} castShadow>
         <boxGeometry args={[10.4, 1.0, 0.6]} />
         <meshStandardMaterial color={night ? ColorSceneGate : ThemeLightGlassHead} roughness={night ? 0.7 : 0.35} metalness={night ? 0 : 0.1} emissive={color} emissiveIntensity={night ? 0.1 : 0.3} />
       </mesh>
@@ -898,7 +952,7 @@ function NavPillar({
   return (
     <group>
       {/* 中央四区图腾：五米灯柱 + 四区色棱线 + 顶部金色地标 */}
-      <mesh position={[0, 2.5, 0]}>
+      <mesh position={[0, 2.5, 0]} castShadow receiveShadow>
         <cylinderGeometry args={[0.42, 0.62, 5, 8]} />
         <meshStandardMaterial color={night ? ColorSceneGateDark : ThemeLightGlassHead} roughness={night ? 0.7 : 0.3} metalness={night ? 0 : 0.15} emissive={night ? "#1a2230" : ThemeLightSkyTop} emissiveIntensity={night ? 0.5 : 0.3} />
       </mesh>
@@ -1018,6 +1072,10 @@ export function StreetScene({
     }),
     []
   )
+  // 诊断钩子：漫游状态（target / focus / position）——排查特写相机为何没切过去
+  useEffect(() => {
+    ;(window as unknown as { __roam: RoamRefs }).__roam = refs
+  }, [refs])
   // 相机两段式（用户规格）：初始=鸟瞰全景（避免初始机位落进建筑内部），
   // 首次交互（点击地面/导航柱）后切换为第三人称跟随
   const [follow, setFollow] = useState(false)
@@ -1054,20 +1112,11 @@ export function StreetScene({
     setVisited((v) => (v.includes(lot.id) ? v : [...v, lot.id]))
   }
 
-  const perIndustry = useMemo(() => {
-    const acc: Record<string, number> = {}
-    for (const id of visited) {
-      const ind = id.split('-')[0]
-      acc[ind] = (acc[ind] ?? 0) + 1
-    }
-    return acc
-  }, [visited])
-
+  // 四区进度已由导航器 GcNavigator 承担（§8.3 浮层职责互斥），HUD 只留"我的进度"
   const hudState = {
     delivered: [...delivered],
     basket: basketIds,
     visited,
-    perIndustry,
     xpFlash,
   }
 
@@ -1093,11 +1142,14 @@ export function StreetScene({
     <Canvas
       dpr={[1, 2]}
       camera={{ position: [22, 44, 22], fov: 45 }}
-      gl={{ toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.55 }}
-      onCreated={({ camera, scene }) => {
-        // 场景图诊断钩子（T9 排查工具链沿用）：window.__st / __cam
-        ;(window as unknown as { __st: THREE.Scene; __cam: THREE.Camera }).__st = scene
-        ;(window as unknown as { __st: THREE.Scene; __cam: THREE.Camera }).__cam = camera
+      // 阴影：此前 Canvas 未开 shadows → 整场景**零阴影**（地面全靠假光池）
+      shadows
+      gl={{ toneMapping: THREE.ACESFilmicToneMapping }}
+      onCreated={({ camera, scene, gl }) => {
+        // 场景图诊断钩子（T9 排查工具链沿用）：window.__st / __cam / __gl
+        ;(window as unknown as { __st: THREE.Scene; __cam: THREE.Camera; __gl: THREE.WebGLRenderer }).__st = scene
+        ;(window as unknown as { __st: THREE.Scene; __cam: THREE.Camera; __gl: THREE.WebGLRenderer }).__cam = camera
+        ;(window as unknown as { __st: THREE.Scene; __cam: THREE.Camera; __gl: THREE.WebGLRenderer }).__gl = gl
         // 初始鸟瞰：俯瞰十字路口全景（用户规格——原初始机位落在 lot0 建筑内部=全黑）
         camera.lookAt(0, 0, 0)
         // 首帧编译完成后再撤加载遮罩（避免黑屏窗口期）
@@ -1106,8 +1158,10 @@ export function StreetScene({
         )
       }}
     >
-      {/* v4 玻璃数字孪生：天空/主光/补光/阴影全部由 WorkdaySky 按系统时间统一管理 */}
-      <WorkdaySky envHour={envHour} theme={theme} fogNear={40} fogFar={200} />
+      {/* v4 玻璃数字孪生：天空/主光/补光/阴影/雾全部由 WorkdaySky 按系统时间统一管理 */}
+      <WorkdaySky envHour={envHour} theme={theme} fogNear={TwinFogNear} fogFar={TwinFogFar} />
+      {/* IBL：程序化天幕烘成环境贴图 → 玻璃体块有天光反射、路面有磨砂反射（不增 draw call） */}
+      <TwinEnvironment envHour={envHour} theme={theme} />
       <Roads theme={theme} />
       <RoadLanes />
       <DistrictRoadSigns />
@@ -1150,6 +1204,12 @@ export function StreetScene({
           <HRStand lot={pl.lot} onEnterOffice={onEnterOffice} delivered={delivered.has(pl.lot.id)} theme={theme} />
         </group>
       ))}
+      {/* 个体识别：地面编号牌（01–64）+ 行业色信标鳍 —— 共 2 个 draw call */}
+      <LotNumberDecals />
+      <LotBeacons />
+      {/* 摊位硬件实例化：雨棚立柱 256 根 → 1 个 draw call；钱袋堆 → 2 个 draw call */}
+      <BoothPoles night={theme === 'dark'} />
+      <MoneyStacks />
       <ParamSteles theme={theme} />
       <RarityGems />
       {/* 点击地面行走（透明事件面） */}
@@ -1188,7 +1248,14 @@ export function StreetScene({
           onAddBasket={onAddBasket}
         />
       )}
-      {follow && <GameMiniMap refs={refs} delivered={delivered} />}
+      {follow && (
+        <GameMiniMap
+          refs={refs}
+          delivered={delivered}
+          visited={visited}
+          basket={basketIds}
+        />
+      )}
       {!follow && (
         <button className="street-cta" onClick={() => setFollow(true)}>
           点击地面开始逛 · 四区街道任你走

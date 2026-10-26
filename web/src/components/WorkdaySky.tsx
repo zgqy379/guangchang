@@ -8,7 +8,7 @@
 //
 // 主题：白天浅色（玻璃孪生，冷白天幕）/ 夜间深色（深靛 + 星空）。
 
-import { useMemo } from 'react'
+import { useLayoutEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { Stars } from '@react-three/drei'
 import { sunPosition, moonPosition, isBelowHorizon } from '../engine/sunPosition'
@@ -28,6 +28,18 @@ import {
   ThemeDarkHemiSky,
   ThemeDarkHemiGround,
   ThemeDarkFog,
+  TwinShadowMapSize,
+  TwinShadowExtent,
+  TwinShadowNormalBias,
+  TwinShadowBias,
+  TwinSunGlowDay,
+  TwinSunGlowNight,
+  TwinSunIntensityDay,
+  TwinSunIntensityDusk,
+  TwinHemiIntensityDay,
+  TwinHemiIntensityNight,
+  TwinFillIntensityDay,
+  TwinFillIntensityNight,
 } from '../../generated/design-tokens.output.mjs'
 
 export interface SkyState {
@@ -117,7 +129,9 @@ export function skyFromEnv(
     sunPos: sun.position,
     sunColor: warm ? lerpColor([0xff, 0xff, 0xe6], [0xff, 0xa8, 0x5c], duskT) : ThemeLightSun,
     // 太阳越低，光越暖越弱；落到地平线下则只剩环境光
-    sunIntensity: below ? 0.15 : lerp(1.9, 1.15, Math.max(0, Math.min(1, duskT))),
+    // 强度取值来自令牌：加了 IBL 之后总照度会叠加，平行光必须相应压低，
+    // 否则"冷白玻璃 + 浅色地面"会一起糊到高光端（盲审说的"灰平"）。
+    sunIntensity: below ? 0.15 : lerp(TwinSunIntensityDay, TwinSunIntensityDusk, Math.max(0, Math.min(1, duskT))),
     ambient: below ? 0.5 : 0.85,
     night: false,
     moonPos: moonPosition(now).position,
@@ -130,7 +144,11 @@ export function skyFromEnv(
 }
 
 /** 天幕渐变贴图：三段（顶部压暗 → 中段本色 → 地平线提亮） */
-function makeSkyTexture(top: string, mid: string, horizon: string): THREE.CanvasTexture {
+export function skyGradientTexture(
+  top: string,
+  mid: string,
+  horizon: string
+): THREE.CanvasTexture {
   const c = document.createElement('canvas')
   c.width = 4
   c.height = 256
@@ -145,6 +163,74 @@ function makeSkyTexture(top: string, mid: string, horizon: string): THREE.Canvas
   const t = new THREE.CanvasTexture(c)
   t.colorSpace = THREE.SRGBColorSpace
   return t
+}
+
+/** 太阳/月亮辉光贴图（加性混合，给天空一个光源核心） */
+let SUN_GLOW_TEX: THREE.CanvasTexture | null = null
+function sunGlowTexture() {
+  if (SUN_GLOW_TEX) return SUN_GLOW_TEX
+  const c = document.createElement('canvas')
+  c.width = c.height = 128
+  const ctx = c.getContext('2d')!
+  const g = ctx.createRadialGradient(64, 64, 0, 64, 64, 64)
+  g.addColorStop(0, 'rgba(255,255,255,1)')
+  g.addColorStop(0.16, 'rgba(255,248,226,0.85)')
+  g.addColorStop(0.42, 'rgba(255,236,190,0.24)')
+  g.addColorStop(1, 'rgba(255,230,180,0)')
+  ctx.fillStyle = g
+  ctx.fillRect(0, 0, 128, 128)
+  SUN_GLOW_TEX = new THREE.CanvasTexture(c)
+  SUN_GLOW_TEX.colorSpace = THREE.SRGBColorSpace
+  return SUN_GLOW_TEX
+}
+
+/**
+ * 主平行光：阴影相机参数必须**命令式**设置。
+ * R3F 的 `shadow-camera-left` 等属性走 applyProps 只改数值，
+ * 而 OrthographicCamera 不会自动 updateProjectionMatrix → 参数实际不生效。
+ * （本轮之前场景 2048 阴影图 + 60m 见方的默认相机，等于没有有效方向性阴影。）
+ */
+function SunLight({
+  sunPos,
+  sunColor,
+  sunIntensity,
+  night,
+}: {
+  sunPos: [number, number, number]
+  sunColor: string
+  sunIntensity: number
+  night: boolean
+}) {
+  const ref = useRef<THREE.DirectionalLight>(null)
+  useLayoutEffect(() => {
+    const l = ref.current
+    if (!l) return
+    const cam = l.shadow.camera as THREE.OrthographicCamera
+    cam.left = -TwinShadowExtent
+    cam.right = TwinShadowExtent
+    cam.top = TwinShadowExtent
+    cam.bottom = -TwinShadowExtent
+    cam.near = 1
+    cam.far = 260
+    cam.updateProjectionMatrix()
+    if (l.shadow.mapSize.x !== TwinShadowMapSize) {
+      l.shadow.mapSize.set(TwinShadowMapSize, TwinShadowMapSize)
+      l.shadow.map?.dispose()
+      l.shadow.map = null
+    }
+    l.shadow.bias = TwinShadowBias
+    l.shadow.normalBias = TwinShadowNormalBias
+    l.shadow.needsUpdate = true
+  }, [sunPos])
+  return (
+    <directionalLight
+      ref={ref}
+      position={sunPos}
+      color={sunColor}
+      intensity={sunIntensity}
+      castShadow={!night}
+    />
+  )
 }
 
 export function WorkdaySky({
@@ -169,7 +255,7 @@ export function WorkdaySky({
   const horizonColor = sky.horizonColor
 
   const skyTex = useMemo(
-    () => makeSkyTexture(topColor, sky.bg, horizonColor),
+    () => skyGradientTexture(topColor, sky.bg, horizonColor),
     [topColor, sky.bg, horizonColor]
   )
 
@@ -191,42 +277,61 @@ export function WorkdaySky({
       <fog attach="fog" args={[sky.fog, fogNear, fogFar]} />
       {/* 半球光：白天冷天光，夜间深蓝 */}
       <hemisphereLight
-        args={[sky.hemiSky, sky.hemiGround, sky.night ? 0.42 : 0.9]}
+        args={[sky.hemiSky, sky.hemiGround, sky.night ? TwinHemiIntensityNight : TwinHemiIntensityDay]}
       />
-      {/* 主光（太阳/月亮）——位置来自真实天文计算 */}
-      <directionalLight
-        position={sky.sunPos}
-        color={sky.sunColor}
-        intensity={sky.sunIntensity}
-        castShadow={!sky.night}
-        shadow-mapSize-width={2048}
-        shadow-mapSize-height={2048}
-        shadow-camera-near={1}
-        shadow-camera-far={220}
-        shadow-camera-left={-60}
-        shadow-camera-right={60}
-        shadow-camera-top={60}
-        shadow-camera-bottom={-60}
+      {/* 主光（太阳/月亮）——位置来自真实天文计算，阴影相机参数见 SunLight */}
+      <SunLight
+        sunPos={sky.sunPos}
+        sunColor={sky.sunColor}
+        sunIntensity={sky.sunIntensity}
+        night={sky.night}
       />
       {/* 冷色补光：压暗背光面，制造体积感（"光即材料"） */}
       <directionalLight
         position={[-sky.sunPos[0] * 0.7, 30, -sky.sunPos[2] * 0.7]}
         color={sky.night ? '#5a76b8' : '#9fc0e0'}
-        intensity={sky.night ? 0.28 : 0.35}
+        intensity={sky.night ? TwinFillIntensityNight : TwinFillIntensityDay}
       />
       {/* 太阳本体：位置即陈述——正午高悬，傍晚西斜 */}
       {!sky.night && sunUp && (
-        <mesh position={sky.sunPos}>
-          <sphereGeometry args={[2.6, 16, 16]} />
-          <meshBasicMaterial color={sky.sunColor} />
-        </mesh>
+        <group position={sky.sunPos}>
+          <mesh>
+            <sphereGeometry args={[2.6, 16, 16]} />
+            <meshBasicMaterial color={sky.sunColor} fog={false} />
+          </mesh>
+          {/* 光源辉光：给天空一个"核心"，远处的建筑轮廓不至于糊在天幕上 */}
+          <sprite scale={[46, 46, 1]}>
+            <spriteMaterial
+              map={sunGlowTexture()}
+              color={sky.sunColor}
+              transparent
+              opacity={TwinSunGlowDay}
+              blending={THREE.AdditiveBlending}
+              depthWrite={false}
+              fog={false}
+            />
+          </sprite>
+        </group>
       )}
       {sky.night && (
         <>
-          <mesh position={sky.moonPos}>
-            <sphereGeometry args={[1.8, 16, 16]} />
-            <meshBasicMaterial color={ThemeDarkMoon} />
-          </mesh>
+          <group position={sky.moonPos}>
+            <mesh>
+              <sphereGeometry args={[1.8, 16, 16]} />
+              <meshBasicMaterial color={ThemeDarkMoon} fog={false} />
+            </mesh>
+            <sprite scale={[30, 30, 1]}>
+              <spriteMaterial
+                map={sunGlowTexture()}
+                color={ThemeDarkMoon}
+                transparent
+                opacity={TwinSunGlowNight}
+                blending={THREE.AdditiveBlending}
+                depthWrite={false}
+                fog={false}
+              />
+            </sprite>
+          </group>
           <Stars radius={80} depth={30} count={1200} factor={3} fade speed={0.4} />
         </>
       )}
