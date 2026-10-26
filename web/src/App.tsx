@@ -277,7 +277,10 @@ export default function App() {
           </button>
           <button
             className={mode === 'street' ? 'active' : ''}
-            onClick={() => setMode('street')}
+            onClick={() => {
+              setRoleGate(false)
+              setMode('street')
+            }}
           >
             🏙️ 招聘街区
           </button>

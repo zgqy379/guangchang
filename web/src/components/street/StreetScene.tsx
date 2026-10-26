@@ -15,7 +15,7 @@ import { LotBeacons, LotNumberDecals } from './LotMarkers'
 import { NPC } from './NPC'
 import { GameHud, rarityOf } from './GameHud'
 import { GameMiniMap } from './GameMiniMap'
-import { INDUSTRIES, Lot, placeLots, STREET_BOUNDS } from '../../data/street-companies'
+import { INDUSTRIES, Lot, LotPlacement, placeLots, STREET_BOUNDS } from '../../data/street-companies'
 import { totalPackage } from '../../engine/params'
 import {
   ColorBrandGold,
@@ -1030,6 +1030,20 @@ function NavPillar({
 }
 
 // ---------- 主场景 ----------
+// Canvas 内部组件：在 Canvas 上下文中使用 useFrame，计算近景摊位集合
+function NearTracker({ placements, nearRef }: { placements: LotPlacement[]; nearRef: { current: Set<string> } }) {
+  useFrame((state) => {
+    const camPos = state.camera.position
+    const next = new Set<string>()
+    for (const pl of placements) {
+      const d = camPos.distanceTo(new THREE.Vector3(pl.position[0], 0, pl.position[2]))
+      if (d < 26) next.add(pl.lot.id)
+    }
+    nearRef.current = next
+  })
+  return null
+}
+
 export function StreetScene({
   envHour,
   theme,
@@ -1072,15 +1086,7 @@ export function StreetScene({
     if (follow) preloadHRModels()
   }, [follow])
   // 计算近景摊位集合（与 HRStand 的 NEAR=26 一致），供 PlaceholderHRs 判断哪些占位实例移出视野
-  useFrame((state) => {
-    const camPos = state.camera.position
-    const next = new Set<string>()
-    for (const pl of placed) {
-      const d = camPos.distanceTo(new THREE.Vector3(pl.position[0], 0, pl.position[2]))
-      if (d < 26) next.add(pl.lot.id)
-    }
-    nearSetRef.current = next
-  })
+  // 注意：useFrame 必须在 <Canvas> 内部调用，故通过 NearTracker 子组件在 Canvas 内运行。
   const [deliveries, setDeliveries] = useState<
     { id: number; from: [number, number]; to: [number, number] }[]
   >([])
@@ -1207,6 +1213,8 @@ export function StreetScene({
         near={nearSetRef.current}
         night={theme === 'dark'}
       />
+      {/* M6a：在 Canvas 内部使用 useFrame 计算近景摊位集合 */}
+      <NearTracker placements={placed} nearRef={nearSetRef} />
       {/* 个体识别：地面编号牌（01–64）+ 行业色信标鳍 —— 共 2 个 draw call */}
       <LotNumberDecals />
       <LotBeacons />
