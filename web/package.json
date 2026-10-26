@@ -5,11 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "prebuild": "node tokens.config.mjs",
+    "prebuild": "node tokens.config.mjs && node ../tools/check-contrast.mjs",
     "build": "tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit",
     "preview": "vite preview",
-    "tokens": "node tokens.config.mjs"
+    "tokens": "node tokens.config.mjs",
+    "check:contrast": "node ../tools/check-contrast.mjs"
   },
   "dependencies": {
     "@manycore/aholo-viewer": "^1.11.0",

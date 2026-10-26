@@ -79,26 +79,85 @@ const GLASS = {
   dark: { fill: [255, 255, 255], fillAlpha: 0.72, underlay: [255, 255, 255], underlayAlpha: 0.86 },
 }
 
-const INK = {
+const INK_FALLBACK = {
   light: {
-    primary: [230, 237, 243], // #e6edf3
-    secondary: [183, 194, 204], // #b7c2cc
-    muted: [176, 188, 200], // #b0bcc8
+    primary: '#e6edf3', // --ui-ink-primary（浅色主题：深玻璃上的浅色字）
+    secondary: '#b7c2cc', // --ui-ink-secondary
+    muted: '#b0bcc8', // --ui-ink-muted
   },
   dark: {
-    primary: [11, 14, 26], // #0b0e1a
-    secondary: [57, 65, 77], // #39414d
-    muted: [69, 76, 89], // #454c59
+    primary: '#0b0e1a', // --ui-ink-primary（深色主题：亮玻璃上的深墨字）
+    secondary: '#39414d', // --ui-ink-secondary
+    muted: '#454c59', // --ui-ink-muted
   },
+}
+
+/**
+ * 从 styles.css 里解析真实的墨色（--ui-ink-*）。
+ * 为什么必须解析而不是写死：写死的基准会**静默过期** —— 样式里改了墨色，
+ * 脚本还拿着旧值算，结论看着通过、实际已经失效（这正是"文档与代码不同步"的同类坑）。
+ * 解析不到时退回 fallback，并明确告警。
+ */
+function parseInkFromStyles() {
+  const cssPath = path.resolve(__dirname, '../web/src/styles.css')
+  let css
+  try {
+    css = fs.readFileSync(cssPath, 'utf8')
+  } catch {
+    return { ink: null, note: `读不到 ${cssPath}` }
+  }
+  // 取 .app { ... }（夜间默认）与 .app[data-theme='light'] { ... }（浅色）两个块
+  // ⚠ 用全局匹配遍历**所有**同名块：styles.css 里有多个 .app[data-theme='light'] 规则，
+  //   第一个只管背景/文字色，墨色变量在后面那个 —— 只取第一个会解析失败并静默退回兜底。
+  const grab = (blockRe) => {
+    const re = new RegExp(blockRe.source, 'g')
+    let m
+    while ((m = re.exec(css)) !== null) {
+      const body = m[1]
+      const out = {}
+      for (const key of ['primary', 'secondary', 'muted']) {
+        const v = body.match(new RegExp(`--ui-ink-${key}:\\s*(#[0-9a-fA-F]{3,8})`))
+        if (v) out[key] = v[1]
+      }
+      if (Object.keys(out).length === 3) return out
+    }
+    return null
+  }
+  const dark = grab(/\.app\s*\{([\s\S]*?)\n\}/)
+  const light = grab(/\.app\[data-theme='light'\]\s*\{([\s\S]*?)\n\}/)
+  if (!dark || !light) return { ink: null, note: 'styles.css 里没找到含 --ui-ink-primary/secondary/muted 的 .app / .app[data-theme=\'light\'] 块' }
+  return { ink: { light, dark }, note: null }
+}
+
+const parsed = parseInkFromStyles()
+const INK = parsed.ink ?? INK_FALLBACK
+if (!parsed.ink) {
+  console.warn(`⚠ 未能从 styles.css 解析墨色（${parsed.note}），退回脚本内置基准 —— 若样式里的墨色已改，结论不可信`)
+}
+
+const toRgb = (hex) => {
+  const h = hex.replace('#', '')
+  if (h.length === 3) return [0, 1, 2].map((i) => parseInt(h[i] + h[i], 16))
+  return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)]
+}
+const INK_RGB = {
+  light: Object.fromEntries(Object.entries(INK.light).map(([k, v]) => [k, toRgb(v)])),
+  dark: Object.fromEntries(Object.entries(INK.dark).map(([k, v]) => [k, toRgb(v)])),
 }
 
 let failed = 0
 
 console.log('UI 对比度自检（按设计令牌里的真实场景色扫描，逐个背景取最坏值）\n')
+console.log(
+  `墨色基准来源：${parsed.ink ? 'styles.css 实时解析（.app / .app[data-theme=light] 的 --ui-ink-*）' : `⚠ 内置兜底（${parsed.note}）`}`
+)
+console.log(
+  `  浅色主题 secondary=${INK.light.secondary} muted=${INK.light.muted} · 夜间主题 secondary=${INK.dark.secondary} muted=${INK.dark.muted}\n`
+)
 
 for (const theme of ['light', 'dark']) {
   const g = GLASS[theme]
-  const ink = INK[theme]
+  const inkRgb = INK_RGB[theme]
   const bases = SCENE_BASES[theme]
   const themeName = theme === 'light' ? '白天主题（深玻璃 + 浅色字）' : '夜间主题（亮玻璃 + 深墨字）'
   console.log(`=== ${themeName} ===`)
@@ -110,7 +169,7 @@ for (const theme of ['light', 'dark']) {
     const fg = mode === '未垫实底' ? g.fill : g.underlay
     console.log(`  —— ${mode}：${label} ——`)
     // 对每个场景底色算合成底，再对每个文字层级取**最坏**（对比度最低）的那个
-    for (const [k, c] of Object.entries(ink)) {
+    for (const [k, c] of Object.entries(inkRgb)) {
       let worst = { r: Infinity, name: '', base: null }
       for (const b of bases) {
         const composite = blend(fg, alpha, b.rgb)
