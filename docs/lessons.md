@@ -129,3 +129,11 @@
 3. 隔离诊断页（?hrdebug=1 并排原始/克隆/换 clip/对照）比在完整街区里猜快得多；验证完即删，避免打包
 4. 交互卡、导航标签不要用 3D `distanceFactor` 缩放；世界锚定用光环/信标，信息放屏幕
 5. 设计令牌接入后，3D 颜色不要再写死 hex；新增颜色先加 `design/tokens.json` 再 `npm run tokens`
+
+### 7.7 视频/HUD 第三轮（2026-10-26 13:xx）
+
+- **切模式 HUD 清零**：`delivered/visited` 原本是 `StreetScene` 局部 state，进办公室/对比页会卸载重挂 → 进度归零。改为初始化读 `localStorage['gc-street-progress-v1']` + 变更时写回；实测投递后切办公室再回街区，15/50 XP 与投递数保留。演示/游戏类进度不要只放在会被卸载的 3D 页面里
+- **真 HR 出现太晚**：`NEAR=18` 要等相机非常近才开始加载 GLB，走近的 1-2 秒仍是灰胶囊占位。放宽 `NEAR=26/FAR=34`，并在 `follow=true`（落地漫游）时 `useGLTF.preload` 9 个 HR GLB + 玩家 idle clip；共用 URL 只加载一次
+- **egolite 最小化窗口**：`page.screenshot()` 报 "Cannot capture a screenshot while the window is minimized"，但 `Page.startScreencast` 仍能出帧（录屏不受影响）；要截图先跑 `tools/restore-ego.ps1`
+- **screencast 帧率不是常数**：同一段代码，静态画面 5fps、复杂画面 8-17fps；直接按 12fps 编码会忽快忽慢。必须逐帧记录 `Page.screencastFrame` 的 `metadata.timestamp`，按真实时间重采样到固定 fps（`tools/resample_video.py`），加载遮罩用时间区间剪掉
+- **3DGS 办公室取景**：房间类 splat 机位放在包围盒外只能看到扫描外壳（一团糊墙）；移到室内又容易怼在家具/植物上。当前 `office-promptonly.spz` 扫描质量有限，**视频不剪办公室段落**，报告图也不要再用那张糊墙截图，等换资产/裁剪方案后再上

@@ -1,0 +1,22 @@
+[
+ {
+  "frameIndex": 11,
+  "label": "street"
+ },
+ {
+  "frameIndex": 59,
+  "label": "roam"
+ },
+ {
+  "frameIndex": 177,
+  "label": "deliver"
+ },
+ {
+  "frameIndex": 234,
+  "label": "basket"
+ },
+ {
+  "frameIndex": 363,
+  "label": "tour"
+ }
+]
