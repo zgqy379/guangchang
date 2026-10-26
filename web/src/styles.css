@@ -49,6 +49,13 @@ body,
   --ui-shadow: 0 12px 32px -10px rgba(11, 14, 26, 0.45);
   --ui-page-bg: var(--color-neutral-1);
   --ui-page-fg: var(--color-text-primary);
+  /* 不透明面板（顶栏/页脚）的次级文字色：随主题反相。
+     不用 --ui-ink-secondary —— 那是玻璃浮层专用（深色主题下为深墨，压深底不可见） */
+  --ui-panel-fg-muted: #8b949e;
+  /* 不透明面板里的**强调数值**色：随主题反相。
+     单一橙色做不到两头都达标（#f0883e 浅底 2.28:1 / 深底 7.48:1；
+     #c2610f 浅底 3.78:1 / 深底 4.52:1 —— 都有一头不达 AA） */
+  --ui-panel-accent: #f0883e;
   --ui-panel-bg: #0d1117;
   --ui-panel-border: var(--color-neutral-5);
   transition: background-color 600ms var(--ease-in, ease), color 600ms var(--ease-in, ease);
@@ -71,6 +78,8 @@ body,
   --ui-shadow: 0 14px 36px -12px rgba(11, 14, 26, 0.5);
   --ui-page-bg: #eef4f8;
   --ui-page-fg: #0b0e1a;
+  --ui-panel-fg-muted: #4a5160;
+  --ui-panel-accent: #a84d08;
   --ui-panel-bg: rgba(255, 255, 255, 0.92);
   --ui-panel-border: rgba(11, 14, 26, 0.1);
 }
@@ -109,7 +118,11 @@ header {
   padding: 10px 18px;
   border-bottom: 1px solid var(--ui-panel-border);
   background: var(--ui-panel-bg);
-  color: var(--ui-ink-primary);
+  /* 顶栏是**不透明面板**（不是玻璃浮层），文字色必须跟页面底色走，不能用
+     --ui-ink-primary（那是"压在玻璃面上"的墨色：深色主题下为 #0b0e1a 深墨，
+     压在不透明深底 --ui-panel-bg 上 → 深字压深底，标题不可见。既存 bug）
+     → 用 --ui-page-fg（页面前景色，随主题反相） */
+  color: var(--ui-page-fg);
   transition: background-color 600ms ease, color 600ms ease, border-color 600ms ease;
 }
 header h1 {
@@ -119,7 +132,9 @@ header h1 {
 header h1 span {
   font-size: 13px;
   font-weight: normal;
-  color: var(--ui-ink-secondary);
+  /* 顶栏是不透明面板，次级文字同样不能用玻璃墨色（深色主题下是深墨，压深底不可见）。
+     顶栏自己的次级色随主题反相。 */
+  color: var(--ui-panel-fg-muted);
   margin-left: 10px;
 }
 .mode-switch button {
@@ -163,7 +178,8 @@ main {
   padding: 14px;
   border-right: 1px solid var(--ui-panel-border);
   background: var(--ui-panel-bg);
-  color: var(--ui-ink-primary);
+  /* 不透明面板 → 用页面前景色（随主题反相），不用玻璃墨色 */
+  color: var(--ui-page-fg);
   transition: background-color 600ms ease, color 600ms ease, border-color 600ms ease;
 }
 
@@ -203,7 +219,8 @@ main {
 
 .panel h2 {
   font-size: 13px;
-  color: var(--color-text-secondary);
+  /* 在不透明侧栏面板内 → 面板次级色（随主题反相） */
+  color: var(--ui-panel-fg-muted);
   margin: 8px 0 12px;
 }
 .field {
@@ -218,7 +235,8 @@ main {
 }
 .field-label .value {
   font-style: normal;
-  color: var(--color-brand-orange);
+  /* 面板内的强调数值：随主题反相的橙（浅底 5.08:1 / 深底 7.48:1，均达 AA） */
+  color: var(--ui-panel-accent);
   font-weight: 600;
 }
 .field input[type='range'] {
@@ -235,7 +253,9 @@ main {
 }
 .perception {
   display: block;
-  color: var(--color-text-muted);
+  /* 在不透明侧栏面板内 → 用面板次级色（随主题反相）。
+     旧的 --color-text-muted（#6e7681）在深色主题下压深底仅 4.12:1，不达 AA */
+  color: var(--ui-panel-fg-muted);
   font-size: 11px;
   margin-top: 2px;
 }
@@ -247,14 +267,14 @@ main {
 }
 .planned h3 {
   font-size: 12px;
-  color: var(--color-text-muted);
+  color: var(--ui-panel-fg-muted);
   margin: 0 0 8px;
 }
 .chip {
   display: inline-block;
   background: var(--color-neutral-3);
   border: 1px solid var(--color-border-strong);
-  color: var(--color-text-secondary);
+  color: var(--ui-panel-fg-muted);
   border-radius: 999px;
   padding: 2px 10px;
   font-size: 11px;
@@ -271,10 +291,10 @@ main {
   line-height: 1.8;
 }
 .readout strong {
-  color: var(--color-brand-orange);
+  color: var(--ui-panel-accent);
 }
 .readout small {
-  color: var(--color-text-muted);
+  color: var(--ui-panel-fg-muted);
 }
 .cap-note {
   color: #d4a72c;
@@ -296,7 +316,7 @@ main {
   margin-left: 6px;
 }
 .tagline {
-  color: var(--color-text-muted);
+  color: var(--ui-panel-fg-muted);
   font-size: 12px;
   margin: 8px 0 0;
 }
@@ -762,187 +782,6 @@ button:disabled {
     transform: translate(-50%, 0);
   }
 }
-/* ===== 街区导航器 GcNavigator（ui-system-v3 §8.5）=====
-   布局铁律：同侧浮层共用一个 flex 栈，右下浮层会增长，不能各自 fixed 偏移手避 */
-.nav-stack {
-  position: fixed;
-  right: 12px;
-  bottom: 42px;
-  z-index: 14;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 10px;
-  pointer-events: none;
-}
-.nav-stack > * {
-  pointer-events: auto;
-}
-.gc-nav {
-  width: 248px;
-  padding: 10px 12px 12px;
-  border-radius: 20px;
-  border: 1px solid var(--ui-glass-border);
-  /* 玻璃垫实底：background-color 必须写在 background 之后才压得住渐变/底色 */
-  background: var(--ui-glass-fill);
-  background-color: var(--ui-glass-underlay);
-  backdrop-filter: blur(18px) saturate(170%);
-  -webkit-backdrop-filter: blur(18px) saturate(170%);
-  box-shadow: var(--ui-shadow);
-  color: var(--ui-ink-primary);
-  transition: background-color 600ms ease, color 600ms ease;
-}
-.gc-nav-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 8px;
-}
-.gc-nav-district {
-  font-size: var(--font-size-sm);
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  padding: 2px 9px;
-  border: 1px solid;
-  border-radius: 999px;
-}
-.gc-nav-title {
-  font-size: var(--font-size-xs);
-  color: var(--ui-ink-muted);
-  letter-spacing: 0.08em;
-}
-.gc-nav-compass {
-  display: block;
-  margin: 0 auto;
-}
-.gc-nav-section {
-  margin: 7px 0 3px;
-  font-size: var(--font-size-xs);
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  color: var(--ui-ink-muted);
-  border-top: 1px solid var(--ui-border-soft);
-  padding-top: 5px;
-}
-.gc-nav-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-.gc-nav-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  width: 100%;
-  min-height: 24px;
-  padding: 1px 6px;
-  border: none;
-  border-radius: 8px;
-  background: transparent;
-  color: var(--ui-ink-primary);
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 600;
-  text-align: left;
-  cursor: pointer;
-}
-.gc-nav-row:hover {
-  background: var(--ui-surface-hover);
-}
-.gc-nav-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  flex: 0 0 auto;
-}
-.gc-nav-name {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.gc-nav-ind {
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--ui-ink-muted);
-  flex: 0 0 auto;
-}
-.gc-nav-dist {
-  font-size: 12px;
-  color: var(--ui-ink-secondary);
-  font-variant-numeric: tabular-nums;
-  flex: 0 0 auto;
-  min-width: 34px;
-  text-align: right;
-}
-.gc-nav-state {
-  flex: 0 0 auto;
-  width: 16px;
-  display: inline-grid;
-  place-items: center;
-}
-.gc-nav-state--delivered {
-  color: var(--color-state-success);
-}
-.gc-nav-state--basket {
-  color: var(--color-state-info);
-}
-.gc-nav-state--visited {
-  color: var(--ui-ink-muted);
-}
-.gc-nav-districts {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-.gc-nav-district-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  width: 100%;
-  min-height: 22px; /* ui-system-v3 §8.4：区进度行高 22 */
-  padding: 0 6px;
-  border: 1px solid transparent;
-  border-radius: 7px;
-  background: transparent;
-  color: var(--ui-ink-secondary);
-  font-family: inherit;
-  font-size: 12px;
-  cursor: pointer;
-}
-.gc-nav-district-row:hover {
-  background: var(--ui-surface-hover);
-}
-.gc-nav-district-row.is-active {
-  border-color: var(--ui-border-soft);
-  background: var(--ui-surface);
-  color: var(--ui-ink-primary);
-}
-.gc-nav-ind-name {
-  width: 46px;
-  text-align: left;
-  flex: 0 0 auto;
-}
-.gc-nav-count {
-  width: 34px;
-  font-weight: 700;
-  color: var(--ui-ink-primary);
-  font-variant-numeric: tabular-nums;
-  flex: 0 0 auto;
-}
-.gc-nav-bar {
-  flex: 1;
-  height: 5px;
-  border-radius: 999px;
-  background: var(--ui-surface);
-  overflow: hidden;
-}
-.gc-nav-bar i {
-  display: block;
-  height: 100%;
-  border-radius: 999px;
-}
 .district-chip {
   position: fixed;
   left: 12px;
@@ -990,20 +829,6 @@ button:disabled {
     width: calc(100vw - 24px);
     bottom: 38px;
   }
-  /* 移动端：导航器收窄（罗盘缩到 120，列表留 2 行），仍共用 .nav-stack */
-  .nav-stack {
-    right: 8px;
-    bottom: 36px;
-  }
-  .gc-nav {
-    width: 208px;
-    padding: 10px 10px 12px;
-    border-radius: 16px;
-  }
-  .gc-nav-compass {
-    width: 120px;
-    height: 120px;
-  }
 }
 
 .office-viewer {
@@ -1037,7 +862,8 @@ button:disabled {
 footer {
   padding: 8px 18px;
   border-top: 1px solid var(--ui-panel-border);
-  color: var(--ui-ink-muted);
+  /* 同样是不透明面板 → 次级文字用面板专用色（随主题反相），不用玻璃墨色 */
+  color: var(--ui-panel-fg-muted);
   background: var(--ui-panel-bg);
   font-size: 12px;
 }
