@@ -12,6 +12,7 @@ import { HRStand, preloadHRModels } from './HRStand'
 import { PlaceholderHRs } from './PlaceholderHRs'
 import { OfficeFacadeInstanced } from './OfficeFacadeInstanced'
 import { BoothHardwareInstanced } from './BoothHardwareInstanced'
+import { CandidateBooth } from '../candidate/CandidateBooth'
 import { BoothPoles, MoneyStacks } from './BoothProps'
 import { LotBeacons, LotNumberDecals } from './LotMarkers'
 import { NPC } from './NPC'
@@ -1352,6 +1353,18 @@ export function StreetScene({
         <DeliveryFX key={d.id} d={d} onDone={() => setDeliveries((l) => l.filter((x) => x.id !== d.id))} />
       ))}
       <NavPillar refs={refs} onInteract={() => setFollow(true)} visible={follow} theme={theme} />
+      {/* 求职者展位示例（P2 候选人侧）：街区中央附近，展示求职者 3D 形象、作品环绕、要价云 */}
+      <CandidateBooth
+        expectedSalary={450000}
+        exposeMode="band"
+        works={[
+          { id: 'w1', title: '电商平台重构', type: 'ui', imageUrl: '', privacy: 'public' },
+          { id: 'w2', title: '实时数据看板', type: 'project', imageUrl: '', privacy: 'public' },
+          { id: 'w3', title: '3D 产品展台', type: '3d', imageUrl: '', privacy: 'public' },
+        ]}
+        night={theme === 'dark'}
+        position={[0, 0, 14]}
+      />
       </Canvas>
       <div className="scene-vignette" aria-hidden />
       <GameHud state={hudState} />
