@@ -161,6 +161,17 @@ function Roads({ theme }: { theme: ThemeName }) {
           depthWrite={false}
         />
       </mesh>
+      {/* 夜间湿反射带：沿十字路口道路方向延伸的拉长反射，模拟被路灯照亮的湿地面
+          —— 夜间光层次的关键，电影感的主要来源。使用 InstancedMesh，64 盏路灯对应 64 个反射带，
+          仅 2 个 draw call（X 轴 / Z 轴各 1 个）。 */}
+      {night && (
+        <>
+          <WetReflectionBand axis={0} sign={1} />
+          <WetReflectionBand axis={0} sign={-1} />
+          <WetReflectionBand axis={1} sign={1} />
+          <WetReflectionBand axis={1} sign={-1} />
+        </>
+      )}
     </group>
   )
 }
@@ -184,6 +195,48 @@ function reflectTexture() {
   t.colorSpace = THREE.SRGBColorSpace
   REFLECT_TEX = t
   return t
+}
+
+// 夜间湿反射带：沿单条道路方向排列 8 个拉长反射（对应 8 盏路灯），
+// 模拟被路灯照亮的湿地面，夜间光层次的关键。
+function WetReflectionBand({ axis, sign }: { axis: 0 | 1; sign: 1 | -1 }) {
+  const ref = useRef<THREE.InstancedMesh>(null)
+  const positions = useMemo(() => {
+    const arr: [number, number, number][] = []
+    for (let i = 0; i < 8; i++) {
+      const along = 7 + i * 4.2
+      const across = sign * 5.2
+      // 沿 axis 方向延伸，反射带拉长方向与道路一致
+      arr.push(axis === 0 ? [sign * along, 0.007, across] : [across, 0.007, sign * along])
+    }
+    return arr
+  }, [axis, sign])
+  useLayoutEffect(() => {
+    const m = ref.current
+    if (!m) return
+    const o = new THREE.Object3D()
+    positions.forEach((p, i) => {
+      o.position.set(p[0], p[1], p[2])
+      // 反射带沿道路方向拉长（X 轴道路 → 沿 X 拉长；Z 轴道路 → 沿 Z 拉长）
+      o.rotation.set(axis === 0 ? 0 : Math.PI / 2, 0, 0)
+      o.scale.set(axis === 0 ? 3.2 : 0.6, 0.5, axis === 0 ? 0.6 : 3.2)
+      o.updateMatrix()
+      m.setMatrixAt(i, o.matrix)
+    })
+    m.instanceMatrix.needsUpdate = true
+  }, [positions, axis])
+  return (
+    <instancedMesh ref={ref} args={[undefined, undefined, positions.length]}>
+      <planeGeometry args={[1, 1]} />
+      <meshBasicMaterial
+        color={ColorBrandGold}
+        transparent
+        opacity={0.18}
+        depthWrite={false}
+        blending={THREE.AdditiveBlending}
+      />
+    </instancedMesh>
+  )
 }
 
 // 孪生网格贴图：程序化生成淡青网格线（每 6m 一格）
@@ -591,10 +644,10 @@ function StreetLamps({ theme }: { theme: ThemeName }) {
           <pointsMaterial
             map={lampGlowTexture()}
             color={ColorSceneLamp}
-            size={1.15}
+            size={1.4}
             sizeAttenuation
             transparent
-            opacity={0.8}
+            opacity={1.0}
             depthWrite={false}
             blending={THREE.AdditiveBlending}
           />
@@ -603,13 +656,13 @@ function StreetLamps({ theme }: { theme: ThemeName }) {
       {/* 地面暖光池（廉价假光，替代 64 个点光源；仅夜间） */}
       {night && (
         <instancedMesh ref={poolRef} args={[undefined, undefined, mats.length]}>
-          <planeGeometry args={[3.4, 3.4]} />
+          <planeGeometry args={[4.2, 4.2]} />
           <meshBasicMaterial
             map={poolTex}
             transparent
             depthWrite={false}
             blending={THREE.AdditiveBlending}
-            opacity={0.55}
+            opacity={0.75}
           />
         </instancedMesh>
       )}
@@ -750,6 +803,8 @@ function DeliveryFX({
 }
 
 // ---------- 就近摊位采样：R3F 内每 0.25s 找最近 lot，交 DOM 层渲染名片 ----------
+// 参观计数规格（role-flow-spec §5.2.4 / master §402）：**停留 ≥8s 且位移 ≥3m** 才计一次，
+// 点开即退不计入。旧实现"进入 8.5m 即算参观"过宽，与规格不符，此处按规格实现。
 function NearSampler({
   refs,
   onVisit,
@@ -764,12 +819,32 @@ function NearSampler({
   const cooldown = useRef(0)
   const reported = useRef(new Set<string>())
   const last = useRef<string | null>(null)
-  useFrame((_, dt) => {
+  // 参观跟踪：进入某摊位邻近区后开始计时 + 累计位移；离开或换摊位即重置
+  const track = useRef<{ id: string | null; enterAt: number; lastX: number; lastZ: number; travel: number }>({
+    id: null,
+    enterAt: 0,
+    lastX: 0,
+    lastZ: 0,
+    travel: 0,
+  })
+  useFrame((state, dt) => {
     if (!active) return
+    const p = refs.position.current
+    const now = state.clock.getElapsedTime()
+
+    // 位移按帧累加（真实路径长度），仅当已跟踪某摊位时累计 —— 保证 ≥3m 判定准确
+    const tk = track.current
+    if (tk.id) {
+      tk.travel += Math.hypot(p.x - tk.lastX, p.z - tk.lastZ)
+      tk.lastX = p.x
+      tk.lastZ = p.z
+    }
+
     cooldown.current -= dt
     if (cooldown.current > 0) return
     cooldown.current = 0.25
-    const p = refs.position.current
+
+    // 找最近摊位（8.5m 内）
     let best: Lot | null = null
     let bestD = 8.5
     for (const pl of placed) {
@@ -779,14 +854,28 @@ function NearSampler({
         best = pl.lot
       }
     }
-    if (best && !reported.current.has(best.id)) {
+
+    // 跟踪切换（进入新摊位 / 离开）：重置停留计时与位移
+    const bestId = best?.id ?? null
+    if (bestId !== tk.id) {
+      tk.id = bestId
+      tk.enterAt = now
+      tk.lastX = p.x
+      tk.lastZ = p.z
+      tk.travel = 0
+    }
+
+    // 参观达成：停留 ≥8s 且位移 ≥3m，且该摊位未计数过
+    if (best && !reported.current.has(best.id) && now - tk.enterAt >= 8 && tk.travel >= 3) {
       reported.current.add(best.id)
       onVisit(best)
     }
-    if ((best?.id ?? null) !== last.current) {
-      last.current = best?.id ?? null
+
+    // 就近名片 / focus（沿用原逻辑）
+    if (bestId !== last.current) {
+      last.current = bestId
       if (refs.focus) {
-        const pl = best ? placed.find((p) => p.lot.id === best!.id) : null
+        const pl = best ? placed.find((x) => x.lot.id === best!.id) : null
         refs.focus.current = pl ? new THREE.Vector3(pl.position[0], 0, pl.position[2]) : null
       }
       onNear(best)
@@ -1032,16 +1121,32 @@ function NavPillar({
 }
 
 // ---------- 主场景 ----------
-// Canvas 内部组件：在 Canvas 上下文中使用 useFrame，计算近景摊位集合
-function NearTracker({ placements, nearRef }: { placements: LotPlacement[]; nearRef: { current: Set<string> } }) {
+// Canvas 内部组件：在 Canvas 上下文中使用 useFrame，计算近景摊位集合。
+// 关键：结果必须**上抛为 React state**（Set 引用变化才触发 PlaceholderHRs 重渲染）。
+// 若改用 ref 传递（每帧替换 .current 但不触发重渲染），PlaceholderHRs 永远拿不到新集合
+// → 近景占位人形不剔除，与近景真 HR 重叠（占位剔除失效事故）。
+function NearTracker({
+  placements,
+  onNearChange,
+}: {
+  placements: LotPlacement[]
+  onNearChange: (s: Set<string>) => void
+}) {
+  const prev = useRef<Set<string>>(new Set())
   useFrame((state) => {
-    const camPos = state.camera.position
+    const cam = state.camera.position
     const next = new Set<string>()
     for (const pl of placements) {
-      const d = camPos.distanceTo(new THREE.Vector3(pl.position[0], 0, pl.position[2]))
-      if (d < 26) next.add(pl.lot.id)
+      const dx = cam.x - pl.position[0]
+      const dy = cam.y // 摊位根世界位置 y≈0，dy 即相机高度差（与 HRStand 的 3D 距离判定同语义）
+      const dz = cam.z - pl.position[2]
+      if (Math.sqrt(dx * dx + dy * dy + dz * dz) < 26) next.add(pl.lot.id)
     }
-    nearRef.current = next
+    // 仅当集合内容真正变化时才上抛，避免每帧 setState 引发整场景重渲染
+    const p = prev.current
+    if (next.size === p.size && [...next].every((id) => p.has(id))) return
+    prev.current = next
+    onNearChange(next)
   })
   return null
 }
@@ -1065,8 +1170,12 @@ export function StreetScene({
   const headingRef = useRef(0.55)
   const focusRef = useRef<THREE.Vector3 | null>(null)
   const cameraRef = useRef<THREE.Camera | null>(null)
-  /** 近景摊位 id 集合（与 HRStand 的 NEAR=26 一致，用于 PlaceholderHRs 判断哪些实例移出视野） */
-  const nearSetRef = useRef<Set<string>>(new Set())
+  /**
+   * 近景摊位 id 集合（与 HRStand 的 NEAR=26 一致，用于 PlaceholderHRs 判断哪些实例移出视野）。
+   * 以 **React state** 承载：NearTracker 在集合内容变化时上抛新 Set，引用变化触发
+   * PlaceholderHRs 重渲染 —— 用 ref 承载则不触发重渲染，近景占位会与真 HR 重叠。
+   */
+  const [nearSet, setNearSet] = useState<Set<string>>(() => new Set())
   const refs = useMemo<RoamRefs>(
     () => ({
       position: positionRef,
@@ -1209,14 +1318,9 @@ export function StreetScene({
         </group>
       ))}
       {/* M6a：远景占位人形 InstancedMesh 池（替代每个摊位 11 个独立 mesh 的 PlaceholderHR） */}
-      <PlaceholderHRs
-        placements={placed}
-        cameraPosition={cameraRef.current?.position ?? new THREE.Vector3()}
-        near={nearSetRef.current}
-        night={theme === 'dark'}
-      />
-      {/* M6a：在 Canvas 内部使用 useFrame 计算近景摊位集合 */}
-      <NearTracker placements={placed} nearRef={nearSetRef} />
+      <PlaceholderHRs placements={placed} near={nearSet} night={theme === 'dark'} />
+      {/* M6a：在 Canvas 内部使用 useFrame 计算近景摊位集合（变化时以 state 上抛） */}
+      <NearTracker placements={placed} onNearChange={setNearSet} />
       {/* M6b：办公空间门面 InstancedMesh 池（替代每个摊位门面的多个独立 mesh） */}
       <OfficeFacadeInstanced placements={placed} theme={theme} night={theme === 'dark'} />
       {/* M6c：摊位硬件 InstancedMesh 池（替代每个摊位的摊位台/雨棚/侧招/参数具象化/门前细节） */}
