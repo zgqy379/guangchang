@@ -55,6 +55,19 @@ npx gh-pages -d dist -b gh-pages
 - **玻璃浮层在 v4 反相后必须垫实底**：浅色主题下深玻璃 `.72` 压在最亮天幕时，次级文字仅 **4.48:1**、muted **4.20:1**（双双不达标；夜间主题无此问题）。改用「`--ui-glass-underlay` 实底 + 玻璃面」双层；**`--ui-glass-fill` 语义不动**，另起新变量。**对比度必须按最坏背景验算**（半透明浮层的背景是变量），且用 `styles.css` 的实际生效令牌，勿引用设计文档的历史值
 - **滑杆只驱动建厂预览与对比页**：街区的 64 个摊位是**已发布快照**，只在加载时算一次。违反此条直接爆 draw call 红线
 - **诚实是硬门槛**：全站禁止假进度条与"正在生成 3D…"文案；回放必须常驻标注、剩余时间显示真实值。被加速的是等待过程，不是生成结果
+- **首屏体积的真根因是「首屏渲染了 3D」**，不是 preload：`mode` 初始为 `'single'` → `<Scene>` 首屏就渲染 → 渲染期 `useGLTF` 照样拉 2.23MB。删 preload 是必要不充分条件，**真正归零靠"首屏不挂任何 `<Canvas>`"**
+- **`useGLTF.preload()` vs `useGLTF()` 必须分清**：前者模块 import 时执行（首屏必拉），后者组件渲染时执行（用到才拉）
+- **不透明面板不能用玻璃墨色**：`--ui-ink-*` 是"压在玻璃浮层上"的墨色，深色主题下为深墨；`header`/`footer`/`.controls` 等**不透明**面板用 `--ui-page-fg` / `--ui-panel-fg-muted` / `--ui-panel-accent`（随主题反相）。混用 → 深字压深底 = 文字不可见。`node tools/check-panel-ink.mjs` 可自动扫出
+- **`focus()` 会滚动页面**：自动聚焦一律用 `focus({ preventScroll: true })`；触屏不自动聚焦
+- **flex/grid 居中在内容超高时会把子元素推出视口**：可滚动容器要用 `align-content: safe center`（grid）或显式顶部对齐，并配 `overflow-y: auto`
+
+## 并发协作铁律（2026-10-27 事故后新增）
+
+- **同一工作区禁止两个 Agent 并发改同一批文件**（历史上冲突三次）。派多路前**必须先画文件边界**，不能靠"运气不重叠"
+- **禁止用 `git checkout <commit> -- <file>` 做基线还原**：它会**覆盖工作区里的未提交改动**（10.27 美术侧用它做基线，覆盖了主理人的未提交修正，迫使历史重建）。正确做法：`git stash`，或 `git worktree add` 起独立目录
+- **`git commit --amend` 前必须 `git show --stat HEAD` 复核范围**：10.27 一次 amend 把另一 Agent 的 18 个文件卷进了自己的提交
+- **提交前必须 `git status` 确认暂存区内容**；`git add <具体文件>` 而不是 `git add .`
+- **同一文件的改动用脚本化 patch 应用**（如 `tools/apply-*.mjs` 带匹配数校验），不要手写 Edit 覆盖他人并发改动
 
 ## Aholo 素材生成
 
