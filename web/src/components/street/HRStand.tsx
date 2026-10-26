@@ -30,8 +30,13 @@ const HR_POOL = [
   'hr-f01', 'hr-f02', 'hr-f03', 'hr-f04', 'hr-f05',
   'hr-m01', 'hr-m02', 'hr-m03', 'hr-m04',
 ]
-const NEAR = 18 // 真 HR GLB 自带 idle clip 为 T-pose；近景改用玩家 Avatar 的 idle clip（同 52 根 Mixamo 骨）
-const FAR = 26
+const NEAR = 26 // 真 HR GLB 自带 idle clip 为 T-pose；近景改用玩家 Avatar 的 idle clip（同 52 根 Mixamo 骨）
+const FAR = 34
+
+export function preloadHRModels() {
+  useGLTF.preload(assetUrl('/assets/avatar/avatar-idle.glb'), DRACO_PATH)
+  for (const f of HR_POOL) useGLTF.preload(assetUrl(`/assets/hr/${f}-idle.glb`), DRACO_PATH)
+}
 
 // 占位 HR 的西装色池（按 hrIndex 分配，避免 64 个摊位同色）
 const OUTFITS = ['#3d4c63', '#4a3b52', '#2f4a45', '#5a4038', '#33465e', '#4a4230', '#3b3b46', '#533a44', '#304c58']

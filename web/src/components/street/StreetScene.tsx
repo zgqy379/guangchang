@@ -7,7 +7,7 @@ import { useFrame } from '@react-three/fiber'
 import { WorkdaySky } from '../WorkdaySky'
 import { AvatarActor, RoamRefs } from '../AvatarActor'
 import { RoamCamera } from '../RoamCamera'
-import { HRStand } from './HRStand'
+import { HRStand, preloadHRModels } from './HRStand'
 import { NPC } from './NPC'
 import { GameHud, rarityOf } from './GameHud'
 import { GameMiniMap } from './GameMiniMap'
@@ -27,6 +27,24 @@ import {
   ColorSceneBarOff,
   ColorSceneBarOn,
 } from '../../../generated/design-tokens.output.mjs'
+
+const PROGRESS_KEY = 'gc-street-progress-v1'
+
+function loadProgress(): { delivered: string[]; visited: string[] } {
+  try {
+    const raw = localStorage.getItem(PROGRESS_KEY)
+    if (raw) {
+      const p = JSON.parse(raw) as { delivered?: unknown; visited?: unknown }
+      return {
+        delivered: Array.isArray(p.delivered) ? (p.delivered as string[]) : [],
+        visited: Array.isArray(p.visited) ? (p.visited as string[]) : [],
+      }
+    }
+  } catch {
+    /* 隐私模式下 localStorage 不可用，退回空进度 */
+  }
+  return { delivered: [], visited: [] }
+}
 
 const placed = placeLots()
 const fmtClock = (h: number) => `${String(Math.floor(h)).padStart(2, '0')}:${h % 1 ? '30' : '00'}`
@@ -818,12 +836,23 @@ export function StreetScene({
   // 相机两段式（用户规格）：初始=鸟瞰全景（避免初始机位落进建筑内部），
   // 首次交互（点击地面/导航柱）后切换为第三人称跟随
   const [follow, setFollow] = useState(false)
+  useEffect(() => {
+    if (follow) preloadHRModels()
+  }, [follow])
   const [deliveries, setDeliveries] = useState<
     { id: number; from: [number, number]; to: [number, number] }[]
   >([])
-  const [delivered, setDelivered] = useState<Set<string>>(new Set())
-  const [visited, setVisited] = useState<string[]>([])
+  const [initialProgress] = useState(loadProgress)
+  const [delivered, setDelivered] = useState<Set<string>>(() => new Set(initialProgress.delivered))
+  const [visited, setVisited] = useState<string[]>(initialProgress.visited)
   const [xpFlash, setXpFlash] = useState(0)
+  useEffect(() => {
+    try {
+      localStorage.setItem(PROGRESS_KEY, JSON.stringify({ delivered: [...delivered], visited }))
+    } catch {
+      /* 隐私模式下不可写，忽略 */
+    }
+  }, [delivered, visited])
   const [nearLot, setNearLot] = useState<Lot | null>(null)
   const [toast, setToast] = useState<{ id: number; text: string } | null>(null)
   const toastTimer = useRef<number | null>(null)
