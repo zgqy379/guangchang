@@ -1,7 +1,8 @@
 // HR 参数面板：表单由词典 JSON 自动生成（project.md 5.5 词典即引擎）
 // 加词条零前端开发——hr-dictionary.json 加一条，这里自动多一个控件
-import { hrDictionary, formatValue } from '../engine/dictionary'
+import { hrDictionary } from '../engine/dictionary'
 import { CompanyParams } from '../engine/params'
+import { ParamForm } from './forms/ParamForm'
 
 interface Props {
   title: string
@@ -9,72 +10,21 @@ interface Props {
   onChange: (patch: Partial<CompanyParams>) => void
 }
 
-// 词典词条 id → CompanyParams 字段名
-const FIELD_BY_ID: Record<string, keyof CompanyParams> = {
-  annual_base_salary: 'annualBaseSalary',
-  salary_structure: 'salaryStructure',
-  equity_value: 'equityValue',
-  offwork_time: 'offworkTime',
-  social_insurance_base_ratio: 'socialInsuranceBaseRatio',
-}
-
 export function HRPanel({ title, params, onChange }: Props) {
   return (
     <div className="panel">
       <h2>{title}</h2>
-      {hrDictionary.entries
-        .filter((e) => e.id in FIELD_BY_ID)
-        .map((e) => {
-          const field = FIELD_BY_ID[e.id]
-          if (e.input.type === 'slider') {
-            const value = params[field] as number
-            return (
-              <label key={e.id} className="field">
-                <span className="field-label">
-                  {e.label}
-                  <em className="value">{formatValue(e.input, value)}</em>
-                </span>
-                <input
-                  type="range"
-                  min={e.input.min}
-                  max={e.input.max}
-                  step={e.input.step}
-                  value={value}
-                  onChange={(ev) => onChange({ [field]: Number(ev.target.value) } as Partial<CompanyParams>)}
-                />
-                <small className="perception">{e.perception}</small>
-              </label>
-            )
-          }
-          if (e.input.type === 'select') {
-            const value = params[field] as string
-            return (
-              <label key={e.id} className="field">
-                <span className="field-label">{e.label}</span>
-                <select
-                  value={value}
-                  onChange={(ev) => onChange({ [field]: ev.target.value } as Partial<CompanyParams>)}
-                >
-                  {e.input.options.map((o) => (
-                    <option key={String(o.value)} value={o.value}>
-                      {o.label}
-                    </option>
-                  ))}
-                </select>
-                <small className="perception">{e.perception}</small>
-              </label>
-            )
-          }
-          return null
-        })}
+      <ParamForm
+        side="hr"
+        params={params as unknown as Record<string, unknown>}
+        onChange={(patch) => onChange(patch as Partial<CompanyParams>)}
+      />
       <div className="planned">
         <h3>词典中更多参数（接入渲染管线中）</h3>
         {hrDictionary.entries
-          .filter((e) => e.implementation === 'planned' && !(e.id in FIELD_BY_ID))
+          .filter((e) => e.implementation === 'planned')
           .map((e) => (
-            <span key={e.id} className="chip">
-              {e.label}
-            </span>
+            <span key={e.id} className="chip">{e.label}</span>
           ))}
       </div>
     </div>

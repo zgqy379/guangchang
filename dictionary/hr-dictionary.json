@@ -18,7 +18,8 @@
         "step": 10000,
         "default": 150000,
         "unit": "元",
-        "format": "wan-yuan"
+        "format": "wan-yuan",
+        "bind": "annualBaseSalary"
       },
       "mapping": {
         "type": "moneyMountain",
@@ -79,7 +80,8 @@
             "label": "16 薪"
           }
         ],
-        "default": 12
+        "default": 12,
+        "bind": "salaryStructure"
       },
       "mapping": {
         "type": "moneyMountain",
@@ -122,7 +124,8 @@
             "label": "最低基数"
           }
         ],
-        "default": "full"
+        "default": "full",
+        "bind": "socialInsuranceBaseRatio"
       },
       "mapping": {
         "type": "moneyMountain",
@@ -157,7 +160,8 @@
         "step": 50000,
         "default": 0,
         "unit": "元",
-        "format": "wan-yuan"
+        "format": "wan-yuan",
+        "bind": "equityValue"
       },
       "mapping": {
         "type": "schrodingerBills",
@@ -205,7 +209,8 @@
         "max": 26,
         "step": 0.5,
         "default": 18,
-        "format": "clock-hour"
+        "format": "clock-hour",
+        "bind": "offworkTime"
       },
       "mapping": {
         "type": "skyClock",

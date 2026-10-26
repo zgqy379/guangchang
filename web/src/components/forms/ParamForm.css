@@ -1,0 +1,58 @@
+/* 通用词典参数表单样式（P1 词典双端化） */
+.gc-param-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 13px;
+  font-family: 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+  color: var(--ui-ink-primary);
+}
+
+.gc-param-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.gc-param-label {
+  flex: 0 0 150px;
+  font-weight: 500;
+}
+
+.gc-param-value {
+  font-variant-numeric: tabular-nums;
+  color: var(--ui-accent-orange);
+}
+
+.gc-param-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.gc-param-toggle-btn {
+  width: 44px;
+  height: 24px;
+  border-radius: 12px;
+  background: var(--ui-glass-underlay);
+  border: 1px solid var(--ui-glass-border);
+  color: var(--ui-ink-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.gc-param-toggle-btn--on {
+  background: var(--ui-accent-orange);
+  color: #fff;
+  border-color: var(--ui-accent-orange);
+}
+
+.gc-param-toggle-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(154, 70, 6, 0.2);
+}

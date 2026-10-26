@@ -71,7 +71,11 @@
       "priority": "P1",
       "implementation": "planned",
       "perception": "作品强制可见",
-      "input": { "type": "readonly", "source": "github_oauth" },
+      "input": {
+        "type": "readonly",
+        "source": "github_oauth",
+        "bind": "portfolioGallery"
+      },
       "mapping": { "type": "gallery", "params": { "surround": true, "focusOnApproach": true } }
     },
     {
@@ -98,7 +102,8 @@
         "step": 10000,
         "default": 200000,
         "unit": "元",
-        "format": "wan-yuan"
+        "format": "wan-yuan",
+        "bind": "expectedSalary"
       },
       "mapping": { "type": "salaryCloud", "params": { "billDenominationYuan": 100, "billsPerStack": 50 } }
     },

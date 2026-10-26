@@ -54,14 +54,19 @@ import candJson from '../../../dictionary/candidate-dictionary.json'
 export const hrDictionary = hrJson as unknown as DictionaryFile
 export const candidateDictionary = candJson as unknown as DictionaryFile
 
-export function entry(id: string): DictEntry {
-  const e = hrDictionary.entries.find((e) => e.id === id)
+export function entry(id: string, side: 'hr' | 'candidate' = 'hr'): DictEntry {
+  const dict = side === 'candidate' ? candidateDictionary : hrDictionary
+  const e = dict.entries.find((e) => e.id === id)
   if (!e) throw new Error(`词典缺词条: ${id}`)
   return e
 }
 
-export function antiGamingParams(id: string, index: number): Record<string, any> {
-  return entry(id).antiGaming?.[index]?.params ?? {}
+export function entryOf(id: string, side: 'hr' | 'candidate' = 'hr'): DictEntry {
+  return entry(id, side)
+}
+
+export function antiGamingParams(id: string, index: number, side: 'hr' | 'candidate' = 'hr'): Record<string, any> {
+  return entry(id, side).antiGaming?.[index]?.params ?? {}
 }
 
 export function formatValue(input: DictInput, value: unknown): string {
@@ -72,9 +77,19 @@ export function formatValue(input: DictInput, value: unknown): string {
       return w >= 1 ? `${w % 1 === 0 ? w : w.toFixed(1)} 万` : `${v} 元`
     }
     if (input.format === 'clock-hour') {
-      const h = Math.floor(v)
-      const m = Math.round((v - h) * 60)
-      return `${String(h % 24).padStart(2, '0')}:${String(m).padStart(2, '0')}`
+      let h = Math.floor(v)
+      let m = Math.round((v - h) * 60)
+      // 四舍五入可能让分钟达到 60（如 v=17.999）→ 进位，避免输出 "xx:60"
+      if (m >= 60) {
+        m -= 60
+        h += 1
+      }
+      // offwork_time 的 max=26 属跨天区间：≥24 表示越过午夜到次日。
+      // 显式加「次日」前缀，避免 26 被格式化成 "02:00" 而误读为当天凌晨两点。
+      const nextDay = h >= 24
+      const hh = String(((h % 24) + 24) % 24).padStart(2, '0')
+      const mm = String(m).padStart(2, '0')
+      return `${nextDay ? '次日' : ''}${hh}:${mm}`
     }
     return `${v}${input.unit ?? ''}`
   }
