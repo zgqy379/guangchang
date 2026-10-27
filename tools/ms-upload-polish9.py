@@ -26,6 +26,6 @@ api.upload_folder(
     repo_id="zgqy379/guangchang3d",
     repo_type="studio",
     folder_path="E:/guangchang/web/dist",
-    commit_message="polish9 视觉冲刺版：focus 白幕根治+夜景照明 v2+玻璃三层配方+昼夜双地板（八轮盲审视觉 7.0 平台）",
+    commit_message="奖项冲刺循环①-⑥：正午时间缝+屋顶母题+夜脊微光/沿街发光边+特写动态名牌/柜台业务屏+路缘树列+8NPC（R9-R14 六轮盲审）",
 )
 print("upload done")

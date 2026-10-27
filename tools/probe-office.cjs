@@ -17,6 +17,9 @@ fs.mkdirSync(OUT, { recursive: true })
   const browser = await chromium.launch({ headless: false, channel: 'chrome' })
   const context = await browser.newContext({ viewport: { width: 1280, height: 720 } })
   const page = await context.newPage()
+  page.on('console', (msg) => {
+    if (msg.text().includes('[office]')) console.log('CONSOLE:', msg.text())
+  })
   await page.goto(URL_, { waitUntil: 'domcontentloaded', timeout: 60000 })
   await page.waitForSelector('.mode-switch, .gc-role-gate', { timeout: 60000 })
   // 角色门：先选「求职者」再进应用（与 shoot-street 同逻辑）

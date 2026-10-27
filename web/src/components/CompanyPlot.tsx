@@ -27,6 +27,69 @@ import { AvatarActor, RoamRefs } from './AvatarActor'
 import { CarvedZone } from './CarvedZone'
 import { assetUrl } from '../engine/asset'
 
+// 地面薪资标尺（决策纸⑥ · 单厂测绘语言）：0–150 万线性轴铺在山脚，
+// 发光标记钉在当前总包位置——低薪的山「小得诚实」且有可测语境（gap-report #5/#8）。
+// 山脚 x=0.3 起、150 万=2.4m；canvas 生成轴/刻度/标签，标记随滑杆实时移动。
+const RULER_ORIGIN_X = -0.5
+const RULER_LEN = 2.4
+const RULER_CAP_WAN = 150
+function salaryRulerTexture() {
+  const c = document.createElement('canvas')
+  c.width = 1024
+  c.height = 64
+  const ctx = c.getContext('2d')!
+  ctx.clearRect(0, 0, 1024, 64)
+  const pxPerWan = 1024 / RULER_CAP_WAN
+  ctx.strokeStyle = 'rgba(230,237,243,0.75)'
+  ctx.lineWidth = 3
+  ctx.beginPath()
+  ctx.moveTo(0, 40)
+  ctx.lineTo(1024, 40)
+  ctx.stroke()
+  for (let wan = 0; wan <= RULER_CAP_WAN; wan += 10) {
+    const x = wan * pxPerWan
+    const major = wan % 50 === 0
+    ctx.lineWidth = major ? 3 : 1.5
+    ctx.beginPath()
+    ctx.moveTo(x, 40)
+    ctx.lineTo(x, major ? 18 : 28)
+    ctx.stroke()
+    if (major && wan > 0) {
+      ctx.fillStyle = 'rgba(230,237,243,0.85)'
+      ctx.font = '600 20px "Microsoft YaHei", sans-serif'
+      ctx.textAlign = 'center'
+      ctx.fillText(`${wan}万`, x, 12)
+    }
+  }
+  ctx.fillStyle = 'rgba(230,237,243,0.6)'
+  ctx.font = '500 16px "Microsoft YaHei", sans-serif'
+  ctx.textAlign = 'left'
+  ctx.fillText('总包刻度（万/年）', 0, 62)
+  const t = new THREE.CanvasTexture(c)
+  t.colorSpace = THREE.SRGBColorSpace
+  return t
+}
+
+function SalaryRuler({ totalYuan }: { totalYuan: number }) {
+  const tex = useMemo(() => salaryRulerTexture(), [])
+  useEffect(() => () => tex.dispose(), [tex])
+  const wan = Math.min(RULER_CAP_WAN, totalYuan / 10000)
+  const markerX = RULER_ORIGIN_X + (wan / RULER_CAP_WAN) * RULER_LEN
+  return (
+    <group>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[RULER_ORIGIN_X + RULER_LEN / 2, 0.006, 1.05]}>
+        <planeGeometry args={[RULER_LEN, 0.15]} />
+        <meshBasicMaterial map={tex} transparent opacity={0.9} depthWrite={false} />
+      </mesh>
+      {/* 「你在这里」标记：发光小柱钉在当前总包刻度上（滑杆实时驱动） */}
+      <mesh position={[markerX, 0.07, 1.05]}>
+        <boxGeometry args={[0.02, 0.14, 0.05]} />
+        <meshBasicMaterial color={ColorBrandOrange} toneMapped={false} />
+      </mesh>
+    </group>
+  )
+}
+
 export function CompanyPlot({
   position,
   name,
@@ -97,6 +160,8 @@ export function CompanyPlot({
           incrementYuan={incrementPackage(params)}
         />
         <CarvedZone baseYuan={params.annualBaseSalary} ratio={params.socialInsuranceBaseRatio} />
+        {/* 地面薪资标尺（决策纸⑥）：0-150 万线性轴 + 你在这里标记，单厂测绘语言 */}
+        <SalaryRuler totalYuan={totalPackage(params)} />
         {/* 悬浮钞票带跟山：SchrodingerBills 内部把钞票铺在 y∈[1.6,3.2]（带底 1.6 是按旧构图定的绝对高度），
             外包 group 整体下移 1.6 → 带底恒 = 山顶。不变式：钞票带相对山顶恒定——
             山高 0.32m 时贴在山上而非半空，山高 2m 时仅整体上移 0.4m ≈ 现状。

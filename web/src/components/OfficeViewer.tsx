@@ -64,35 +64,51 @@ export function OfficeViewer({ url }: { url: string }) {
 
           let fMin = [Infinity, Infinity, Infinity]
           let fMax = [-Infinity, -Infinity, -Infinity]
+          // 点距采样（决策：取景半径不再由最远离群点决定——一颗飘点曾把相机推到
+          // 极远，房间缩成一条竖板；改用 98 分位点距，相机在 98% 点云之外）
+          const dists: number[] = []
           operator.foreachSplatCenter((_i, x, y, z) => {
             const p = [x, y, z]
             for (let k = 0; k < 3; k++) {
               fMin[k] = Math.min(fMin[k], p[k])
               fMax[k] = Math.max(fMax[k], p[k])
             }
+            dists.push(Math.hypot(x - c[0], y - c[1], z - c[2]))
           })
-          // dense 中心到全量包围盒最远角的距离：用于判断"飘点外壳"有多厚
+          // dense 中心到全量包围盒最远角的距离：仅用于诊断日志
           let radius = 0
           for (const mx of [fMin[0], fMax[0]])
             for (const my of [fMin[1], fMax[1]])
               for (const mz of [fMin[2], fMax[2]])
                 radius = Math.max(radius, Math.hypot(mx - c[0], my - c[1], mz - c[2]))
-          // 取景取"全量外壳之外"：按 dense box 站近会被飘点糊满屏（实测两种都试过），
-          // 站在外壳外至少能看全整个空间模型，细节靠滚轮缩放
-          const d = Math.max(6, radius * 1.6)
-          const inv = 1 / Math.hypot(0.78, 0.42, 0.78)
-          camera.position.set(
-            c[0] + 0.78 * inv * d,
-            c[1] - 0.42 * inv * d,
-            c[2] + 0.78 * inv * d
-          )
+          dists.sort((a, b) => a - b)
+          const p98 = dists[Math.min(dists.length - 1, Math.floor(dists.length * 0.98))] ?? 6
+          // 取景（决策纸⑥v5）：d = p98×1.15（98% 点云之外，离群点不再绑架机位），
+          // 方向由 ?officeCam=仰角,方位角 覆盖（截图确定性测试缝，同 ?hour= 惯例）。
+          // 默认 elev 0.10 / azim 0：六机位接触表（docs/figures/office-cam-sweep/）选出的
+          // 最不坏正面像——该 SPZ 生成物本身是纵向柱状低质扫描，机位只能选呈现方式，
+          // 资产重生成是独立任务（需 Aholo 生成配额）。
+          const d = Math.max(6, p98 * 1.15)
+          const oc = new URLSearchParams(window.location.search).get('officeCam')
+          let elev = 0.1
+          let azim = 0
+          if (oc) {
+            const [e, a] = oc.split(',').map(Number)
+            if (Number.isFinite(e)) elev = e
+            if (Number.isFinite(a)) azim = a
+          }
+          // 球坐标方向（OpenCV -Y 朝上：仰角抬高 = y 减小）
+          const dirX = Math.sin(azim) * Math.cos(elev)
+          const dirZ = Math.cos(azim) * Math.cos(elev)
+          const dirY = -Math.sin(elev)
+          camera.position.set(c[0] + dirX * d, c[1] + dirY * d, c[2] + dirZ * d)
           camera.lookAt(new Vector3(c[0], c[1], c[2]))
           console.log(
             `[office] dense=[${boxMin.map((v) => v.toFixed(2))}]..[${boxMax
               .map((v) => v.toFixed(2))
               .join(',')}] full=[${fMin.map((v) => v.toFixed(2))}]..[${fMax
-              .map((v) => v.toFixed(2))
-              .join(',')}] radius=${radius.toFixed(2)} dist=${d.toFixed(2)}`
+                .map((v) => v.toFixed(2))
+                .join(',')}] radius=${radius.toFixed(2)} p98=${p98.toFixed(2)} dist=${d.toFixed(2)} elev=${elev.toFixed(2)} azim=${azim.toFixed(2)}`
           )
         } catch {
           // 兜底：人工位姿
@@ -101,6 +117,10 @@ export function OfficeViewer({ url }: { url: string }) {
         }
         viewer.getScene().add(splat)
         viewer.setCamera(camera)
+        // 诊断钩子（先例：StreetScene 的 __st/__cam）：取景调试用
+        ;(window as unknown as Record<string, unknown>).__officeCam = camera
+        ;(window as unknown as Record<string, unknown>).__officeViewer = viewer
+        ;(window as unknown as Record<string, unknown>).__officeSplat = splat
         setViewerConfig(viewer, {
           pipeline: {
             Background: {

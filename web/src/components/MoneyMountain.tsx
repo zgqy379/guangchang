@@ -21,12 +21,26 @@ import {
 const easeOutCubic = (k: number) => 1 - Math.pow(1 - k, 3)
 
 // 纸币贴图：canvas 生成纹样+¥面额+角部团花（盲审修复：红色光板无纸币语言）
+// ⑥：加纸纹噪点（纤维感）+ 顶部提亮/底部压暗（旧钞光影）+ 面额字——去塑料感
 function billTexture(base: string, dark: string) {
   const c = document.createElement('canvas')
   c.width = 256
   c.height = 128
   const ctx = c.getContext('2d')!
   ctx.fillStyle = base
+  ctx.fillRect(0, 0, 256, 128)
+  // 纸纹噪点：400 粒深浅纤维斑（1px 级，纸的肌理）
+  for (let i = 0; i < 400; i++) {
+    const l = Math.random() < 0.5
+    ctx.fillStyle = l ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.10)'
+    ctx.fillRect(Math.random() * 256, Math.random() * 128, 1.5, 1)
+  }
+  // 顶部微提亮、底部微压暗（叠放的旧钞光影）
+  const shade = ctx.createLinearGradient(0, 0, 0, 128)
+  shade.addColorStop(0, 'rgba(255,255,255,0.10)')
+  shade.addColorStop(0.5, 'rgba(255,255,255,0)')
+  shade.addColorStop(1, 'rgba(0,0,0,0.14)')
+  ctx.fillStyle = shade
   ctx.fillRect(0, 0, 256, 128)
   ctx.strokeStyle = dark
   ctx.lineWidth = 5
@@ -44,6 +58,10 @@ function billTexture(base: string, dark: string) {
   ctx.beginPath()
   ctx.arc(222, 94, 13, 0, Math.PI * 2)
   ctx.stroke()
+  // 面额角标（左上/右下小字，纸币排版惯例）
+  ctx.font = '700 20px "Microsoft YaHei", sans-serif'
+  ctx.fillText('100', 40, 110)
+  ctx.fillText('100', 216, 22)
   ctx.font = '600 16px sans-serif'
   ctx.fillText('逛厂币', 128, 108)
   const t = new THREE.CanvasTexture(c)
@@ -66,6 +84,22 @@ function InstancedBundles({
     () => positions.map((_, i) => (((i * 137) % 100) / 100 - 0.5) * 0.052),
     [positions]
   )
+  // 逐实例明度微扰（±4%，instanceColor 通道，0 DC——同排纸币不再完全同色）
+  const tint = useMemo(
+    () =>
+      positions.map((_, i) => {
+        const col = new THREE.Color('#ffffff')
+        return col.offsetHSL(0, 0, (((i * 89) % 7) - 3) * 0.012)
+      }),
+    [positions]
+  )
+
+  useLayoutEffect(() => {
+    const mesh = ref.current
+    if (!mesh) return
+    tint.forEach((col, i) => mesh.setColorAt(i, col))
+    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true
+  }, [tint, positions.length])
 
   // 生长动画：每层延迟 0.12s，从底部向上一层层隆起
   useFrame((state) => {
