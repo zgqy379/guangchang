@@ -281,6 +281,14 @@ function SunLight({
     // 实测省掉整个 shadow pass（约 200 个 draw call + 一张 2048² 深度图）。
     l.shadow.autoUpdate = false
     l.shadow.needsUpdate = true
+    // 懒加载建筑/HR 就位后阴影图需要二次烘焙：首帧烘焙时 lazy chunk 未挂载，
+    // 阴影图里没有建筑物 → 昼间全场景无投影、平板化（盲审 R5 短板①）。
+    // 场景静止（光源不动），二次烘焙后再关回 autoUpdate。
+    const rebake = window.setTimeout(() => {
+      l.shadow.needsUpdate = true
+      window.setTimeout(() => { l.shadow.needsUpdate = true; l.shadow.autoUpdate = false }, 2500)
+    }, 2500)
+    return () => window.clearTimeout(rebake)
   }, [sunPos])
   return (
     <directionalLight

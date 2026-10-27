@@ -27,6 +27,7 @@ import type { Industry } from '../../data/street-companies'
 import type { ThemeName } from '../../engine/theme'
 import { ColorStateSuccess } from '../../../generated/design-tokens.output.mjs'
 import { applyLotJitter } from './OfficeFacadeInstanced'
+import { shadowTexture } from './HRStand'
 
 const tempObject = new THREE.Object3D()
 const tempColor = new THREE.Color()
@@ -297,7 +298,15 @@ export function BoothHardwareInstanced({
       {/* shadow */}
       <instancedMesh ref={shadowRef} args={[undefined, undefined, count]}>
         <planeGeometry args={[3.2, 3.2]} />
-        <meshBasicMaterial transparent opacity={night ? 0.9 : 0.45} depthWrite={false} />
+        {/* 柔边接触阴影：径向暗贴图（旧版无贴图=纯白方块，夜间 0.9 透明白板沿街堆叠成「白幕」，
+            盲审 R3/R4 的 focus 白幕元凶——2026-10-27 透明网格清单探针定位） */}
+        <meshBasicMaterial
+          map={shadowTexture()}
+          color="#0a0d12"
+          transparent
+          opacity={night ? 0.85 : 0.4}
+          depthWrite={false}
+        />
       </instancedMesh>
       {/* glow */}
       <instancedMesh ref={glowRef} args={[undefined, undefined, count]}>

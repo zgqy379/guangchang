@@ -223,11 +223,17 @@ export function OfficeFacadeInstanced({
         <boxGeometry args={[6.66, 0.42, 5.44]} />
         <meshStandardMaterial />
       </instancedMesh>
-      {/* glass：底层玻璃幕墙 —— 白天降到 0.55：焦点机位前多层玻璃叠加会淹没 HR（盲审 B 短板 #1）
-          夜间保持 1.0（夜景靠这张反射室内暖光） */}
+      {/* glass：底层玻璃幕墙 —— 三层配方：白天低透明蓝灰（大堂退暗）＋夜间不透明暗玻璃（暖窗显出）。
+          夜间不再隐藏：白幕真凶是无贴图白方块阴影面（已修），暗玻璃走 ACES 后不再过曝，
+          且能托住雨棚立柱不悬浮（盲审 R5 短板②） */}
       <instancedMesh ref={glassRef} args={[undefined, undefined, count]}>
         <planeGeometry args={[5.8, 2.1]} />
-        <meshBasicMaterial transparent opacity={night ? 1 : 0.55} toneMapped={!night} />
+        <meshBasicMaterial
+          transparent
+          opacity={night ? 1 : 0.3}
+          color={night ? '#ffffff' : '#c2d3e0'}
+          toneMapped
+        />
       </instancedMesh>
       {/* led：门楣 LED */}
       <instancedMesh ref={ledRef} args={[undefined, undefined, count]}>

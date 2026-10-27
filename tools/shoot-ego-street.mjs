@@ -9,8 +9,25 @@ await fs.mkdir(OUT, { recursive: true })
 const task = await taskSpace('gc-shoot-ego-' + Date.now())
 const page = task.page('p1')
 console.log('taskSpace:', task.spaceId)
+// 窗口自愈双保险：CDP normal + 宿主侧 ShowWindow 恢复（ego 窗口被前台应用抢占时最小化 → 截图报错）
+const { execSync } = await import('node:child_process')
+const restoreW = () => { try { execSync('powershell -ExecutionPolicy Bypass -File E:/guangchang/tools/restore-ego2.ps1', { timeout: 20000 }) } catch (e) {} }
+const normalize = async () => {
+  restoreW()
+  try {
+    const { windowId } = await page.cdp('Browser.getWindowForTarget')
+    await page.cdp('Browser.setWindowBounds', { windowId, bounds: { windowState: 'normal' } })
+  } catch (e) {}
+}
+await normalize()
+// 自愈：任务窗口若被最小化，截图会报错——CDP 强制 normal 态
+try {
+  const { windowId } = await page.cdp('Browser.getWindowForTarget')
+  await page.cdp('Browser.setWindowBounds', { windowId, bounds: { windowState: 'normal' } })
+} catch (e) { console.log('cdp normalize skipped:', String(e).slice(0, 80)) }
 
 const shot = async (name) => {
+  await normalize()
   await page.screenshot({ path: `${OUT}/${name}.png` })
   console.log('  ✓', name)
 }

@@ -45,7 +45,7 @@ const RoamCamera = lazy(() =>
 import { fictionalCompanies, companyById } from './data/fictional-companies'
 import { STREET_LOTS, type Lot } from './data/street-companies'
 import { assetUrl } from './engine/asset'
-import { ColorSceneHallFloor } from '../generated/design-tokens.output.mjs'
+import { ColorSceneHallFloor, ColorSceneHallFloorDay } from '../generated/design-tokens.output.mjs'
 import { ErrorBoundary, SceneErrorBoundary } from './state/ErrorBoundary'
 import { RoleGate, type Role } from './components/role/RoleGate'
 import { loadRole, saveRole, loadBasket, saveBasket } from './engine/progress'
@@ -132,10 +132,11 @@ function Scene({
       {/* lazy 3D 组件首次加载会挂起：Canvas 内必须有 Suspense，否则挂起冒泡到根、整树空白 */}
       <Suspense fallback={null}>
         <WorkdaySky envHour={envHour} theme={theme} />
-        {/* 大地板：让展台坐在"地面"上而非悬空，地砖路可延伸向远方（色入令牌 scene.hallFloor） */}
+        {/* 大地板：让展台坐在"地面"上而非悬空。日/夜双地板：夜间深（夜色氛围）、
+            日间浅（与浅色天幕/亮 UI 同带，消除「亮 UI+黑地」割裂——盲审 R6 短板①） */}
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.02, 0]}>
           <planeGeometry args={[90, 90]} />
-          <meshStandardMaterial color={ColorSceneHallFloor} roughness={0.9} />
+          <meshStandardMaterial color={theme === 'dark' ? ColorSceneHallFloor : ColorSceneHallFloorDay} roughness={0.9} />
         </mesh>
         <CompanyPlot
           position={[0, 0, 0]}

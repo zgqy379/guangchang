@@ -128,21 +128,9 @@ function Roads({ theme }: { theme: ThemeName }) {
           blending={THREE.AdditiveBlending}
         />
       </mesh>
-      {/* 中央斑马线（收窄至 0.5m，尺度校正） */}
-      {[0, Math.PI / 2].map((rot, i) => (
-        <group key={`z${i}`} rotation={[0, rot, 0]}>
-          {[-6.4, -5.8, -5.2, 5.2, 5.8, 6.4].map((z) => (
-            <mesh key={z} rotation={[-Math.PI / 2, 0, 0]} position={[z, 0.005, 0]}>
-              <planeGeometry args={[0.5, 9.6]} />
-              <meshStandardMaterial
-                color={night ? '#c8d2da' : '#ffffff'}
-                opacity={night ? 0.55 : 0.75}
-                transparent
-              />
-            </mesh>
-          ))}
-        </group>
-      ))}
+      {/* 中央斑马线：近距离自动淡出——低机位下条纹以极大透视面盖住摊位与 HR
+          （盲审 R3/R4「focus 白幕」元凶）。远处保持寻路可见，近处淡出给特写让画面。 */}
+      <CrosswalkStripes night={night} />
       {/* 中央转盘基石 */}
       <mesh position={[0, 0.06, 0]} receiveShadow castShadow>
         <cylinderGeometry args={[3.4, 3.6, 0.12, 32]} />
@@ -671,6 +659,48 @@ function StreetLamps({ theme }: { theme: ThemeName }) {
         </instancedMesh>
       )}
     </>
+  )
+}
+
+// 中央斑马线（12 条，2 组正交）：按相机距离淡出的不透明度。
+// 6m 内淡至 12%（特写/近走不被条纹幕布盖脸），14m 外全值（鸟瞰/寻路可见）。
+function CrosswalkStripes({ night }: { night: boolean }) {
+  const mats = useRef<THREE.MeshBasicMaterial[]>([])
+  const stripes = useMemo(() => {
+    const arr: { pos: [number, number, number]; rot: number }[] = []
+    ;[0, Math.PI / 2].forEach((rot) => {
+      ;[-6.4, -5.8, -5.2, 5.2, 5.8, 6.4].forEach((z) => {
+        arr.push({ pos: rot === 0 ? [z, 0.005, 0] : [0, 0.005, z], rot })
+      })
+    })
+    return arr
+  }, [])
+  useFrame(({ camera }) => {
+    const base = night ? 0.55 : 0.75
+    mats.current.forEach((m, i) => {
+      if (!m) return
+      const s = stripes[i]
+      const d = Math.hypot(camera.position.x - s.pos[0], camera.position.z - s.pos[2])
+      m.opacity = base * THREE.MathUtils.clamp((d - 6) / 8, 0.12, 1)
+    })
+  })
+  return (
+    <group>
+      {stripes.map((s, i) => (
+        <mesh key={i} rotation={[-Math.PI / 2, 0, s.rot]} position={s.pos}>
+          <planeGeometry args={[0.5, 9.6]} />
+          <meshBasicMaterial
+            ref={(m) => {
+              if (m) mats.current[i] = m
+            }}
+            color={night ? '#c8d2da' : '#ffffff'}
+            transparent
+            opacity={night ? 0.55 : 0.75}
+            depthWrite={false}
+          />
+        </mesh>
+      ))}
+    </group>
   )
 }
 

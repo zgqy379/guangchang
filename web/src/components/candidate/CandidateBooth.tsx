@@ -10,7 +10,6 @@
 //
 // 隐私三档：公开 / 仅 HR 可见 / 私密（私密件不渲染）
 import { useMemo } from 'react'
-import { Html } from '@react-three/drei'
 import { GlowPath } from '../GlowPath'
 import { SalaryCloud } from './SalaryCloud'
 import { WorkOrbit, type WorkItem } from './WorkOrbit'
@@ -106,21 +105,9 @@ export function CandidateBooth({
         </mesh>
       </group>
 
-      {/* ⚠ 必须用 drei <Html>：裸 <div> 在 Canvas 内会被 R3F 当 THREE intrinsic 校验直接抛错（T13）。
-          zIndex 必须压到 1：drei Html 默认 zIndex=16777271，会穿透 z-index 14 的导航面板（盲审 R2 短板②） */}
-      <Html position={[0, 1.95, 0]} center distanceFactor={10} zIndexRange={[10, 1]} style={{ pointerEvents: 'none' }}>
-        <div
-          style={{
-            color: night ? '#0b0e1a' : '#e8eef4',
-            fontSize: 12,
-            fontWeight: 600,
-            whiteSpace: 'nowrap',
-            textShadow: night ? '0 0 8px rgba(255,255,255,0.6)' : '0 0 8px rgba(0,0,0,0.6)',
-          }}
-        >
-          {`期望 ¥${Math.round(expectedSalary / 10000)}万 · ${publicWorks.length} 件作品`}
-        </div>
-      </Html>
+      {/* 入口铭牌已移除（盲审 R5 短板：世界空间标签在 4 张截图右缘裁切+穿透浮层，
+          且信息与 LotCard/面板重复）——less is more，期望薪资/作品数由名片承载。
+          教训保留：Canvas 内 DOM 必须走 drei <Html>（T13） */}
 
       {/* 求职者本体占位：头顶太阳/月亮（夜间月亮 / 白天太阳，与 HR 摊位顶灯语义一致） */}
       <mesh position={[0, 2.4, 0]}>
