@@ -94,7 +94,7 @@
 | 首屏 entry 1,016.60kB / 0.31MB (:248,265) | 现构建 1,021,251B；循环①-⑥ 无新实测存档（漂移 ~0.5%，方向未证伪） |
 
 ### R15 归档缺口（过程证据断档）
-- **设计四文档（benchmarks / gap-report / signature / charter）至今未纳入版本控制**（仅本地未跟踪文件）——e9c95d7 只提交了 award-track-prompt.md；与 charter「过程证据可复核」的自我定位不符。
+- **设计四文档入库** —— **勘误（处置阶段核实）**：benchmarks / gap-report / signature / charter 实际已随 `e9c95d7` 入库（`git ls-files` 可证）；审查代理把"tracked 未修改文件不出现在 git status"误读为"未跟踪"。审查方法教训：判断 tracked 与否必须用 `git ls-files`，不能用 `git status` 反推。
 - R9-R14 评审原文无独立文件（仅 design-audit 摘要；R1-R8 有 11 个原文档）；`docs/figures/street-2026-10-28-focus-night-v2/`（3.6MB）未提交造成循环③轨迹 v2 断档。
 - docs/iterations/ 最晚 10-26 20:08——R9-R14 期间无 Aholo API 生成，属正常（视觉迭代无生成存档义务），不算违规。
 
@@ -143,4 +143,29 @@
 6. **裁决项**：R7 replay 接线与否、R8 红线口径二选一、R4 历史重写与否、tmp-design-review 删除时点。
 7. **提交前最后一步**：重跑 deep 扫描留干净封印报告。
 
-*本文件由审查会话新增（未提交、未动其他文件）。归档衔接：待裁决后可在 docs/adversarial-review.md 追加一行指向本文件。*
+---
+
+## 处置执行记录（2026-10-28，主理人裁决「按最优解修复」后由审查会话执行）
+
+| 项 | 处置 | 结果 |
+|---|---|---|
+| R1 源码落后部署 | 提交 + 推送 | feat/debt-reduction-week1 推送至 `e57e117`（循环①-⑥ + b40fc11 办公室修复 + 本轮修复/口径）；main 经核实已是最新。线上保持 R14 冻结构建，源码领先部分待盲审后随部署同步 |
+| R2 魔搭旧视频 | 单文件同步 | demo-video.mp4（2:09，12,490,926B）上传报告 `Normal committed 1 / LFS 0`；egolite 已点「重新部署→确认部署」（提交时状态 CreatingBuildingImage）；**刻意避开 dist 整体重传陷阱**（不携带未过盲审的 WIP 源码） |
+| R3 并发会话 | 已收口 | 对方成果落为 `b40fc11` 后工作区稳定；本次全部按具体文件 `git add`，未触碰对方文件域 |
+| R4 InteriorGS 历史截图 | 接受风险 + 如实披露 | THIRD_PARTY_NOTICES 补历史披露；不做破坏性历史重写（距截止 22 天） |
+| R5 useEffect 铁律 | 已修 | OfficeFacadeInstanced 两个 effect 改 useLayoutEffect（9768f2e） |
+| R6 材质泄漏 | 已修 | GalleryCorridor 按主题 useMemo 缓存 + dispose（9768f2e） |
+| R7 诚实链路 | 已修（保持未接线） | 假进度/假剩余移除；剩余时间=真实先验随回放进度递减；组件保持死代码状态，report v3.1 口径如实化（「已实现组件、未接公开导航」） |
+| R8 DC 口径 | 改口径 | project.md 7.5 / report v3.1 统一为「实测 687（2026-10-28）+ ≤200 产品期红线」；"越肩 13.5fps" 测量污染修正（lessons §12.2） |
+| R9 颜色令牌化 | 暂缓 | 3D 侧约 50 处留待专项轮（视觉冻结期不动材质色） |
+| R10 相机验证泛化 | 暂缓 | 涉 RoamCamera（不许动清单），与 office 相机 sweep 工作流合并考虑 |
+| R11 调试钩子 | 已修 | 新增 engine/debug.ts 门控（localhost / ?debug=1，兼容 9 个验收工具）；accept-live.mjs 线上 URL 带 ?debug=1；OfficeViewer 的 console 因属并发会话文件域未动，待其收尾后清理 |
+| R12 低危债 | 部分修 | 死代码假值已清；WorkOrbit 空 useFrame、Date.now key、useFrame 内分配留待常规轮 |
+| R13/R14 文档 | 已回写 | project.md v1.4.1、report v3.1（10 页）、README、submission-checklist、两份 handoff 失效标注、红队档案附六 |
+| R15 归档缺口 | 勘误 + 部分补 | **勘误**：设计四文档核实已随 e9c95d7 入库（审查代理误读 git status——tracked 未修改文件不出现在 status，判断必须用 git ls-files）；R9–R14 评审原文仍未独立成档；focus-night-v2/ 截图保持未提交（无档案引用，避免 3.6MB 膨胀） |
+| R16 工作区卫生 | 部分修 | .arts/ 已入 gitignore；stash@{0} 待 `git stash show -p` 复核后清理 |
+| Mimosa | 已分诊 | deep 扫描（seal b161a344…）76 条全部为 tmp-design-review 旧构建误报，真源码 0 条；本次 push 因 scanner_enobufs 走兼容策略放行——**不据此宣称项目安全，完整结论以封印报告为准**；建议视频工作流结束后删 tmp-design-review/ 并重扫取干净封印 |
+
+**未做（留后续裁决）**：①回放等待态接入公开导航的产品时点 ②应用重部署（需携 b40fc11 视觉改动过盲审门禁，建议与下一轮美术轮合并）③tmp-design-review/ 删除时点 ④R9/R10 专项轮 ⑤小红书 / 移动端真机（需用户）。
+
+*处置执行：审查会话（ZCode）· 2026-10-28。提交：9768f2e（代码修复）/ e57e117（文档口径）+ 本记录。*

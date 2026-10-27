@@ -78,7 +78,7 @@
 ### P1（高分值）
 
 7. **小红书帖子** + #Aholo黑客松（5% 传播，低成本）— 文案草稿见 `docs/xiaohongshu-post.md`，待发布。
-8. **提交源码链接**（加分）— ✅ 已推送 `main` 与 `feat/debt-reduction-week1`，GitHub 仓库公开（MIT）。
+8. **提交源码链接**（加分）— ✅ 已推送 `main` 与 `feat/debt-reduction-week1`，GitHub 仓库公开（MIT）。2026-10-28 二次推送：循环①-⑥ + 办公室取景修复（b40fc11）+ 审查修复（9768f2e）与口径修订（e57e117）；线上双端为 R14 视觉冻结构建，源码领先部署部分待下轮盲审后同步。
 9. **魔搭创空间链接**（+20h GPU）— ✅ 应用在线（2026-10-28 循环①-⑥ 构建已部署）；`demo-video.mp4` 已于 2026-10-28 单文件同步 2:09 版（上传报告 `Normal committed 1 / LFS 0`）并重部署。
 10. **RoleGate 评审**（从未跑过）— ⏳ 未单独盲审。
 11. **2–3 人盲审**（≥7/10 放行）— ✅ 已完成十四轮 AI 盲审（R1–R14：R12 触发停止规则、R13 首过 7 分、R14 视觉冻结；R1–R8 原文在 `docs/design/reviews/`，R9–R14 记录在 `docs/design/design-audit-2026-10-25.md`）；真人盲审仍缺。
