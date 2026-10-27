@@ -1320,13 +1320,13 @@ function NavPillar({
         <ringGeometry args={[4.15, 4.24, 64]} />
         <meshBasicMaterial color={ColorBrandGold} transparent opacity={0.22} side={THREE.DoubleSide} />
       </mesh>
-      {/* 中央光柱：20m 高，街区外也能定位广场 */}
+      {/* 中央光柱：20m 高，街区外也能定位广场（决策纸⑤：夜间 0.12→0.2 补地标存在感） */}
       <mesh position={[0, 13, 0]}>
         <cylinderGeometry args={[0.14, 0.14, 15, 8, 1, true]} />
         <meshBasicMaterial
           color={ColorBrandGold}
           transparent
-          opacity={0.12}
+          opacity={night ? 0.2 : 0.12}
           blending={THREE.AdditiveBlending}
           depthWrite={false}
           side={THREE.DoubleSide}
@@ -1547,10 +1547,15 @@ export function StreetScene({
       <ArchWay industry="culture" axisX={false} sign={-1} theme={theme} />
       {/* NPC 求职者闲逛（人行道往返，街区人气） */}
       <Suspense fallback={null}>
-        <NPC a={[12, 4.2]} b={[30, 4.2]} />
-        <NPC a={[-12, -4.2]} b={[-30, -4.2]} />
-        <NPC a={[4.2, 12]} b={[4.2, 30]} />
-        <NPC a={[-4.2, -12]} b={[-4.2, -30]} />
+        {/* 决策纸⑥：4→8 人（四街双侧各一条巡游线，相位错开），夜间带脚光环 */}
+        <NPC a={[12, 4.2]} b={[30, 4.2]} night={theme === 'dark'} />
+        <NPC a={[30, -4.2]} b={[12, -4.2]} night={theme === 'dark'} />
+        <NPC a={[-12, -4.2]} b={[-30, -4.2]} night={theme === 'dark'} />
+        <NPC a={[-30, 4.2]} b={[-12, 4.2]} night={theme === 'dark'} />
+        <NPC a={[4.2, 12]} b={[4.2, 30]} night={theme === 'dark'} />
+        <NPC a={[-4.2, 30]} b={[-4.2, 12]} night={theme === 'dark'} />
+        <NPC a={[-4.2, -12]} b={[-4.2, -30]} night={theme === 'dark'} />
+        <NPC a={[4.2, -30]} b={[4.2, -12]} night={theme === 'dark'} />
       </Suspense>
       {/* 地面引导带：四街区域色（动线可读性，盲审修复） */}
       {placed.length > 0 &&

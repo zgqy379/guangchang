@@ -81,9 +81,9 @@ export function facadeTexture(floors: number, mode: 'day' | 'night' = 'night') {
 
   const bg = ctx.createLinearGradient(0, 0, 0, 512)
   if (day) {
-    // 白天：冷白玻璃底（加深一档、微增蓝铬度，与提亮后的天幕拉开分离度）
-    bg.addColorStop(0, '#d3e2ee')
-    bg.addColorStop(1, '#b5c9db')
+    // 白天：冷白玻璃底（⑥：底色微提亮，与加深的窗格拉开对比——白盒楼远读出窗格节奏）
+    bg.addColorStop(0, '#dcebf5')
+    bg.addColorStop(1, '#c3d5e4')
   } else {
     bg.addColorStop(0, '#1e2a38')
     bg.addColorStop(1, '#131c28')
@@ -113,17 +113,17 @@ export function facadeTexture(floors: number, mode: 'day' | 'night' = 'night') {
       const w = cw * 0.66
       const h = fh * 0.48
       if (day) {
-        // 白天：淡青玻璃块（半透感由底色渐变模拟），无暖光窗
-        ctx.fillStyle = '#7fa3bd'
+        // 白天：加深两档的玻璃块（⑥：远距离窗格对比）+ 深窗框
+        ctx.fillStyle = '#5e82a0'
         ctx.fillRect(x - 2, y - 2, w + 4, h + 4)
         const glass = ctx.createLinearGradient(x, y, x, y + h)
-        glass.addColorStop(0, '#c5e0f4')
-        glass.addColorStop(0.55, '#98bedb')
-        glass.addColorStop(1, '#80a5c2')
+        glass.addColorStop(0, '#a9c9e2')
+        glass.addColorStop(0.55, '#7ba6c8')
+        glass.addColorStop(1, '#6d94b4')
         ctx.fillStyle = glass
         ctx.fillRect(x, y, w, h)
         // 斜向高光条：玻璃反光的标识
-        ctx.fillStyle = 'rgba(255,255,255,0.42)'
+        ctx.fillStyle = 'rgba(255,255,255,0.4)'
         ctx.fillRect(x + w * 0.08, y + h * 0.06, w * 0.16, h * 0.88)
       } else {
         ctx.fillStyle = '#080c11'

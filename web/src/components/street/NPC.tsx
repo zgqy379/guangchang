@@ -8,7 +8,7 @@ import { assetUrl } from '../../engine/asset'
 
 const DRACO_PATH = assetUrl('/draco/')
 
-export function NPC({ a, b }: { a: [number, number]; b: [number, number] }) {
+export function NPC({ a, b, night }: { a: [number, number]; b: [number, number]; night?: boolean }) {
   const { scene } = useGLTF(assetUrl('/assets/avatar/avatar-idle.glb'), DRACO_PATH)
   const { animations } = useGLTF(assetUrl('/assets/avatar/avatar-walk.glb'), DRACO_PATH)
   const ref = useRef<THREE.Group>(null)
@@ -46,6 +46,19 @@ export function NPC({ a, b }: { a: [number, number]; b: [number, number] }) {
   return (
     <group ref={ref} dispose={null}>
       <primitive object={clone} />
+      {/* 夜间脚光环（决策纸⑥）：暖色 additive 光盘跟随 NPC——夜里「街区有人气」的最低成本叙事 */}
+      {night && (
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]}>
+          <circleGeometry args={[0.34, 20]} />
+          <meshBasicMaterial
+            color="#ffd9a0"
+            transparent
+            opacity={0.3}
+            blending={THREE.AdditiveBlending}
+            depthWrite={false}
+          />
+        </mesh>
+      )}
     </group>
   )
 }

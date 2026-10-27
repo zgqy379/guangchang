@@ -156,6 +156,7 @@ export function OfficeFacadeInstanced({
   const glassRef = useRef<THREE.InstancedMesh>(null)
   const ledRef = useRef<THREE.InstancedMesh>(null)
   const posterRef = useRef<THREE.InstancedMesh>(null)
+  const storefrontRef = useRef<THREE.InstancedMesh>(null)
 
   const countRef = useRef(0)
 
@@ -280,6 +281,23 @@ export function OfficeFacadeInstanced({
         posterMesh.instanceMatrix.needsUpdate = true
         if (posterMesh.instanceColor) posterMesh.instanceColor.needsUpdate = true
       }
+
+      // 沿街商店发光边（决策纸⑤，仅夜间）：建筑底脚一条行业色发光带——
+      // 夜鸟瞰的「沿街自发光信息层」（R9-R12 四轮共同失分位：橙/紫区成片纯黑）。
+      // 与屋顶夜脊微光上下呼应成建筑描边双线。矩阵始终写入，夜间由 visible 控制。
+      const sfMesh = storefrontRef.current
+      if (sfMesh) {
+        placements.forEach((pl, li) => {
+          // 建筑前脸（建筑中心 localZ=-3.6、深 5.2 → 前脸 localZ=-1.0），发光边贴脸外 0.02
+          sfMesh.setMatrixAt(li, roofMatrixFor(pl, 0, 0.32, -0.98, 6.4, 0.16, 0.05))
+          sfMesh.setColorAt(
+            li,
+            new THREE.Color(INDUSTRIES[pl.lot.industry].color).multiplyScalar(0.8)
+          )
+        })
+        sfMesh.instanceMatrix.needsUpdate = true
+        if (sfMesh.instanceColor) sfMesh.instanceColor.needsUpdate = true
+      }
     }
 
     // glass：底层玻璃幕墙
@@ -376,6 +394,11 @@ export function OfficeFacadeInstanced({
       <instancedMesh ref={posterRef} args={[undefined, undefined, count]}>
         <planeGeometry args={[1, 1]} />
         <meshBasicMaterial toneMapped={false} />
+      </instancedMesh>
+      {/* 沿街商店发光边（决策纸⑤，仅夜间 1 DC）：建筑底脚行业色灯带 */}
+      <instancedMesh ref={storefrontRef} args={[undefined, undefined, count]} visible={night}>
+        <boxGeometry args={[1, 1, 1]} />
+        <meshBasicMaterial />
       </instancedMesh>
     </group>
   )

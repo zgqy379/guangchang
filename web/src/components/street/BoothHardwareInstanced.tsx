@@ -108,6 +108,7 @@ export function BoothHardwareInstanced({
   const flagPoleRef = useRef<THREE.InstancedMesh>(null)
   const flagRef = useRef<THREE.InstancedMesh>(null)
   const screenRef = useRef<THREE.InstancedMesh>(null)
+  const interiorRef = useRef<THREE.InstancedMesh>(null)
 
   const roofRefs = {
     internet: useRef<THREE.InstancedMesh>(null),
@@ -273,6 +274,14 @@ export function BoothHardwareInstanced({
       if (m.instanceColor) m.instanceColor.needsUpdate = true
     })
 
+    // interior（决策纸⑥，仅夜间 1 DC）：棚下 y2.2 暖色加性面片——「亮招牌空铺面」的最低成本暖光核
+    setMat(interiorRef, (m) => {
+      placements.forEach((pl, i) => {
+        m.setMatrixAt(i, instanceMatrixFor(pl, 0, 2.2, 0.1, 1.7, 1.3, 1, -Math.PI / 2))
+      })
+      m.instanceMatrix.needsUpdate = true
+    })
+
     // roof 按行业分组
     industryList.forEach((ind) => {
       const mesh = roofRefs[ind].current
@@ -327,7 +336,8 @@ export function BoothHardwareInstanced({
       {/* glow */}
       <instancedMesh ref={glowRef} args={[undefined, undefined, count]}>
         <planeGeometry args={[2.18, 1.72]} />
-        <meshBasicMaterial vertexColors transparent opacity={night ? 0.1 : 0.16} side={THREE.DoubleSide} depthWrite={false} />
+        {/* 夜间 0.1→0.2（决策纸⑤：摊位夜光提档，R12「摊位与街道生活不可见」） */}
+        <meshBasicMaterial vertexColors transparent opacity={night ? 0.2 : 0.16} side={THREE.DoubleSide} depthWrite={false} />
       </instancedMesh>
       {/* pole */}
       <instancedMesh ref={poleRef} args={[undefined, undefined, count]}>
@@ -374,6 +384,20 @@ export function BoothHardwareInstanced({
         <planeGeometry args={[1, 1]} />
         <meshBasicMaterial toneMapped={false} />
       </instancedMesh>
+      {/* interior：棚下暖光核（1 DC，仅夜间） */}
+      {night && (
+        <instancedMesh ref={interiorRef} args={[undefined, undefined, count]}>
+          <planeGeometry args={[1, 1]} />
+          <meshBasicMaterial
+            color="#ffc46b"
+            transparent
+            opacity={0.16}
+            blending={THREE.AdditiveBlending}
+            depthWrite={false}
+            side={THREE.DoubleSide}
+          />
+        </instancedMesh>
+      )}
       {/* roof 按行业分组 */}
       {industryList.map((ind) => {
         const v = roofVariant(ind)
