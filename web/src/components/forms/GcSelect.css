@@ -8,7 +8,8 @@
 }
 
 .gc-select-label {
-  color: var(--ui-ink-primary);
+  /* 不透明面板内 → 页面前景（非玻璃墨色，T14 同款教训的 CSS 版） */
+  color: var(--ui-page-fg);
   font-weight: 600;
 }
 
@@ -21,7 +22,7 @@
   background: var(--ui-glass-underlay);
   background: var(--ui-glass-fill);
   border: 1px solid var(--ui-glass-border);
-  color: var(--ui-ink-primary);
+  color: var(--ui-page-fg);
   padding: 0 10px;
   font-size: 13px;
   cursor: pointer;

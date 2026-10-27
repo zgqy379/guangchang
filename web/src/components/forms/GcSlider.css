@@ -14,7 +14,8 @@
   justify-content: space-between;
   align-items: baseline;
   gap: 8px;
-  color: var(--ui-ink-primary);
+  /* 不透明面板（.controls）内 → 页面前景；--ui-ink-* 是玻璃浮层墨色，浅色主题压白底近不可读（盲审 R4 短板①） */
+  color: var(--ui-page-fg);
   font-weight: 600;
 }
 

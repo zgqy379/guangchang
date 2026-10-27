@@ -472,10 +472,11 @@ function districtSignTexture(ind: keyof typeof INDUSTRIES) {
 
 function DistrictRoadSigns({ night }: { night: boolean }) {
   const arms: { ind: keyof typeof INDUSTRIES; x: number; z: number; rot: number }[] = [
-    { ind: 'internet', x: 13.5, z: 0, rot: Math.PI / 2 },
-    { ind: 'finance', x: -13.5, z: 0, rot: -Math.PI / 2 },
-    { ind: 'manufacturing', x: 0, z: 13.5, rot: 0 },
-    { ind: 'culture', x: 0, z: -13.5, rot: Math.PI },
+    // rot + π：文字朝向对齐行人行进方向（盲审 R3 附注：自进口看原朝向 180° 倒置）
+    { ind: 'internet', x: 13.5, z: 0, rot: Math.PI / 2 + Math.PI },
+    { ind: 'finance', x: -13.5, z: 0, rot: -Math.PI / 2 + Math.PI },
+    { ind: 'manufacturing', x: 0, z: 13.5, rot: Math.PI },
+    { ind: 'culture', x: 0, z: -13.5, rot: 0 },
   ]
   return (
     <group>

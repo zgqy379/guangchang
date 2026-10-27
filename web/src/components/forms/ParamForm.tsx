@@ -4,7 +4,7 @@
 // 词典加一条 implemented 词条 → 零前端代码自动出现控件。
 // 候选人侧与 HR 侧共用本组件，仅 side 不同。
 import { useMemo } from 'react'
-import { editableEntries, readValue, makePatch, type DictEntry } from '../../engine/dictionary-binding'
+import { editableEntries, readValue, makePatch, bindField, type DictEntry } from '../../engine/dictionary-binding'
 import { GcSlider } from './GcSlider'
 import { GcSelect } from './GcSelect'
 import './ParamForm.css'
@@ -54,11 +54,14 @@ export function ParamForm({ side, params, onChange }: ParamFormProps) {
           )
         }
         if (input.type === 'select') {
+          // select 必须传**原始存储值**（如 14）：readValue 返回的是展示 label（"14 薪"），
+          // 与 option.value（"14"）对不上会导致回落到第一项——预设芯片切 14 薪时下拉仍显 12 薪（盲审 R4 短板①）
+          const rawValue = String((params as Record<string, unknown>)[bindField(entry)] ?? input.default ?? input.options?.[0]?.value ?? '')
           return (
             <GcSelect
               key={entry.id}
               label={entry.label}
-              value={String(current ?? input.default ?? input.options?.[0]?.value ?? '')}
+              value={rawValue}
               options={input.options ?? []}
               onChange={(v) => handleChange(entry, v)}
             />

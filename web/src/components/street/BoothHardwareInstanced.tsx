@@ -302,7 +302,7 @@ export function BoothHardwareInstanced({
       {/* glow */}
       <instancedMesh ref={glowRef} args={[undefined, undefined, count]}>
         <planeGeometry args={[2.18, 1.72]} />
-        <meshBasicMaterial vertexColors transparent opacity={0.16} side={THREE.DoubleSide} depthWrite={false} />
+        <meshBasicMaterial vertexColors transparent opacity={night ? 0.1 : 0.16} side={THREE.DoubleSide} depthWrite={false} />
       </instancedMesh>
       {/* pole */}
       <instancedMesh ref={poleRef} args={[undefined, undefined, count]}>

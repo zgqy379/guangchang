@@ -510,7 +510,8 @@ export function HRStand({ lot, onEnterOffice, delivered = false, theme = 'dark' 
                 <meshBasicMaterial
                   map={spillTexture()}
                   transparent
-                  opacity={0.5}
+                  /* 夜间降档：加法混合窗光 0.5 常开会与 LED/棚光环叠加成白雾淹没 HR（盲审 R3 短板①） */
+                  opacity={envNight ? 0.22 : 0.5}
                   depthWrite={false}
                   blending={THREE.AdditiveBlending}
                 />
