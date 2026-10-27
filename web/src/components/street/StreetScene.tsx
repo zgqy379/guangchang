@@ -515,14 +515,14 @@ function DistantSkyline({ theme }: { theme: ThemeName }) {
   return (
     <instancedMesh ref={bodies} args={[undefined, undefined, list.length]}>
       <boxGeometry args={[1, 1, 1]} />
-      {/* 白天：冷白玻璃远景（融入浅色天幕）；夜间：深蓝剪影 */}
+      {/* 白天：冷白玻璃远景（融入浅色天幕）；夜间：深蓝剪影+微光窗感（夜景 v2：夜底提亮一档让体块读出，白鳍片降噪） */}
       <meshStandardMaterial
-        color={night ? ColorSceneFloor : ThemeLightGlassBody}
+        color={night ? '#1d2940' : ThemeLightGlassBody}
         roughness={night ? 0.95 : 0.5}
         transparent={!night}
         opacity={night ? 1 : 0.72}
-        emissive={night ? '#0e1622' : ThemeLightSkyTop}
-        emissiveIntensity={night ? 0.6 : 0.12}
+        emissive={night ? '#1a2c44' : ThemeLightSkyTop}
+        emissiveIntensity={night ? 0.9 : 0.12}
       />
     </instancedMesh>
   )
@@ -778,6 +778,17 @@ function ArchWay({ industry, axisX, sign, theme }: { industry: keyof typeof INDU
 }
 
 // 金色粒子爆发：投递落点的世界层强化（design-audit 四轮 8+ 清单 #3）。
+// 玩家英雄光：夜间跟随玩家的暖色点光（盲审 R7：黑衣玩家剪影沉进路面）。
+// 单灯 1 DC，仅夜间挂载；白天日光下无意义不渲染。
+function PlayerKissLight({ positionRef }: { positionRef: React.MutableRefObject<THREE.Vector3> }) {
+  const ref = useRef<THREE.PointLight>(null)
+  useFrame(() => {
+    const l = ref.current
+    if (l && positionRef.current) l.position.set(positionRef.current.x, 2.1, positionRef.current.z)
+  })
+  return <pointLight ref={ref} intensity={7} distance={7} decay={2} color="#ffd9a0" />
+}
+
 // 16 粒加性混合点精灵，仅在 DeliveryFX 存活的 ~1.15s 内 +1 draw call，随后随组件卸载归零。
 const GOLD_BURST_N = 16
 function GoldBurst({ x, z }: { x: number; z: number }) {
@@ -832,9 +843,11 @@ function GoldBurst({ x, z }: { x: number; z: number }) {
 // 投递飞袋：抛物线飞向摊位 + 落点金环爆开 + 瞬时补光（世界层反馈）
 function DeliveryFX({
   d,
+  night = false,
   onDone,
 }: {
   d: { id: number; from: [number, number]; to: [number, number] }
+  night?: boolean
   onDone: () => void
 }) {
   const ref = useRef<THREE.Mesh>(null)
@@ -856,9 +869,10 @@ function DeliveryFX({
       m.visible = fly < 1
     }
     const burst = Math.min(1, Math.max(0, (t.current - 0.7) / 0.45))
-    if (ring.current) ring.current.scale.setScalar(0.55 + burst * 1.9)
-    if (ringMat.current) ringMat.current.opacity = burst > 0 ? (1 - burst) * 0.85 : 0
-    if (light.current) light.current.intensity = burst > 0 ? (1 - burst) * 26 : 0
+    if (ring.current) ring.current.scale.setScalar(0.55 + burst * (night ? 2.4 : 1.9))
+    // 投递时刻独立光效语言：夜间金环更大更亮 + 点光更强（盲审 R7 短板③）
+    if (ringMat.current) ringMat.current.opacity = burst > 0 ? (1 - burst) * (night ? 1 : 0.85) : 0
+    if (light.current) light.current.intensity = burst > 0 ? (1 - burst) * (night ? 42 : 26) : 0
     if (t.current >= 1.15) onDone()
   })
   return (
@@ -1438,9 +1452,10 @@ export function StreetScene({
       />
       {nearLot && <NearRing lot={nearLot} />}
       {deliveries.map((d) => (
-        <DeliveryFX key={d.id} d={d} onDone={() => setDeliveries((l) => l.filter((x) => x.id !== d.id))} />
+        <DeliveryFX key={d.id} d={d} night={theme === 'dark'} onDone={() => setDeliveries((l) => l.filter((x) => x.id !== d.id))} />
       ))}
       <NavPillar refs={refs} onInteract={() => setFollow(true)} visible={follow} theme={theme} />
+      {theme === 'dark' && <PlayerKissLight positionRef={positionRef} />}
       {/* 求职者展位示例（P2 候选人侧）：街区中央附近，展示求职者 3D 形象、作品环绕、要价云 */}
       <CandidateBooth
         expectedSalary={450000}

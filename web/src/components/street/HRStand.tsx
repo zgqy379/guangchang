@@ -85,8 +85,8 @@ export function facadeTexture(floors: number, mode: 'day' | 'night' = 'night') {
     bg.addColorStop(0, '#d3e2ee')
     bg.addColorStop(1, '#b5c9db')
   } else {
-    bg.addColorStop(0, '#1a2431')
-    bg.addColorStop(1, '#0f161f')
+    bg.addColorStop(0, '#1e2a38')
+    bg.addColorStop(1, '#131c28')
   }
   ctx.fillStyle = bg
   ctx.fillRect(0, 0, 512, 512)
@@ -128,18 +128,24 @@ export function facadeTexture(floors: number, mode: 'day' | 'night' = 'night') {
       } else {
         ctx.fillStyle = '#080c11'
         ctx.fillRect(x - 2, y - 2, w + 4, h + 4)
-        const lit = Math.random() < 0.58
+        const lit = Math.random() < 0.64
         if (lit) {
-          const warm = Math.random() < 0.68
+          const warm = Math.random() < 0.6
+          const bright = Math.random() < 0.3 // 两档窗色：少量全亮锚点窗拉开层次（夜景 v2）
           const glass = ctx.createLinearGradient(x, y, x, y + h)
-          glass.addColorStop(0, warm ? '#f2d9a4' : '#c7dcea')
-          glass.addColorStop(1, warm ? '#a87a45' : '#7595ad')
+          if (bright) {
+            glass.addColorStop(0, warm ? '#ffe9b8' : '#d8ecf8')
+            glass.addColorStop(1, warm ? '#c08a45' : '#7fa0bd')
+          } else {
+            glass.addColorStop(0, warm ? '#d9bd8a' : '#a8c4d6')
+            glass.addColorStop(1, warm ? '#7c5a32' : '#5d7d97')
+          }
           ctx.fillStyle = glass
           ctx.fillRect(x, y, w, h)
           ctx.fillStyle = 'rgba(255,255,255,0.16)'
           ctx.fillRect(x + w * 0.1, y + h * 0.08, w * 0.14, h * 0.84)
         } else {
-          ctx.fillStyle = Math.random() < 0.5 ? '#14202c' : '#1a2836'
+          ctx.fillStyle = Math.random() < 0.5 ? '#16222e' : '#1d2c3b'
           ctx.fillRect(x, y, w, h)
         }
       }
@@ -481,9 +487,13 @@ export function HRStand({ lot, onEnterOffice, delivered = false, theme = 'dark' 
       {/* HR 形象（near 时真 GLB；远景占位由 PlaceholderHRs InstancedMesh 池统一绘制，M6a） */}
       <group position={[0, 0.14, 0]}>
         {near ? (
-          <Suspense fallback={null}>
-            <RealHR hrIndex={lot.hrIndex} />
-          </Suspense>
+          <>
+            {/* 夜间 HR 补光：暖色主光（盲审 R7：HR 面部无补光/轮廓光，关键时刻没有自己的光效语言） */}
+            <pointLight position={[0, 2.5, 1.6]} intensity={envNight ? 5 : 0} distance={5.5} decay={2} color="#ffd9a0" />
+            <Suspense fallback={null}>
+              <RealHR hrIndex={lot.hrIndex} />
+            </Suspense>
+          </>
         ) : null}
       </group>
       {/* 名牌 */}

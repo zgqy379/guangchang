@@ -6,76 +6,76 @@
   "metrics": [
     {
       "tag": "hero(鸟瞰)",
-      "drawCalls": 322,
-      "drawCallsMin": 322,
-      "triangles": 995654,
-      "fps": 76.3,
+      "drawCalls": 354,
+      "drawCallsMin": 352,
+      "triangles": 1544886,
+      "fps": 47.8,
       "fpsRounds": [
-        78.7,
-        76.3,
-        71.4
+        49,
+        47.8,
+        42.4
       ],
       "memory": {
-        "geometries": 312,
-        "textures": 45,
-        "programs": 45
+        "geometries": 336,
+        "textures": 50,
+        "programs": 50
       },
       "webgl2": true,
       "renderer": "ANGLE (AMD, AMD Radeon(TM) Graphics (0x00001681) Direct3D11 vs_5_0 ps_5_0, D3D11)"
     },
     {
       "tag": "walk(越肩)",
-      "drawCalls": 172,
-      "drawCallsMin": 98,
-      "triangles": 7907671,
-      "fps": 49.8,
+      "drawCalls": 189,
+      "drawCallsMin": 101,
+      "triangles": 8334446,
+      "fps": 20,
       "fpsRounds": [
-        50.5,
-        49.8,
-        44.2
+        20.8,
+        20,
+        17.7
       ],
       "memory": {
-        "geometries": 419,
-        "textures": 109,
-        "programs": 64
+        "geometries": 467,
+        "textures": 119,
+        "programs": 189
       },
       "webgl2": true,
       "renderer": "ANGLE (AMD, AMD Radeon(TM) Graphics (0x00001681) Direct3D11 vs_5_0 ps_5_0, D3D11)"
     },
     {
       "tag": "focus(特写)",
-      "drawCalls": 182,
-      "drawCallsMin": 181,
-      "triangles": 8090409,
-      "fps": 48.5,
+      "drawCalls": 188,
+      "drawCallsMin": 186,
+      "triangles": 8090645,
+      "fps": 19.3,
       "fpsRounds": [
-        51.5,
-        48.5,
-        43.5
+        21.7,
+        19.3,
+        18.5
       ],
       "memory": {
-        "geometries": 449,
-        "textures": 115,
-        "programs": 64
+        "geometries": 467,
+        "textures": 119,
+        "programs": 189
       },
       "webgl2": true,
       "renderer": "ANGLE (AMD, AMD Radeon(TM) Graphics (0x00001681) Direct3D11 vs_5_0 ps_5_0, D3D11)"
     },
     {
       "tag": "deliver(投递)",
-      "drawCalls": 183,
-      "drawCallsMin": 183,
-      "triangles": 7816059,
-      "fps": 40.8,
+      "drawCalls": 189,
+      "drawCallsMin": 189,
+      "triangles": 7816295,
+      "fps": 20,
       "fpsRounds": [
-        44.6,
-        40.8,
-        25
+        20.4,
+        20,
+        18.8
       ],
       "memory": {
-        "geometries": 450,
-        "textures": 116,
-        "programs": 79
+        "geometries": 468,
+        "textures": 121,
+        "programs": 191
       },
       "webgl2": true,
       "renderer": "ANGLE (AMD, AMD Radeon(TM) Graphics (0x00001681) Direct3D11 vs_5_0 ps_5_0, D3D11)"
@@ -86,7 +86,7 @@
       {
         "sel": ".game-hud",
         "x": 183,
-        "y": 105,
+        "y": 155,
         "w": 197,
         "h": 126
       },
@@ -175,7 +175,7 @@
       },
       "hud": {
         "x": 183,
-        "y": 105,
+        "y": 155,
         "w": 197,
         "h": 126
       },
@@ -185,7 +185,7 @@
       },
       "toggleVsHud": {
         "ox": 94,
-        "oy": -143
+        "oy": -93
       },
       "panelVsCard": {
         "ox": -16,
@@ -218,7 +218,7 @@
       },
       "hud": {
         "x": 183,
-        "y": 105,
+        "y": 155,
         "w": 197,
         "h": 126
       },
@@ -228,7 +228,7 @@
       },
       "toggleVsHud": {
         "ox": 94,
-        "oy": -143
+        "oy": -93
       },
       "panelVsCard": {
         "ox": 358,

@@ -115,7 +115,7 @@ export function skyFromEnv(
       // 夜间天幕：顶部更深、地平线略亮（城市辉光）
       topColor: ThemeDarkSkyTop,
       horizonColor: ThemeDarkSkyHorizon,
-      bandColor: ThemeDarkSkyHorizon,
+      bandColor: '#232b48', // 夜间地平线城市辉光（夜景 v2：比地平线亮一档的暖蓝带）
     }
   }
 

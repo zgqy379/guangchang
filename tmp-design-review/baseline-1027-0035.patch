@@ -1,0 +1,1954 @@
+diff --git a/.gitignore b/.gitignore
+index e54be46..53f1915 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -24,6 +24,9 @@ docs/iterations/**/*.zip
+ docs/iterations/**/*.spz
+ assets/interiorgs-0024/
+ web/public/assets/office/*.ply
++# 受限扫描资产（InteriorGS 等）PLY 兜底：任何位置的 *.ply 一律不进公开仓库（防 T7/T12b 二次泄露复发）
++web/public/**/*.ply
++*.ply
+ # 受限授权资产（InteriorGS 等）的截图/渲染图同样不得进公开仓库
+ docs/iterations/**/*interiorgs*
+ web/public/**/*interiorgs*
+diff --git a/AGENTS.md b/AGENTS.md
+index 90c6d71..c6448e5 100644
+--- a/AGENTS.md
++++ b/AGENTS.md
+@@ -51,7 +51,7 @@ npx gh-pages -d dist -b gh-pages
+ - 相机初始位必须对场景所有建筑包围盒做相交验证（T9：机位落在楼内 = 全黑视角）
+ - 街区布局常量 `START_ALONG=14`、`SLOT_GAP=3.6`；改回 10 街角摊位会被邻街办公楼吞（T10）
+ - 颜色唯一来源是设计令牌：CSS 用 `var(--color-*)`，3D 用 `generated/design-tokens.output.mjs`
+-- **禁止模块级 `useGLTF.preload`**：它在模块 import 时执行 = 首屏必拉。现存 3 处违规（`AvatarActor.tsx:183` 3.08MB、`AssetProp.tsx:45` 2.23MB、`HRStand.tsx:39-40` 16MB），导致首屏实测 **5.62MB 超 5MB 红线**。每个 `<Canvas>` 归属唯一场景，禁止在 `main.tsx`/`App.tsx` 顶层 import 3D 组件
++- **禁止模块级 `useGLTF.preload`**：它在模块 import 时执行 = 首屏必拉。原 3 处违规（`AvatarActor.tsx:183` 3.08MB、`AssetProp.tsx:45` 2.23MB、`HRStand.tsx` 16MB）**均已整改**——`AssetProp`/`AvatarActor` 改为注释**明确不做**；`HRStand` 的 16MB HR 资产 preload 已收进 `preloadHRModels()` 函数（仅落地漫游时调用），不再随模块 import 执行。规则本身仍生效：每个 `<Canvas>` 归属唯一场景，禁止在 `main.tsx`/`App.tsx` 顶层 import 3D 组件
+ - **玻璃浮层在 v4 反相后必须垫实底**：浅色主题下深玻璃 `.72` 压在最亮天幕时，次级文字仅 **4.48:1**、muted **4.20:1**（双双不达标；夜间主题无此问题）。改用「`--ui-glass-underlay` 实底 + 玻璃面」双层；**`--ui-glass-fill` 语义不动**，另起新变量。**对比度必须按最坏背景验算**（半透明浮层的背景是变量），且用 `styles.css` 的实际生效令牌，勿引用设计文档的历史值
+ - **滑杆只驱动建厂预览与对比页**：街区的 64 个摊位是**已发布快照**，只在加载时算一次。违反此条直接爆 draw call 红线
+ - **诚实是硬门槛**：全站禁止假进度条与"正在生成 3D…"文案；回放必须常驻标注、剩余时间显示真实值。被加速的是等待过程，不是生成结果
+diff --git a/docs/design/twin-style-spec-v4.md b/docs/design/twin-style-spec-v4.md
+index 8549da1..e3709b8 100644
+--- a/docs/design/twin-style-spec-v4.md
++++ b/docs/design/twin-style-spec-v4.md
+@@ -392,9 +392,9 @@ project.md 的立意是"**参数空间化 3D 求职招聘街区**"，v1.2 强调
+ 
+ | # | 文件 | 改动 | 状态 |
+ |---|---|---|---|
+-| N1 | `web/src/engine/theme.ts` | **新增**：主题状态机（`systemHour` / `resolveTheme` / `isDusk` / `offworkGlow` / `LockMode`） | ✅ |
++| N1 | `web/src/engine/theme.ts` | **新增**：主题状态机；已接入 `systemHour` / `resolveTheme` / `isDusk` / `LockMode`。原列表中的 `offworkGlow` **未实现/未接入**（当前代码查无此导出，2026-10-27 审查更正） | ⚠️ |
+ | N2 | `web/src/engine/sunPosition.ts` | **新增**：真实天文太阳/月亮位置（NOAA/SunCalc 简化式） | ✅ |
+-| M1 | `web/src/engine/sky.ts` | 未改（`skyFromEnv` 新写于 WorkdaySky.tsx 内，旧文件保留供其他模式用） | ✅ |
++| M1 | `web/src/engine/sky.ts` | **未改 + 全项目零 import（死代码）**：`skyFromEnv` 已新写于 WorkdaySky.tsx 内，旧 `sky.ts` 无任何引用——待删除，故不计入"已落地"（2026-10-27 审查更正） | ❌ |
+ | M2 | `web/src/components/WorkdaySky.tsx` | 重写：主题化天幕（浅/深两套渐变）、真实太阳位置、方向性阴影、冷色补光 | ✅ |
+ | M3 | `web/src/components/street/HRStand.tsx` | `facadeTexture(floors, mode)` / `glassTexture(mode)` 双模式；摊位/雨棚/牌坊/屋顶全部主题化；加孪生轮廓线框 | ✅ |
+ | M4 | `web/src/components/street/StreetScene.tsx` | 地面/路面/天际线/路灯/牌坊/导航柱/参数碑主题化；新增 `twinGridTexture()` 网格地面 | ✅ |
+@@ -430,6 +430,7 @@ project.md 的立意是"**参数空间化 3D 求职招聘街区**"，v1.2 强调
+ 
+ ### C.4 尚未完成（下一轮）
+ 
++- [ ] **清理死代码**：`web/src/engine/sky.ts`（全项目零 import）；`theme.ts` 原列的 `offworkGlow` 未实现/未接入（附录 C 曾虚标 ✅，2026-10-27 更正）
+ - [ ] **孪生数据体**：参数以发光体块悬浮在建筑内部（当前仍是参数碑 + 悬浮标签）
+ - [ ] **实体头剪影差异**：四区顶冠形态差异化（互联网平顶+天线 / 金融尖顶 / 智造水塔 / 文创坡顶）已有雏形，但需在鸟瞰下强化个体识别
+ - [ ] **办公室 3DGS 孪生叠加层**：点云 + 线框 + "扫描中"状态（缓解写实扫描与孪生风的割裂）
+diff --git a/project.md b/project.md
+index 589ec6c..960957a 100644
+--- a/project.md
++++ b/project.md
+@@ -531,8 +531,8 @@ HR 视角：我的摊位 / 建厂进度 / 收到的投递 → 访客模式 → 
+ 
+ | 招聘参数 | 3D 映射规则 | 感知直觉 |
+ |---|---|---|
+-| 年薪 15 万 | 15cm 高百元钞堆（1,500 张） | 膝盖高度 |
+-| 年薪 100 万 | 1 米高钞票塔（1 万张） | 一人高 |
++| 年薪 15 万 | 金字塔钞票山：1,500 张→30 沓→4 层，渲染高约 0.32 m | 小腿高度 |
++| 年薪 100 万 | 金字塔钞票山：1 万张→200 沓→23 层，渲染高约 1.84 m | 一人高 |
+ | 年薪结构（14/16 薪） | 钞票山分色：底座 12 薪 + 顶部异色增量层 | 多出来的钱换了个颜色，一目了然 |
+ | 五险一金缴费基数比例 | 钞票山旁被"切走"的部分**按基数比例缩放**：全额缴纳=完整切口，60% 基数=切口明显更大 | 到手前损耗的真实差距 |
+ | 公积金部分 | 额外标注"退休前锁定" | 流动性损失 |
+@@ -731,30 +731,47 @@ dictionary/
+ ## 7.4 关键技术点：Instanced Mesh 钞票山
+ 
+ ```tsx
+-// 薪酬钞票山：万级实例单次 draw call（v1.1 修复实例数 bug）
++// 薪酬钞票山：万级实例单次 draw call（v1.1 修复实例数 bug；层容量算法已对齐 engine/params.ts）
+ import { useRef, useLayoutEffect, useMemo } from 'react'
+ import * as THREE from 'three'
+ 
+-// 钞票尺寸：155mm × 77mm × 0.1mm（第五套人民币100元），50 张一沓
++// 钞票尺寸：155mm × 77mm × 0.1mm（第五套人民币100元），50 张一沓（每沓 5,000 元）
+ const BILL_W = 0.155, BILL_D = 0.077, STACK_H = 0.005
++// 感知放大：真实比例下 15 万年薪只堆到 15cm 高，在米级场景中不可感知。
++// 水平等比 ×2.5（公司间比例严格保持）；高度另做感知增强 ×16（MOUNTAIN_HEIGHT_SCALE）。
++const MOUNTAIN_HEIGHT_SCALE = 16
+ 
+ function MoneyMountain({ salary }: { salary: number }) {
+   const meshRef = useRef<THREE.InstancedMesh>(null)
+   const temp = useMemo(() => new THREE.Object3D(), [])
+ 
+-  // 实例数由 salary 实际算出，而不是写死 —— 修复：旧版固定 10000，
++  // 实例数由 salary 实算而非写死 —— 修复：旧版固定 10000，
+   // 年薪低于 50 万时未设置的实例全部堆在原点形成"幽灵柱"
+   const layout = useMemo(() => {
+-    const bundles = Math.floor(salary / 100 / 50)
+-    const positions: [number, number, number][] = []
+-    let layer = 0, remaining = bundles
++    // 层容量固定 3×3=9 沓/层，逐层居中 + 锥度收缩 → 金额差直接变成"高度差"。
++    // 【禁用 ceil(sqrt(N)) 布局】ceil(sqrt(N))²≥N 恒成立 → 任何金额都只堆一层，
++    // 15 万不可见、100 万是一块平铺地毯（2026-10-25 审查修复，实际实现在 engine/params.ts）。
++    const stacks = Math.max(0, Math.floor(salary / 5000))
++    const COLS = 3, ROWS = 3
++    const positions: { pos: [number, number, number]; layer: number }[] = []
++    let remaining = stacks, layer = 0
+     while (remaining > 0) {
+-      const side = Math.ceil(Math.sqrt(remaining)) // 金字塔逐层收窄
+-      for (let x = 0; x < side && remaining > 0; x++)
+-        for (let z = 0; z < side && remaining > 0; z++) {
+-          positions.push([x * BILL_W, layer * STACK_H, z * BILL_D])
+-          remaining--
++      const n = Math.min(COLS * ROWS, remaining)
++      const usedCols = Math.min(COLS, n)
++      const usedRows = Math.min(ROWS, Math.ceil(n / COLS))
++      const cx = ((usedCols - 1) / 2) * BILL_W
++      const cz = ((usedRows - 1) / 2) * BILL_D
++      const taper = Math.max(0.5, 1 - layer * 0.045)
++      let placed = 0
++      for (let x = 0; x < usedCols && placed < n; x++)
++        for (let z = 0; z < usedRows && placed < n; z++) {
++          positions.push({
++            pos: [(x * BILL_W - cx) * taper, (layer + 0.5) * STACK_H, (z * BILL_D - cz) * taper],
++            layer,
++          })
++          placed++
+         }
++      remaining -= placed
+       layer++
+     }
+     return positions
+@@ -762,7 +779,7 @@ function MoneyMountain({ salary }: { salary: number }) {
+ 
+   useLayoutEffect(() => {
+     layout.forEach((p, i) => {
+-      temp.position.set(...p)
++      temp.position.set(...p.pos)
+       temp.updateMatrix()
+       meshRef.current!.setMatrixAt(i, temp.matrix)
+     })
+@@ -953,7 +970,7 @@ API实测(今起) │           │           │ 提交 11.19 19:00
+   （`/docs/report-skeleton.md`），每周填一节，M5 只做定稿不做初稿
+ - **迭代存档从今天开始**：格式规范见 `/docs/iterations/README.md`——
+   每次生成必存 prompt+参数+版本，只截成功图拼不出"迭代对比"
+-- **进度状态（10.26 二次更新）**：✅ 报名/组队/选题全部完成（进度条 01–03 绿，报名+团队积分均已发放，04 作品提交已开启）｜✅ W1 核心实测完成：逛厂币路线确立、Avatar 生成+绑骨、OUS 上传链路验证｜✅ 街区版 Demo 上线（四模式 + HUD + 参数碑 + 办公室 3DGS）、报告书 PDF、Demo 视频、魔搭创空间｜✅ 10.26 合规修复：Draco 解码器自托管（原 jsDelivr 外链在弱网/国内下 `ERR_CONNECTION_CLOSED` 导致模型全部加载失败）、公开构建不再暴露受限 InteriorGS 入口、受限截图移出公开仓库、报告链接与事实口径修正、新增 `THIRD_PARTY_NOTICES.md`｜⏳ 待办：魔搭点"重新部署"、官网正式提交、小红书发布、移动端真机数据
++- **进度状态（10.26 二次更新）**：✅ 报名/组队/选题全部完成（进度条 01–03 绿，报名+团队积分均已发放，04 作品提交已开启）｜✅ W1 核心实测完成：逛厂币路线确立、Avatar 生成+绑骨、OUS 上传链路验证｜✅ 街区版 Demo 上线（四模式 + HUD + 参数碑 + 办公室 3DGS）、报告书 PDF、Demo 视频、魔搭创空间｜✅ 10.26 合规修复：Draco 解码器自托管（原 jsDelivr 外链在弱网/国内下 `ERR_CONNECTION_CLOSED` 导致模型全部加载失败）、公开构建不再暴露受限 InteriorGS 入口、受限截图移出公开仓库、报告链接与事实口径修正、新增 `THIRD_PARTY_NOTICES.md`｜⏳ 待办：官网正式提交并留存回执、小红书/X 发布、移动端真机数据（✅ 魔搭「重新部署」已于 2026-10-27 完成，构建中）
+ 
+ | 里程碑 | 时间 | 关键交付 | 验收标准 |
+ |--|--|--|--|
+@@ -968,7 +985,7 @@ API实测(今起) │           │           │ 提交 11.19 19:00
+ 
+ | 提交物 | 性质 | 状态 |
+ |--|--|--|
+-| **可运行 Demo 链接** | 必交 | ✅ **https://zgqy379.github.io/guangchang/**（10.26 合规修复版：Draco 自托管、真实浏览器验收通过——街区/HUD/钱山/Avatar 正常渲染、控制台零报错）；✅ **魔搭创空间：https://modelscope.cn/studios/zgqy379/guangchang3d**（新构建已上传 `Normal committed / LFS 0`，**待点"重新部署"生效**）。**部署 checklist：受限资产禁止放 `web/public/`（构建输入）；dist 内无 `*.ply`；不依赖任何第三方 CDN；部署后完整启动验收（真机/真实浏览器，curl 200 不算数）** |
++| **可运行 Demo 链接** | 必交 | ✅ **https://zgqy379.github.io/guangchang/**（10.26 合规修复版：Draco 自托管、真实浏览器验收通过——街区/HUD/钱山/Avatar 正常渲染、控制台零报错）；✅ **魔搭创空间：https://modelscope.cn/studios/zgqy379/guangchang3d**（新构建已上传 `Normal committed / LFS 0`；**2026-10-27 经 egolite(ego-browser) 自动点「重新部署→确认部署」成功，页面已转入「构建中」**）。**部署 checklist：受限资产禁止放 `web/public/`（构建输入）；dist 内无 `*.ply`；不依赖任何第三方 CDN；部署后完整启动验收（真机/真实浏览器，curl 200 不算数）** |
+ | **Demo 视频** | 必交（双保险） | ✅ **https://zgqy379.github.io/guangchang/demo-video.mp4**（实测 39.9s，1280×720/25fps：标题卡→招聘街区鸟瞰（HUD/参数碑/小地图）→落地越肩→真 HR 特写→投递结算→对比篮 A/B→四区巡游→片尾卡；实机录屏含字幕，无音轨） |
+ | 项目报告书（PDF/PPT 或链接） | 必交 | ✅ `docs/report.pdf` v2（3 页）：可点击链接、Aholo 能力运用表、关键资产迭代与 Aholo 产物图、主要工具与素材授权、安全与合规声明 |
+ | 小红书发布链接 | 加分 | ⏳ 未发布（官方：不发则该维度 0 分，不影响资格）。计划见 `docs/content-plan.md` |
+@@ -976,6 +993,23 @@ API实测(今起) │           │           │ 提交 11.19 19:00
+ 
+ > 提交入口已开（04 作品提交）；选题信息自动带入提交表单，截止前可随时修改。
+ 
++### 9.4b 官方合规硬性要求（2026-10-27 从官网规则原文核对）
++
++> 来源：官网 hackathon 页内嵌《参赛规则》全文（页面为 SPA，规则文本在 `entry.js` bundle）。以下为**硬性/红线项**，逐条闭环。
++
++| 官方要求 | 性质 | 闭环状态 |
++|--|--|--|
++| 截止 **2026-11-19 19:00（UTC+8，北京）** ＝ 11-19 06:00 EST(UTC−5) | 硬性 | ⏳ 官网正式提交 |
++| 有效提交 = 官网完成提交并**获得项目编号 + 提交回执** | 硬性 | ⏳ 待办（唯一由外部系统判定、不可代码化的动作） |
++| **必须使用 Aholo Lux3D** 且参与核心创作 | **红线（不满足判无效）** | ✅ 证据链：`docs/iterations/` lux3d-avatar / lux3d-hr / lux3d-money + reality-office + spatialgen-space |
++| 必交① 项目报告书（PDF 或 PPT） | 硬性 | ✅ `docs/report.pdf` |
++| 必交② 可运行 Demo 链接 或 Demo 演示视频（二选一即可） | 硬性 | ✅ 双保险（Pages + 魔搭 + demo mp4） |
++| Demo 链接/测试账号/核心功能须可用 **不早于 2026-12-31（含当日）** | 硬性 | ⚠️ **需写入上线纪律**（此前未记录） |
++| 每队仅 1 个正式作品；队长提交；截止后材料不得实质变更；判分以截止前最后成功版本为准 | 硬性 | ✅ 单人即队长 |
++| 社交传播（未发布该项直接 0 分，不影响资格与其他维度） | 加分 | ⏳ 小红书 **#Aholo黑客松**、X **#Manycorehackathon**、魔搭作品链接→**20 小时 Notebook GPU** |
++
++> **上线纪律新增**：Demo 链接（Pages + 魔搭）须保持可用至 2026-12-31 之后；每次更新构建后必须重新部署魔搭（已由 `tools/ms-redeploy.mjs` 自动化）。
++
+ ## 9.5 评审权重对照
+ 
+ | 维度 | 权重 | 逛厂策略 |
+@@ -1014,7 +1048,7 @@ API实测(今起) │           │           │ 提交 11.19 19:00
+ 
+ | 虚构公司 | 人设 | 参数特征 | 演示看点 |
+ |--|--|--|--|
+-| 不眠星云科技 | 高薪卷王 | 年薪 60 万 / 下班 23:00 / 大小周 / 竞业铁栅栏 | 山很高，月亮挂在凌晨——钱和命的交易 |
++| 不眠星云科技 | 高薪卷王 | 年薪 50 万 / 下班 23:00 / 大小周 / 竞业铁栅栏 | 山很高，月亮挂在凌晨——钱和命的交易 |
+ | 慢山文旅 | 低薪清闲 | 年薪 15 万 / 下班 18:00 / 弹性 / 远程 | 山到膝盖，永远是夕阳——"小而快乐"是合法选择 |
+ | 追光新创 | 画饼大师 | base 18 万 + "价值 200 万期权" / 下班 21:00 | 薛定谔钞票云被防博弈规则压缩成一小片——**Demo 里当场演示"期权撑不起山"** |
+ 
+@@ -1099,16 +1133,20 @@ API实测(今起) │           │           │ 提交 11.19 19:00
+ 
+ # 附录A　人民币换算速查表
+ 
+-> 第五套人民币 100 元：155mm × 77mm × 0.1mm，单张体积 ≈ 1.19cm³
+-
+-| 年薪 | 张数（百元） | 堆叠高度 | 重量 | 空间直觉 |
+-|--|--|--|--|--|
+-| 15 万 | 1,500 | **15 cm** | ≈1.7 kg | 小腿高度 |
+-| 30 万 | 3,000 | **30 cm** | ≈3.5 kg | 膝盖高度 |
+-| 50 万 | 5,000 | **50 cm** | ≈5.7 kg | 腰部以下 |
+-| 100 万 | 10,000 | **1 m** | ≈11.5 kg | 一人高 |
+-| 500 万 | 50,000 | 5 m | ≈57.5 kg | 一层楼 |
+-| 1000 万 | 100,000 | 10 m | ≈115 kg | 顶到办公室天花板 |
++> 第五套人民币 100 元：155mm × 77mm × 0.1mm，单张体积 ≈ 1.19cm³。50 张一沓 = 5,000 元、沓高 5mm。
++> **两种高度别混**：「物理平叠高度」是一沓沓平叠的真实高度（与年薪线性）；「街区渲染高度」是场景
++> 里钞票山的实际视觉高度——按金字塔布局（`engine/params.ts` `layerLayout`：每层固定 3×3=9 沓，
++> 层数 = ⌈沓数/9⌉），再乘高度感知放大 `MOUNTAIN_HEIGHT_SCALE=16`（每层 5mm×16 = 0.08m）。
++> 因层数取整，**渲染高度对年薪是分段/近似的非线性关系，并非正比**（低区间差距被取整吞掉，见 7.4）。
++
++| 年薪 | 张数（百元） | 沓数 | 物理平叠高度 | 街区渲染高度（⌈沓数/9⌉ × 0.08m） | 重量 | 空间直觉 |
++|--|--|--|--|--|--|--|
++| 15 万 | 1,500 | 30 | 15 cm | ≈0.32 m（4 层） | ≈1.7 kg | 小腿高度 |
++| 30 万 | 3,000 | 60 | 30 cm | ≈0.56 m（7 层） | ≈3.5 kg | 膝盖高度 |
++| 50 万 | 5,000 | 100 | 50 cm | ≈0.96 m（12 层） | ≈5.7 kg | 腰部以下 |
++| 100 万 | 10,000 | 200 | 1 m | ≈1.84 m（23 层） | ≈11.5 kg | 一人高 |
++| 500 万 | 50,000 | 1,000 | 5 m | ≈8.96 m（112 层） | ≈57.5 kg | 一层楼 |
++| 1000 万 | 100,000 | 2,000 | 10 m | ≈17.84 m（223 层） | ≈115 kg | 顶到办公室天花板 |
+ 
+ 渲染锚点建议：钞票堆旁标注"= N 个城市人均年存款"类对比 + 等身刻度人偶
+ （低区间分辨率方案，见 5.4），传播性拉满。
+@@ -1118,7 +1156,7 @@ API实测(今起) │           │           │ 提交 11.19 19:00
+ | 术语 | 定义 |
+ |---|---|
+ | 参数空间化 | 将抽象信息（薪酬、工时等）映射为 3D 空间中可感知的物理量 |
+-| 钞票山 | 薪酬参数的 3D 可视化载体，高度与年薪成正比 |
++| 钞票山 | 薪酬参数的 3D 可视化载体；高度 = 金字塔层数（每层固定 3×3=9 沓）× `MOUNTAIN_HEIGHT_SCALE`，对年薪为分段非线性（非正比，见附录A / 7.4） |
+ | 薛定谔钞票 | 期权/奖金的半透明悬浮可视化，可能兑现可能归零；透明度 ≤45%、缩放 0.5（5.4 防博弈规则） |
+ | 加班月亮 | 工时参数的天空可视化，月亮位置对应实际下班时间 |
+ | 能力空间 | 求职者 GitHub 数据生成的 3D 展示区域（地砖路+森林+画廊） |
+diff --git a/tools/check-panel-ink.mjs b/tools/check-panel-ink.mjs
+index 4ed484d..9b18eac 100644
+--- a/tools/check-panel-ink.mjs
++++ b/tools/check-panel-ink.mjs
+@@ -6,6 +6,13 @@
+ //
+ // 用法：node tools/check-panel-ink.mjs
+ // 退出码非 0 表示有不匹配项
++//
++// 2026-10-27 加固（原正则 `/(^|\n)([^{}@\/][^{}]*?)\{([^}]*)\}/g` 的盲区）：
++//   1. @media/@supports 等容器规则内的普通规则此前被 `@` 首字符排除而漏检 → 现递归进入容器
++//   2. CSS 注释里的花括号会打乱块配对 → 解析前先剥离注释（保留换行，行号仍对齐原文）
++//   3. `var( --x )` 带空格的写法不被 `includes('var(--x)')` 命中 → 改用容忍空格的正则
++//   4. 间接变量（--fg: var(--ui-ink-primary); color: var(--fg)）此前漏检 → 建变量定义表做引用闭包
++//   5. `:root` 判定由 startsWith 放宽为 includes（选择器可能是 `:root, [data-theme="dark"]`）
+ 
+ import fs from 'node:fs'
+ import path from 'node:path'
+@@ -13,42 +20,122 @@ import { fileURLToPath } from 'node:url'
+ 
+ const __dirname = path.dirname(fileURLToPath(import.meta.url))
+ const cssPath = path.resolve(__dirname, '../web/src/styles.css')
+-const css = fs.readFileSync(cssPath, 'utf8')
++const rawCss = fs.readFileSync(cssPath, 'utf8')
+ 
+ // 不透明面板底色使用的变量
+ const PANEL_BG_VARS = ['--ui-panel-bg', '--ui-page-bg']
+ // 玻璃浮层墨色（不能用在不透明面板上）
+ const GLASS_INK_VARS = ['--ui-ink-primary', '--ui-ink-secondary', '--ui-ink-muted']
+ 
+-// 解析顶层选择器块
+-const rules = []
+-const re = /(^|\n)([^{}@\/][^{}]*?)\{([^}]*)\}/g
+-let m
+-while ((m = re.exec(css)) !== null) {
+-  const selector = m[2].trim().replace(/\s+/g, ' ')
+-  const body = m[3]
+-  const line = css.slice(0, m.index).split('\n').length
+-  rules.push({ selector, body, line })
++// 去注释：逐字符替换为非换行空格，保持换行结构（行号与原文一致）；
++// 注释中的花括号因此不再污染块解析。
++const css = rawCss.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '))
++
++/** 收集文本中所有 var() 引用的变量名（容忍 `var( --x )` 的空格写法） */
++function varRefs(text) {
++  const out = []
++  const re = /var\(\s*(--[\w-]+)\s*[,)]/g
++  let m
++  while ((m = re.exec(text)) !== null) out.push(m[1])
++  return out
++}
++
++/** 绝对偏移 → 行号（基于去注释后的 css，换行数与原文一致） */
++function lineOf(index) {
++  let n = 1
++  for (let k = 0; k < index && k < css.length; k++) if (css[k] === '\n') n++
++  return n
+ }
+ 
+-// 判断某选择器块是否用了不透明面板底
+-function usesPanelBg(body) {
+-  return PANEL_BG_VARS.some(v => body.includes(`var(${v})`))
++/**
++ * 解析规则块，返回 { selector, body, line }。
++ * - 容器规则（以 @ 开头，如 @media/@supports/@layer）递归进入内部，取出其中的普通规则；
++ * - 用花括号深度配对，跳过嵌套体。
++ */
++function extractRules(text, offset = 0) {
++  const rules = []
++  let i = 0
++  let buf = ''
++  let bufStart = 0
++  while (i < text.length) {
++    const ch = text[i]
++    if (ch === '{') {
++      const selector = buf.trim()
++      const selStart = bufStart
++      let depth = 1
++      let j = i + 1
++      while (j < text.length && depth > 0) {
++        if (text[j] === '{') depth++
++        else if (text[j] === '}') depth--
++        j++
++      }
++      const innerStart = i + 1
++      const inner = text.slice(innerStart, j - 1)
++      if (selector.startsWith('@')) {
++        rules.push(...extractRules(inner, offset + innerStart))
++      } else if (selector) {
++        rules.push({ selector, body: inner, line: lineOf(offset + selStart) })
++      }
++      i = j
++      buf = ''
++      bufStart = i
++      continue
++    }
++    if (ch === '}') {
++      i++
++      buf = ''
++      bufStart = i
++      continue
++    }
++    if (buf === '') bufStart = i
++    buf += ch
++    i++
++  }
++  return rules
++}
++
++// 变量定义表：--name → 值文本（供间接变量引用闭包使用）
++const varDefs = new Map()
++{
++  const re = /(--[\w-]+)\s*:\s*([^;{}]*)[;}]/g
++  let m
++  while ((m = re.exec(css)) !== null) {
++    if (!varDefs.has(m[1])) varDefs.set(m[1], m[2])
++  }
+ }
+ 
++/** 变量 varName 是否（直接或经定义链间接）指向 targets 中任一变量 */
++function reaches(varName, targets, seen = new Set()) {
++  if (targets.includes(varName)) return true
++  if (seen.has(varName)) return false
++  seen.add(varName)
++  const def = varDefs.get(varName)
++  if (!def) return false
++  return varRefs(def).some((v) => reaches(v, targets, seen))
++}
++
++/** 纯变量定义块（体内每条声明都以 `--` 开头）不是"属性应用"，跳过 */
++function isVarDefBlock(body) {
++  const decls = body.split(';').map((s) => s.trim()).filter(Boolean)
++  if (decls.length === 0) return false
++  return decls.every((d) => d.startsWith('--'))
++}
++
++const rules = extractRules(css)
+ const problems = []
+ for (const r of rules) {
+-  if (!usesPanelBg(r.body)) continue
+-  for (const ink of GLASS_INK_VARS) {
+-    if (!r.body.includes(`var(${ink})`)) continue
+-    // 排除 :root / 变量定义块本身
+-    if (r.selector.startsWith(':root') || r.selector.startsWith('--')) continue
+-    problems.push({
+-      selector: r.selector,
+-      ink,
+-      line: r.line,
+-    })
+-  }
++  // 排除 :root / 变量定义块本身（放宽为 includes：选择器可能是 `:root, [data-theme=...]`）
++  if (r.selector.includes(':root') || r.selector.startsWith('--')) continue
++  if (isVarDefBlock(r.body)) continue
++
++  const refs = varRefs(r.body)
++  // 该块是否用了不透明面板底（含间接引用）
++  if (!refs.some((v) => reaches(v, PANEL_BG_VARS))) continue
++  // 命中哪些玻璃墨色（含间接引用）
++  const hitInks = [...new Set(refs.filter((v) => reaches(v, GLASS_INK_VARS)))]
++  if (hitInks.length === 0) continue
++
++  problems.push({ selector: r.selector, inks: hitInks, line: r.line })
+ }
+ 
+ if (problems.length === 0) {
+@@ -58,9 +145,9 @@ if (problems.length === 0) {
+ 
+ console.log('✗ 发现不透明面板误用玻璃墨色（深色主题下深字压深底 = 不可见）：')
+ for (const p of problems) {
+-  console.log(`  ${p.selector}  →  ${p.ink}   (约第 ${p.line} 行)`)
++  console.log(`  ${p.selector}  →  ${p.inks.join(', ')}   (约第 ${p.line} 行)`)
+ }
+ console.log('')
+ console.log('修法：给不透明面板单独定义随主题反相的前景色，')
+ console.log('     如 --ui-page-fg / --ui-panel-fg-muted，不要用 --ui-ink-*。')
+-process.exit(1)
++process.exit(1)
+\ No newline at end of file
+diff --git a/tools/ms-redeploy.mjs b/tools/ms-redeploy.mjs
+index 3667006..9d085e6 100644
+--- a/tools/ms-redeploy.mjs
++++ b/tools/ms-redeploy.mjs
+@@ -1,26 +1,81 @@
+ // 用已保存的 ModelScope 登录 cookie 注入 egolite，在设置页点“重新部署→确认部署”。
++//
++// 约定：任一关键步骤失败 → process.exit(1)，避免"静默成功"（供 agent/CI 判定成败）。
++// 运行：ego-browser nodejs < tools/ms-redeploy.mjs
+ const fs = await import("node:fs");
+-const task = await taskSpace("ms-redeploy");
+-const page = task.page("p1");
+-await page.cdp("Network.enable");
+-const cookies = JSON.parse(fs.readFileSync("C:/Users/dqy/AppData/Local/Temp/ms-cookies.json", "utf8"));
+-for (const c of cookies) {
+-  await page.cdp("Network.setCookie", { name: c.name, value: c.value, domain: c.domain, path: c.path || "/", secure: !!c.secure, url: "https://modelscope.cn" }).catch(() => {});
++
++const COOKIE_PATH = "C:/Users/dqy/AppData/Local/Temp/ms-cookies.json";
++
++function fail(msg) {
++  console.error(`✗ ms-redeploy 失败：${msg}`);
++  process.exit(1);
+ }
+-await page.goto("https://modelscope.cn/studios/zgqy379/guangchang3d/settings");
+-await page.waitForTimeout(6000);
+-const clicked = await page.evaluate(() => {
+-  const el = [...document.querySelectorAll("div,button,span")].find((e) => (e.textContent || "").trim() === "重新部署" && e.offsetParent);
+-  if (el) { el.click(); return true; }
+-  return false;
+-});
+-console.log("redeploy clicked", clicked);
+-await page.waitForTimeout(2500);
+-const confirmed = await page.evaluate(() => {
+-  const el = [...document.querySelectorAll("button,div,span")].find((e) => (e.textContent || "").trim() === "确认部署" && e.offsetParent);
+-  if (el) { el.click(); return true; }
+-  return false;
+-});
+-console.log("confirm clicked", confirmed);
+-await page.waitForTimeout(6000);
+-console.log("submitted:", await page.evaluate(() => document.body.innerText.includes("重新部署已提交")));
++
++try {
++  // 1) cookie 文件存在性 + 可解析性检查（旧版直接 readFileSync，缺失时抛栈、无退出码语义）
++  if (!fs.existsSync(COOKIE_PATH)) {
++    fail(`cookie 文件不存在：${COOKIE_PATH}（先导出魔搭登录态，见 docs/lessons.md §7.4）`);
++  }
++  let cookies;
++  try {
++    cookies = JSON.parse(fs.readFileSync(COOKIE_PATH, "utf8"));
++  } catch (e) {
++    fail(`cookie 文件读取/解析失败：${COOKIE_PATH} → ${e?.message ?? e}`);
++  }
++  if (!Array.isArray(cookies) || cookies.length === 0) {
++    fail(`cookie 文件为空或格式不是数组：${COOKIE_PATH}`);
++  }
++
++  const task = await taskSpace("ms-redeploy");
++  const page = task.page("p1");
++  await page.cdp("Network.enable");
++
++  // 2) 注入登录 cookie —— 不吞错：任一注入失败即中断（登录态不完整会导致后续点击无效，
++  //    旧版 `.catch(() => {})` 把失败悄悄咽掉）
++  for (const c of cookies) {
++    await page.cdp("Network.setCookie", {
++      name: c.name,
++      value: c.value,
++      domain: c.domain,
++      path: c.path || "/",
++      secure: !!c.secure,
++      url: "https://modelscope.cn",
++    });
++  }
++
++  await page.goto("https://modelscope.cn/studios/zgqy379/guangchang3d/settings");
++  await page.waitForTimeout(6000);
++
++  // 3) 点「重新部署」
++  const clicked = await page.evaluate(() => {
++    const el = [...document.querySelectorAll("div,button,span")].find(
++      (e) => (e.textContent || "").trim() === "重新部署" && e.offsetParent,
++    );
++    if (el) { el.click(); return true; }
++    return false;
++  });
++  console.log("redeploy clicked", clicked);
++  if (!clicked) fail("找不到「重新部署」按钮（登录态失效或页面结构变更）");
++
++  // 4) 点「确认部署」
++  await page.waitForTimeout(2500);
++  const confirmed = await page.evaluate(() => {
++    const el = [...document.querySelectorAll("button,div,span")].find(
++      (e) => (e.textContent || "").trim() === "确认部署" && e.offsetParent,
++    );
++    if (el) { el.click(); return true; }
++    return false;
++  });
++  console.log("confirm clicked", confirmed);
++  if (!confirmed) fail("找不到「确认部署」按钮");
++
++  // 5) 校验提交回执
++  await page.waitForTimeout(6000);
++  const submitted = await page.evaluate(() => document.body.innerText.includes("重新部署已提交"));
++  console.log("submitted:", submitted);
++  if (!submitted) fail("未检测到「重新部署已提交」文案（部署可能未提交成功）");
++
++  console.log("✓ ms-redeploy 完成：已提交重新部署");
++} catch (e) {
++  fail(e?.stack ?? String(e));
++}
+\ No newline at end of file
+diff --git a/web/package.json b/web/package.json
+index 70fba3b..cc42a86 100644
+--- a/web/package.json
++++ b/web/package.json
+@@ -3,6 +3,9 @@
+   "private": true,
+   "version": "0.1.0",
+   "type": "module",
++  "engines": {
++    "node": ">=24.0.0 <25.0.0"
++  },
+   "scripts": {
+     "dev": "vite",
+     "prebuild": "node tokens.config.mjs && node ../tools/check-contrast.mjs && node ../tools/check-panel-ink.mjs",
+diff --git a/web/src/components/AssetProp.tsx b/web/src/components/AssetProp.tsx
+index 42d2b2a..0a390b6 100644
+--- a/web/src/components/AssetProp.tsx
++++ b/web/src/components/AssetProp.tsx
+@@ -1,4 +1,4 @@
+-import { useLayoutEffect, useRef } from 'react'
++import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
+ import * as THREE from 'three'
+ import { useGLTF } from '@react-three/drei'
+ import { assetUrl } from '../engine/asset'
+@@ -21,6 +21,36 @@ export function AssetProp({
+   const inner = useRef<THREE.Group>(null)
+   const { scene } = useGLTF(url, DRACO_PATH)
+ 
++  // A/B 对比模式会同时挂两个 <Canvas>，而 useGLTF 是**跨 Canvas 共享的全局缓存**：
++  // 两个 <primitive object={scene}> 会把同一个 Object3D 从先挂的一方"搬"到后挂的一方，
++  // 结果一侧道具凭空消失。克隆一份独立实例解决；静态道具用 scene.clone(true) 足够。
++  // 材质一并克隆（本实例独有，卸载可安全释放）；几何仍共享缓存，**勿 dispose**。
++  const model = useMemo(() => {
++    const clone = scene.clone(true)
++    clone.traverse((o) => {
++      const mesh = o as THREE.Mesh
++      if (mesh.isMesh && mesh.material) {
++        mesh.material = Array.isArray(mesh.material)
++          ? mesh.material.map((m) => m.clone())
++          : mesh.material.clone()
++      }
++    })
++    return clone
++  }, [scene])
++
++  // 卸载释放本实例克隆出的材质（贴图/几何来自 useGLTF 缓存，由缓存统一管理，不在此 dispose）
++  useEffect(() => {
++    return () => {
++      model.traverse((o) => {
++        const mesh = o as THREE.Mesh
++        if (mesh.isMesh && mesh.material) {
++          const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
++          mats.forEach((m) => m.dispose())
++        }
++      })
++    }
++  }, [model])
++
+   useLayoutEffect(() => {
+     const g = inner.current
+     if (!g) return
+@@ -31,12 +61,12 @@ export function AssetProp({
+     g.scale.setScalar(s)
+     // 底部贴地
+     g.position.y = -box.min.y * s
+-  }, [scene, targetSize])
++  }, [model, targetSize])
+ 
+   return (
+     <group position={position}>
+       <group ref={inner}>
+-        <primitive object={scene} />
++        <primitive object={model} />
+       </group>
+     </group>
+   )
+diff --git a/web/src/components/AvatarActor.tsx b/web/src/components/AvatarActor.tsx
+index d90d959..f987707 100644
+--- a/web/src/components/AvatarActor.tsx
++++ b/web/src/components/AvatarActor.tsx
+@@ -1,12 +1,17 @@
+ // Avatar 漫游演员：点击地面行走 + WASD + Walk/Idle 动画切换（P0：漫游+第三人称）
+ // 完整管线产物：Lux3D 文生 → auto-rig → retarget（Idle/Walk）→ Draco 3.1MB×2
+-import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
++import { Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+ import * as THREE from 'three'
+ import { useAnimations, useGLTF } from '@react-three/drei'
+ import { useFrame, useThree } from '@react-three/fiber'
++// 骨骼克隆：静态 scene.clone(true) 会复制 SkinnedMesh 却共享 Skeleton/Bone，
++// 两个实例互相覆盖蒙皮；含骨骼模型必须用 SkeletonUtils.clone（重建 Skeleton 层级）。
++import { clone as skeletonClone } from 'three/examples/jsm/utils/SkeletonUtils.js'
+ import { assetUrl } from '../engine/asset'
+ 
+ const DRACO_PATH = assetUrl('/draco/')
++const IDLE_URL = assetUrl('/assets/avatar/avatar-idle.glb')
++const WALK_URL = assetUrl('/assets/avatar/avatar-walk.glb')
+ const SPEED = 1.35 // m/s，自然步速
+ const HEIGHT = 1.6
+ 
+@@ -23,6 +28,19 @@ export interface RoamRefs {
+   focus?: React.MutableRefObject<THREE.Vector3 | null>
+ }
+ 
++/**
++ * walk 剪辑的惰性加载器：只在 roam 时挂载，加载完回填给父组件。
++ * 非漫游（single/compare 默认态）不加载 walk.glb，省 3.1MB 首屏体积。
++ * 用局部 Suspense（fallback=null）包裹，避免异步加载期间拖累整个场景。
++ */
++function WalkClipLoader({ onLoaded }: { onLoaded: (clips: THREE.AnimationClip[]) => void }) {
++  const { animations } = useGLTF(WALK_URL, DRACO_PATH)
++  useEffect(() => {
++    onLoaded(animations)
++  }, [animations, onLoaded])
++  return null
++}
++
+ export function AvatarActor({
+   position = [-1.9, 0, 2.0] as [number, number, number],
+   facing = 0.35,
+@@ -41,11 +59,26 @@ export function AvatarActor({
+   const inner = useRef<THREE.Group>(null)
+   const camera = useThree((s) => s.camera)
+ 
+-  const { scene: idleScene, animations: idleAnims } = useGLTF(
+-    assetUrl('/assets/avatar/avatar-idle.glb'),
+-    DRACO_PATH
+-  )
+-  const { animations: walkAnims } = useGLTF(assetUrl('/assets/avatar/avatar-walk.glb'), DRACO_PATH)
++  const { scene: idleScene, animations: idleAnims } = useGLTF(IDLE_URL, DRACO_PATH)
++  // walk 剪辑惰性回填：初始为空 → 非漫游不触发 walk.glb 请求
++  const [walkAnims, setWalkAnims] = useState<THREE.AnimationClip[]>([])
++  const handleWalkAnims = useCallback((clips: THREE.AnimationClip[]) => setWalkAnims(clips), [])
++
++  // A/B 对比模式两个 <Canvas> 共享 useGLTF 全局缓存的同一 scene：
++  // 直接把同一 Object3D 挂进两处 <primitive> 会让后者把它搬走 → 一侧 Avatar 消失。
++  // skeletonClone 重建独立骨骼层级；材质一并克隆（本实例独有，卸载可安全释放）。
++  const model = useMemo(() => {
++    const clone = skeletonClone(idleScene)
++    clone.traverse((o) => {
++      const mesh = o as THREE.Mesh
++      if (mesh.isMesh && mesh.material) {
++        mesh.material = Array.isArray(mesh.material)
++          ? mesh.material.map((m) => m.clone())
++          : mesh.material.clone()
++      }
++    })
++    return clone
++  }, [idleScene])
+ 
+   // 合并两份动画并重命名，避免同名冲突：IDLE / WALK
+   const clips = useMemo(() => {
+@@ -57,12 +90,25 @@ export function AvatarActor({
+   }, [idleAnims, walkAnims])
+ 
+   const { actions } = useAnimations(clips, root)
++  const curAnim = useRef<'IDLE' | 'WALK'>('IDLE')
++
++  // 缺剪辑检测：GLB 无动画会静默停在绑定姿势（T-pose），必须显式告警而非无声
++  useEffect(() => {
++    if (!idleAnims[0]) {
++      console.warn('[AvatarActor] avatar-idle.glb 缺少动画剪辑 → 将停在绑定姿势（T-pose）')
++    }
++    if (roam && !walkAnims[0]) {
++      console.warn('[AvatarActor] avatar-walk.glb 缺少动画剪辑 → WALK 不可用')
++    }
++  }, [idleAnims, walkAnims, roam])
+ 
+-  // 初始就播 IDLE：否则停在绑定姿势（T-pose）直到第一次状态切换
++  // 初始播 IDLE；clips/walk 加载导致 actions 重建后，恢复**当前**动画而非硬切回 IDLE
+   useEffect(() => {
+-    actions['IDLE']?.reset().fadeIn(0.2).play()
++    const want = curAnim.current
++    const a = actions[want] ?? actions['IDLE']
++    a?.reset().fadeIn(0.2).play()
+     return () => {
+-      actions['IDLE']?.stop()
++      a?.stop()
+     }
+   }, [actions])
+ 
+@@ -75,7 +121,23 @@ export function AvatarActor({
+     const s = HEIGHT / (size.y || 1)
+     g.scale.setScalar(s)
+     g.position.y = -box.min.y * s
+-  }, [idleScene])
++  }, [model])
++
++  // 卸载释放：骨骼（GPU boneTexture）+ 本实例克隆的材质。
++  // 几何/贴图来自 useGLTF 缓存，由缓存统一管理，不在此 dispose（否则会破坏另一侧 Canvas）。
++  useEffect(() => {
++    return () => {
++      model.traverse((o) => {
++        const skinned = o as THREE.SkinnedMesh
++        if (skinned.isSkinnedMesh) skinned.skeleton?.dispose()
++        const mesh = o as THREE.Mesh
++        if (mesh.isMesh && mesh.material) {
++          const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
++          mats.forEach((m) => m.dispose())
++        }
++      })
++    }
++  }, [model])
+ 
+   // WASD 键盘状态（roam 时生效）
+   const keys = useRef<Set<string>>(new Set())
+@@ -95,7 +157,6 @@ export function AvatarActor({
+   }, [roam])
+ 
+   // 漫游主循环：WASD（相机朝向相对）或走向点击目标；移动时播 WALK
+-  const curAnim = useRef<'IDLE' | 'WALK'>('IDLE')
+   useFrame((_state, rawDt) => {
+     const g = root.current
+     if (!g) return
+@@ -171,11 +232,18 @@ export function AvatarActor({
+     <group ref={root} position={position} rotation-y={facing}>
+       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]}>
+         <circleGeometry args={[0.42, 24]} />
++        {/* 接地阴影：纯黑颜料、非设计令牌（阴影=无光，与主题无关，故保留常量） */}
+         <meshBasicMaterial color="#000000" transparent opacity={0.32} depthWrite={false} />
+       </mesh>
+       <group ref={inner}>
+-        <primitive object={idleScene} />
++        <primitive object={model} />
+       </group>
++      {/* 漫游时才加载 walk.glb（惰性），局部 Suspense 防整场景闪烁 */}
++      {roam && (
++        <Suspense fallback={null}>
++          <WalkClipLoader onLoaded={handleWalkAnims} />
++        </Suspense>
++      )}
+     </group>
+   )
+ }
+@@ -183,4 +251,4 @@ export function AvatarActor({
+ // 不做模块级 useGLTF.preload：它在模块 import 时执行 → 该模块进首屏 chunk 就立刻拉资产。
+ // 实测首屏因此多拉 avatar-idle.glb 3.08MB（超 5MB 红线）。
+ // 现在改由组件内 useGLTF 在渲染时才加载（进入 single 模式或街区时）。
+-// walk 动画同理：仅漫游模式引用时才拉，省 3.1MB。
++// walk 动画进一步惰性：仅在 roam 时挂载 <WalkClipLoader> 才请求，非漫游省 3.1MB。
+\ No newline at end of file
+diff --git a/web/src/components/CarvedZone.tsx b/web/src/components/CarvedZone.tsx
+index 4c4f16b..76a84e4 100644
+--- a/web/src/components/CarvedZone.tsx
++++ b/web/src/components/CarvedZone.tsx
+@@ -9,6 +9,7 @@ import {
+   layerLayout,
+   yuanToStacks,
+ } from '../engine/params'
++import { ColorTextMuted } from '../../generated/design-tokens.output.mjs'
+ 
+ // 词典 mapping 参数：carveScale 按档位（full=完整小切口 … min=明显大切口）
+ const CARVE_SCALE: Record<string, number> = {
+@@ -58,7 +59,8 @@ export function CarvedZone({
+   return (
+     <instancedMesh key={positions.length} ref={ref} args={[undefined, undefined, Math.max(1, positions.length)]}>
+       <boxGeometry args={[BILL.w, BILL.stackH, BILL.d]} />
+-      <meshStandardMaterial color="#6b7280" roughness={0.95} />
++      {/* 被切走的钱堆：中性灰（ColorTextMuted）表达"损耗/缩水"，与山体红橙对比 */}
++      <meshStandardMaterial color={ColorTextMuted} roughness={0.95} />
+     </instancedMesh>
+   )
+ }
+diff --git a/web/src/components/CompanyPlot.tsx b/web/src/components/CompanyPlot.tsx
+index 77af910..941da63 100644
+--- a/web/src/components/CompanyPlot.tsx
++++ b/web/src/components/CompanyPlot.tsx
+@@ -1,6 +1,6 @@
+ // 公司展台：钞票山 + 薛定谔钞票 + 五险切口 + 发光地砖路 + Avatar 漫游
+ // A/B 对比模式（project.md 4.4，Demo P0）：对比才有叙事——左山矮但夕阳，右山高但凌晨月亮
+-import { useMemo } from 'react'
++import { useEffect, useMemo } from 'react'
+ import { Html } from '@react-three/drei'
+ import * as THREE from 'three'
+ import type { ThreeEvent } from '@react-three/fiber'
+@@ -13,6 +13,12 @@ import {
+   totalPackage,
+   yuanToStacks,
+ } from '../engine/params'
++import {
++  ColorBrandOrange,
++  ColorSceneBooth,
++  ColorSceneGate,
++  ColorSceneSun,
++} from '../../generated/design-tokens.output.mjs'
+ import { MoneyMountain } from './MoneyMountain'
+ import { SchrodingerBills } from './SchrodingerBills'
+ import { GlowPath } from './GlowPath'
+@@ -45,6 +51,13 @@ export function CompanyPlot({
+     }
+   }
+ 
++  // 展台描边几何：此前写在 JSX args 里 `new THREE.PlaneGeometry(6,6)` 每次渲染都新建，
++  // 造成几何/GPU 资源反复创建且旧实例泄漏。这里缓存一次，卸载时 dispose。
++  const edgePlane = useMemo(() => new THREE.PlaneGeometry(6, 6), [])
++  useEffect(() => {
++    return () => edgePlane.dispose()
++  }, [edgePlane])
++
+   // 山顶数据浮标：层数与渲染同源（引擎公式），高度 = 层数 × 层高 × 感知增强
+   const mountainH = useMemo(() => {
+     const baseL = layerLayout(yuanToStacks(params.annualBaseSalary), 0)
+@@ -56,8 +69,8 @@ export function CompanyPlot({
+ 
+   return (
+     <group position={position}>
+-      {/* 展台补光：夜色下把 Avatar/山体从暗地板上托出来 */}
+-      <pointLight position={[0, 4.2, 1.5]} intensity={9} distance={11} decay={2} color="#ffe2c4" />
++      {/* 展台补光：夜色下把 Avatar/山体从暗地板上托出来（ColorSceneSun 暖白） */}
++      <pointLight position={[0, 4.2, 1.5]} intensity={9} distance={11} decay={2} color={ColorSceneSun} />
+       {/* 地基：每家公司一块 6×6m 的展台（漫游模式下点击=走过去） */}
+       <mesh
+         rotation={[-Math.PI / 2, 0, 0]}
+@@ -66,12 +79,12 @@ export function CompanyPlot({
+         onClick={roam ? handleGround : undefined}
+       >
+         <planeGeometry args={[6, 6]} />
+-        <meshStandardMaterial color="#252b32" roughness={1} />
++        <meshStandardMaterial color={ColorSceneBooth} roughness={1} />
+       </mesh>
+       {/* 展台描边：视觉上框住舞台，避免大面积死黑（必须与地面同角度平铺） */}
+       <lineSegments rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.002, 0]}>
+-        <edgesGeometry args={[new THREE.PlaneGeometry(6, 6)]} />
+-        <lineBasicMaterial color="#3d4650" />
++        <edgesGeometry args={[edgePlane]} />
++        <lineBasicMaterial color={ColorSceneGate} />
+       </lineSegments>
+       {/* key 换值 = 整组重挂载 = 生长动画重播 */}
+       <group key={growthKey}>
+@@ -102,7 +115,7 @@ export function CompanyPlot({
+         <>
+           <mesh position={[-0.5, mountainH + 0.27, -1.5]}>
+             <boxGeometry args={[0.014, 0.56, 0.014]} />
+-            <meshBasicMaterial color="#f0883e" />
++            <meshBasicMaterial color={ColorBrandOrange} />
+           </mesh>
+           <Html position={[-0.5, mountainH + 0.58, -1.5]} center distanceFactor={13}>
+             <div className="peak-tag">
+diff --git a/web/src/components/GlowPath.tsx b/web/src/components/GlowPath.tsx
+index fd4057a..8001931 100644
+--- a/web/src/components/GlowPath.tsx
++++ b/web/src/components/GlowPath.tsx
+@@ -3,6 +3,13 @@
+ import { useFrame } from '@react-three/fiber'
+ import { useMemo, useRef } from 'react'
+ import * as THREE from 'three'
++import {
++  ColorNeutral0,
++  ColorSceneBarOff,
++  ColorSceneBarOn,
++  ColorSceneFloor,
++  ColorStateSuccess,
++} from '../../generated/design-tokens.output.mjs'
+ 
+ const TILE = 0.5
+ const GAP = 0.06
+@@ -21,11 +28,12 @@ function heatmap(n: number, seed = 7): number[] {
+   })
+ }
+ 
++// 四档热力色阶全部取自设计令牌（暗 → 亮绿），避免硬编码色漂移
+ const LEVELS = [
+-  { color: '#123524', emissive: '#0a1f16', intensity: 0.1 }, // 0 断档
+-  { color: '#14532d', emissive: '#166534', intensity: 0.35 }, // 1 稀疏
+-  { color: '#16a34a', emissive: '#22c55e', intensity: 0.9 }, // 2 密集
+-  { color: '#34d399', emissive: '#34d399', intensity: 1.5 }, // 3 高亮（审美修订：降饱和，不抢山的主体）
++  { color: ColorSceneFloor, emissive: ColorNeutral0, intensity: 0.1 }, // 0 断档
++  { color: ColorSceneBarOff, emissive: ColorSceneBarOff, intensity: 0.4 }, // 1 稀疏
++  { color: ColorSceneBarOn, emissive: ColorSceneBarOn, intensity: 0.9 }, // 2 密集
++  { color: ColorStateSuccess, emissive: ColorStateSuccess, intensity: 1.5 }, // 3 高亮（降饱和，不抢山的主体）
+ ]
+ 
+ const easeOutBack = (k: number) => {
+@@ -65,7 +73,8 @@ export function GlowPath({
+           return (
+             <mesh key={i} position={[0, 0.02, -i * STEP]} rotation={[-Math.PI / 2, 0, 0]}>
+               <planeGeometry args={[TILE * 0.6, TILE * 0.6]} />
+-              <meshStandardMaterial color="#1a1f24" roughness={1} />
++              {/* 断档：只剩暗色路基（ColorSceneFloor 深灰基底） */}
++              <meshStandardMaterial color={ColorSceneFloor} roughness={1} />
+             </mesh>
+           )
+         }
+diff --git a/web/src/components/MoneyMountain.tsx b/web/src/components/MoneyMountain.tsx
+index 572b348..062a70f 100644
+--- a/web/src/components/MoneyMountain.tsx
++++ b/web/src/components/MoneyMountain.tsx
+@@ -2,7 +2,7 @@
+ // 2026-10-25 重构：固定 3×3 层叠布局（金额差 = 高度差，真"山"）；
+ // 旧版 sqrt 布局任何金额都只堆一层（15万不可见 / 100万是地毯）
+ import { useFrame } from '@react-three/fiber'
+-import { useLayoutEffect, useMemo, useRef } from 'react'
++import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
+ import * as THREE from 'three'
+ import {
+   BILL,
+@@ -145,6 +145,14 @@ export function MoneyMountain({
+     []
+   )
+ 
++  // 纸币 CanvasTexture 由本组件创建（非全局缓存）：卸载时释放，防 GPU 纹理泄漏
++  useEffect(() => {
++    return () => {
++      textures.base.dispose()
++      textures.inc.dispose()
++    }
++  }, [textures])
++
+   return (
+     <group>
+       <InstancedBundles positions={base} texture={textures.base} />
+diff --git a/web/src/components/SchrodingerBills.tsx b/web/src/components/SchrodingerBills.tsx
+index 1ec6038..1d8f7aa 100644
+--- a/web/src/components/SchrodingerBills.tsx
++++ b/web/src/components/SchrodingerBills.tsx
+@@ -5,6 +5,7 @@ import { useLayoutEffect, useMemo, useRef } from 'react'
+ import * as THREE from 'three'
+ import { BILL, yuanToStacks } from '../engine/params'
+ import { antiGamingParams } from '../engine/dictionary'
++import { ColorSceneGlassLit, ThemeLightWire } from '../../generated/design-tokens.output.mjs'
+ 
+ // 确定性伪随机（同参数渲染结果稳定，便于录屏）
+ function seeded(seed: number) {
+@@ -70,10 +71,10 @@ export function SchrodingerBills({
+     <instancedMesh key={positions.length} ref={ref} args={[undefined, undefined, positions.length]}>
+       <boxGeometry args={[BILL.w * 1.2, BILL.stackH * 1.2, BILL.d * 1.2]} />
+       <meshStandardMaterial
+-        color="#8fb4d9"
++        color={ThemeLightWire}
+         transparent
+         opacity={ag.maxOpacity}
+-        emissive="#3a5f82"
++        emissive={ColorSceneGlassLit}
+         emissiveIntensity={0.4}
+       />
+     </instancedMesh>
+@@ -87,5 +88,9 @@ export const schrodingerCapNote = (params: { equityYuan: number; baseYuan: numbe
+   }
+   const eff = yuanToStacks(params.equityYuan * ag.scaleFactor)
+   const cap = Math.floor(yuanToStacks(params.baseYuan) * ag.capRatio)
+-  return eff > cap ? `期权按规则封顶（超出 ${(1 - cap / eff).toFixed(0)}% 未渲染）` : ''
++  // 未渲染占比 = 被封顶截掉的体积 / 原始有效体积 = 1 - cap/eff。
++  // 注意必须 ×100：此前漏乘导致 (1-cap/eff) ∈ (0,1) 被 toFixed(0) 恒取整为 0/1，
++  // 文案永远显示"超出 0%/1%"（真实可达 88%）。
++  const hiddenPct = ((1 - cap / eff) * 100).toFixed(0)
++  return eff > cap ? `期权按规则封顶（${hiddenPct}% 的体积超出上限未渲染）` : ''
+ }
+diff --git a/web/src/components/WorkdaySky.tsx b/web/src/components/WorkdaySky.tsx
+index d147237..e131430 100644
+--- a/web/src/components/WorkdaySky.tsx
++++ b/web/src/components/WorkdaySky.tsx
+@@ -8,7 +8,7 @@
+ //
+ // 主题：白天浅色（玻璃孪生，冷白天幕）/ 夜间深色（深靛 + 星空）。
+ 
+-import { useLayoutEffect, useMemo, useRef } from 'react'
++import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
+ import * as THREE from 'three'
+ import { Stars } from '@react-three/drei'
+ import { sunPosition, moonPosition, isBelowHorizon } from '../engine/sunPosition'
+@@ -185,7 +185,11 @@ export function skyGradientTexture(
+   return t
+ }
+ 
+-/** 太阳/月亮辉光贴图（加性混合，给天空一个光源核心） */
++/**
++ * 太阳/月亮辉光贴图（加性混合，给天空一个光源核心）。
++ * 模块级单例缓存、跨实例复用：**不可 dispose**（否则其它实例/重挂载会拿到已释放纹理），
++ * 生命周期与页面一致，仅随页面卸载回收。
++ */
+ let SUN_GLOW_TEX: THREE.CanvasTexture | null = null
+ function sunGlowTexture() {
+   if (SUN_GLOW_TEX) return SUN_GLOW_TEX
+@@ -284,10 +288,11 @@ export function WorkdaySky({
+     [topColor, sky.bg, horizonColor]
+   )
+ 
+-  // 主题切换时天幕做渐变过渡（避免硬切）
+-  useMemo(() => {
+-    // 预热一次，确保首帧纹理可用
++  // 天幕渐变 CanvasTexture：依赖变化（主题/天色切换）时释放旧纹理，卸载时释放当前纹理，
++  // 否则每次主题切换都会泄漏一张 GPU 纹理。needsUpdate 是副作用——用 useEffect 而非 useMemo。
++  useEffect(() => {
+     skyTex.needsUpdate = true
++    return () => skyTex.dispose()
+   }, [skyTex])
+ 
+   const sunUp = sky.night ? true : sky.sunPos[1] > -2
+diff --git a/web/src/components/street/BoothHardwareInstanced.tsx b/web/src/components/street/BoothHardwareInstanced.tsx
+index e0f634d..e067e05 100644
+--- a/web/src/components/street/BoothHardwareInstanced.tsx
++++ b/web/src/components/street/BoothHardwareInstanced.tsx
+@@ -19,12 +19,13 @@
+ //  10. flagPole 区域色侧旗柱 cylinder
+ //  11. flag    区域色侧旗旗帜 plane（per-instance 颜色：行业色）
+ //  12-15. roof 雨棚顶（按 4 种行业变体分组，4 个 InstancedMesh）
+-import { useEffect, useRef } from 'react'
++import { useLayoutEffect, useRef } from 'react'
+ import * as THREE from 'three'
+ import type { LotPlacement } from '../../data/street-companies'
+ import { INDUSTRIES } from '../../data/street-companies'
+ import type { Industry } from '../../data/street-companies'
+ import type { ThemeName } from '../../engine/theme'
++import { ColorStateSuccess } from '../../../generated/design-tokens.output.mjs'
+ 
+ const tempObject = new THREE.Object3D()
+ const tempColor = new THREE.Color()
+@@ -115,7 +116,9 @@ export function BoothHardwareInstanced({
+   const industryList: Industry[] = ['internet', 'finance', 'manufacturing', 'culture']
+ 
+   // ---------- 初始化 count ----------
+-  useEffect(() => {
++  // 必须 useLayoutEffect：写在 useEffect 会在首帧渲染之后才设置 count，
++  // 首帧全部实例矩阵尚未写入 → 全叠原点（AGENTS 铁律：InstancedMesh 矩阵走 useLayoutEffect）
++  useLayoutEffect(() => {
+     countRef.current = count
+     const setCount = (ref: React.RefObject<THREE.InstancedMesh> | null, n: number) => {
+       const m = ref?.current
+@@ -136,7 +139,8 @@ export function BoothHardwareInstanced({
+   }, [count])
+ 
+   // ---------- 每帧更新 matrix / 颜色 ----------
+-  useEffect(() => {
++  // 改 useLayoutEffect：矩阵必须在首帧提交前写入，否则首帧全叠原点（T 事故同源）
++  useLayoutEffect(() => {
+     const setMat = (ref: React.RefObject<THREE.InstancedMesh>, fn: (m: THREE.InstancedMesh) => void) => {
+       const m = ref.current
+       if (m) fn(m)
+@@ -162,7 +166,7 @@ export function BoothHardwareInstanced({
+     setMat(glowRef, (m) => {
+       placements.forEach((pl, i) => {
+         m.setMatrixAt(i, instanceMatrixFor(pl, 0, 2.31, 0, 2.18, 1.72, 1, Math.PI / 2))
+-        tempColor.set(delivered.has(pl.lot.id) ? '#3ee58a' : INDUSTRIES[pl.lot.industry].color)
++        tempColor.set(delivered.has(pl.lot.id) ? ColorStateSuccess : INDUSTRIES[pl.lot.industry].color)
+         m.setColorAt(i, tempColor)
+       })
+       m.instanceMatrix.needsUpdate = true
+diff --git a/web/src/components/street/GameMiniMap.tsx b/web/src/components/street/GameMiniMap.tsx
+index 13cf239..a732ef0 100644
+--- a/web/src/components/street/GameMiniMap.tsx
++++ b/web/src/components/street/GameMiniMap.tsx
+@@ -219,10 +219,26 @@ export function GameMiniMap({
+   const [open, setOpen] = useState(false)
+ 
+   useEffect(() => {
++    // 导航器位置刷新：100ms → 200ms 降频，并加「位移/转向阈值」门控 ——
++    // 玩家静止时不再持续 setState，避免每次全量重渲染（罗盘 64 点 + 邻近列表 + 四区进度）。
++    let lastX = Number.POSITIVE_INFINITY
++    let lastZ = Number.POSITIVE_INFINITY
++    let lastH = Number.POSITIVE_INFINITY
+     const id = window.setInterval(() => {
+       const p = refs.position.current
+-      setPos({ x: p.x, z: p.z, h: refs.heading?.current ?? 0 })
+-    }, 100)
++      const h = refs.heading?.current ?? 0
++      if (
++        Math.abs(p.x - lastX) < 0.08 &&
++        Math.abs(p.z - lastZ) < 0.08 &&
++        Math.abs(h - lastH) < 0.02
++      ) {
++        return
++      }
++      lastX = p.x
++      lastZ = p.z
++      lastH = h
++      setPos({ x: p.x, z: p.z, h })
++    }, 200)
+     return () => window.clearInterval(id)
+   }, [refs])
+ 
+diff --git a/web/src/components/street/HRStand.tsx b/web/src/components/street/HRStand.tsx
+index a7e5e49..eef911c 100644
+--- a/web/src/components/street/HRStand.tsx
++++ b/web/src/components/street/HRStand.tsx
+@@ -11,9 +11,11 @@ import { assetUrl } from '../../engine/asset'
+ import {
+   ColorSceneBillOrange,
+   ColorSceneBillRed,
++  ColorSceneFloor,
+   ColorSceneGate,
+   ColorSceneWindow,
+   ColorStateInfo,
++  ColorStateSuccess,
+   ThemeLightGlassBody,
+   TwinContactOpacityDay,
+ } from '../../../generated/design-tokens.output.mjs'
+@@ -27,9 +29,25 @@ const HR_POOL = [
+ const NEAR = 26 // 真 HR GLB 自带 idle clip 为 T-pose；近景改用玩家 Avatar 的 idle clip（同 52 根 Mixamo 骨）
+ const FAR = 34
+ 
++// 落地漫游（follow）时的 HR GLB 预热。
++// 必须**分批**：follow 首次触发若一次性并发拉 9 个 HR GLB（≈16MB），会瞬间占满带宽
++// 并挤压主线程，反而拖慢近景首个人形出现。策略：
++//   ① 玩家 idle clip（所有 RealHR 共用、近景真 HR 渲染的前置）立即拉
++//   ② HR 池分 2 个一批、每批错开 600ms 陆续拉 → 保持 roam 顺滑
++// 幂等：follow 可能反复切换，模块级标记保证批调度只注册一次（useGLTF.preload 自身也有缓存）
++let hrPreloadScheduled = false
+ export function preloadHRModels() {
+   useGLTF.preload(assetUrl('/assets/avatar/avatar-idle.glb'), DRACO_PATH)
+-  for (const f of HR_POOL) useGLTF.preload(assetUrl(`/assets/hr/${f}-idle.glb`), DRACO_PATH)
++  if (hrPreloadScheduled) return
++  hrPreloadScheduled = true
++  const BATCH = 2
++  const STEP_MS = 600
++  HR_POOL.forEach((f, i) => {
++    const delay = Math.floor(i / BATCH) * STEP_MS
++    window.setTimeout(() => {
++      useGLTF.preload(assetUrl(`/assets/hr/${f}-idle.glb`), DRACO_PATH)
++    }, delay)
++  })
+ }
+ 
+ /**
+@@ -270,10 +288,10 @@ export function deliveredTexture() {
+   ctx.beginPath()
+   ctx.roundRect(2, 2, 252, 60, 10)
+   ctx.fill()
+-  ctx.strokeStyle = '#3ee58a'
++  ctx.strokeStyle = ColorStateSuccess
+   ctx.lineWidth = 2
+   ctx.stroke()
+-  ctx.fillStyle = '#7dffb0'
++  ctx.fillStyle = ColorStateSuccess
+   ctx.font = '600 26px "Microsoft YaHei", sans-serif'
+   ctx.textAlign = 'center'
+   ctx.textBaseline = 'middle'
+@@ -339,7 +357,8 @@ function RealHR({ hrIndex }: { hrIndex: number }) {
+         const lifted = mats.map((m) => {
+           const mat = m.clone() as THREE.MeshStandardMaterial
+           if (mat.emissive) {
+-            mat.emissive.set('#1b2635')
++            // 夜色暗部抬光：用「场景暗面」令牌（不再写死 #1b2635）
++            mat.emissive.set(ColorSceneFloor)
+             mat.emissiveIntensity = 0.4
+           }
+           return mat
+@@ -455,7 +474,7 @@ export function HRStand({ lot, onEnterOffice, delivered = false, theme = 'dark'
+           </sprite>
+           <mesh position={[0, -0.2, 0]}>
+             <sphereGeometry args={[0.06, 8, 8]} />
+-            <meshBasicMaterial color="#3ee58a" />
++            <meshBasicMaterial color={ColorStateSuccess} />
+           </mesh>
+         </group>
+       )}
+diff --git a/web/src/components/street/PlaceholderHRs.tsx b/web/src/components/street/PlaceholderHRs.tsx
+index 899f7dd..989ec27 100644
+--- a/web/src/components/street/PlaceholderHRs.tsx
++++ b/web/src/components/street/PlaceholderHRs.tsx
+@@ -5,7 +5,7 @@
+ // 共 5 个 draw call，节省 ~699。近景时由 HRStand 渲染真 GLB（RealHR），本组件只负责远景。
+ //
+ // Per-instance 颜色通过 vertexColors + setColorAt 设置。
+-import { useEffect, useRef, type RefObject } from 'react'
++import { useLayoutEffect, useRef, type RefObject } from 'react'
+ import * as THREE from 'three'
+ import { OUTFITS, HAIRS } from './HRStand'
+ import { ColorSceneSkin, ColorSceneMoon, ColorSceneSun } from '../../../generated/design-tokens.output.mjs'
+@@ -19,13 +19,15 @@ const tempColor = new THREE.Color()
+ 
+ export function PlaceholderHRs({
+   placements,
+-  cameraPosition,
+   near,
+   night,
+ }: {
+   placements: LotPlacement[]
+-  cameraPosition: THREE.Vector3
+-  /** 摊位 id → 是否近景（由 StreetScene 统一计算） */
++  /**
++   * 摊位 id → 是否近景（由 StreetScene 经 NearTracker **以 state 上抛**）。
++   * 关键：必须是 React state（引用变化触发重渲染），不能是 ref——ref 每帧替换
++   * `.current` 不触发重渲染，组件拿不到新 Set，近景占位人形会与真 HR 重叠。
++   */
+   near: Set<string>
+   night: boolean
+ }) {
+@@ -40,8 +42,8 @@ export function PlaceholderHRs({
+   const totalBodyInstances = placements.length * BODY_INSTANCES_PER_LOT
+   const totalSingleInstances = placements.length * SINGLE_INSTANCES_PER_LOT
+ 
+-  // 首次挂载时设定 count
+-  useEffect(() => {
++  // 首次挂载时设定 count（用 useLayoutEffect：首帧渲染前落定，避免一帧全部实例叠在原点）
++  useLayoutEffect(() => {
+     if (countRef.current === totalBodyInstances) return
+     countRef.current = totalBodyInstances
+     const setCount = (ref: RefObject<THREE.InstancedMesh>, n: number) => {
+@@ -55,8 +57,10 @@ export function PlaceholderHRs({
+     setCount(topRef, totalSingleInstances)
+   }, [placements.length, totalBodyInstances, totalSingleInstances])
+ 
+-  // 每帧根据相机距离更新实例矩阵与颜色（不触发 React 重渲染）
+-  useEffect(() => {
++  // 近景集/昼夜变化时更新实例矩阵与颜色（不触发 React 重渲染）。
++  // 用 useLayoutEffect：InstancedMesh 矩阵必须在首帧渲染前落定（AGENTS 铁律），
++  // 否则首帧会有一帧所有占位人形叠在原点。
++  useLayoutEffect(() => {
+     const bodies = bodyRef.current
+     const heads = headRef.current
+     const hairs = hairRef.current
+@@ -74,22 +78,30 @@ export function PlaceholderHRs({
+       const h = 0.96 + (pl.lot.hrIndex % 5) * 0.015
+       const baseIdx = li * BODY_INSTANCES_PER_LOT
+       const singleIdx = li
+-      const { x: px, z: pz } = { x: pl.position[0], z: pl.position[2] }
+-
+-      // 身体：3 个胶囊（左臂、右臂、躯干）
++      const px = pl.position[0]
++      const pz = pl.position[2]
++      // 摊位绕 Y 的朝向；局部偏移必须经它旋转到世界坐标，否则手臂会被当成
++      // 世界坐标直接写入（x=±0.22,z=0）→ 64 摊 ×2 只手臂全部堆在原点（P1 事故）。
++      // 局部→世界换算与 BoothHardwareInstanced.instanceMatrixFor 保持同一约定：
++      //   wx = px + lx*cos(rot) - lz*sin(rot)；wz = pz + lx*sin(rot) + lz*cos(rot)
++      const rot = pl.rotationY
++      const c = Math.cos(rot)
++      const s = Math.sin(rot)
++
++      // 身体：3 个胶囊。slot 一律是「相对摊位中心的局部偏移」：
++      // lx/lz=水平偏移、ly=离地高度、rotZ=手臂局部张开角（仅在局部坐标系内倾斜）
+       const bodySlots = [
+-        { x: -0.22, y: 0.88, z: 0, rot: 0.16 },
+-        { x: 0.22, y: 0.88, z: 0, rot: -0.16 },
+-        { x: px, y: baseY + 0.62, z: pz, rot: pl.rotationY },
++        { lx: -0.22, ly: 0.88, lz: 0, rotZ: 0.16 }, // 左臂
++        { lx: 0.22, ly: 0.88, lz: 0, rotZ: -0.16 }, // 右臂
++        { lx: 0, ly: 0.62, lz: 0, rotZ: 0 }, // 躯干（居中）
+       ]
+       bodySlots.forEach((slot, si) => {
+         const idx = baseIdx + si
+-        o.position.set(slot.x, slot.y, slot.z)
+-        if (si === 2) {
+-          o.rotation.set(0, slot.rot, 0)
+-        } else {
+-          o.rotation.set(0, 0, slot.rot)
+-        }
++        const wx = px + slot.lx * c - slot.lz * s
++        const wz = pz + slot.lx * s + slot.lz * c
++        o.position.set(wx, baseY + slot.ly, wz)
++        // rotationY 对所有 slot 生效；手臂额外叠加局部张开角 rotZ
++        o.rotation.set(0, rot, slot.rotZ)
+         o.scale.set(1, h, 1)
+         o.updateMatrix()
+         bodies.setMatrixAt(idx, o.matrix)
+@@ -99,23 +111,24 @@ export function PlaceholderHRs({
+ 
+       // 头部（固定肤色）
+       o.position.set(px, baseY + 1.24, pz)
+-      o.rotation.set(0, pl.rotationY, 0)
++      o.rotation.set(0, rot, 0)
+       o.scale.setScalar(h)
+       o.updateMatrix()
+       heads.setMatrixAt(singleIdx, o.matrix)
+ 
+       // 发色
+       o.position.set(px, baseY + 1.32, pz)
+-      o.rotation.set(0, pl.rotationY, 0)
++      o.rotation.set(0, rot, 0)
+       o.scale.setScalar(h)
+       o.updateMatrix()
+       hairs.setMatrixAt(singleIdx, o.matrix)
+       tempColor.set(hair)
+       hairs.setColorAt(singleIdx, tempColor)
+ 
+-      // 胸牌（西装色 + 自发光）
+-      o.position.set(px, baseY + 0.78, pz + 0.2)
+-      o.rotation.set(0, pl.rotationY, 0)
++      // 胸牌（西装色 + 自发光）：胸前 +0.2m 也是局部偏移，须随摊位朝向旋转
++      // （原写法 pz + 0.2 是世界坐标，摊位转到背面时胸牌会穿到身后）
++      o.position.set(px - 0.2 * s, baseY + 0.78, pz + 0.2 * c)
++      o.rotation.set(0, rot, 0)
+       o.scale.setScalar(h)
+       o.updateMatrix()
+       badges.setMatrixAt(singleIdx, o.matrix)
+@@ -124,7 +137,7 @@ export function PlaceholderHRs({
+ 
+       // 头顶（太阳/月亮）
+       o.position.set(px, baseY + 1.72, pz)
+-      o.rotation.set(0, pl.rotationY, 0)
++      o.rotation.set(0, rot, 0)
+       o.scale.setScalar(h)
+       o.updateMatrix()
+       tops.setMatrixAt(singleIdx, o.matrix)
+@@ -141,7 +154,7 @@ export function PlaceholderHRs({
+     badges.instanceColor!.needsUpdate = true
+     tops.instanceMatrix.needsUpdate = true
+     tops.instanceColor!.needsUpdate = true
+-  }, [placements, near, cameraPosition, night])
++  }, [placements, near, night])
+ 
+   return (
+     <group>
+diff --git a/web/src/data/fictional-companies.ts b/web/src/data/fictional-companies.ts
+index b468f77..38a19fe 100644
+--- a/web/src/data/fictional-companies.ts
++++ b/web/src/data/fictional-companies.ts
+@@ -1,4 +1,5 @@
+-// 三家虚构演示公司（docs/demo-script.md，project.md 9.7）
++// 四家虚构演示公司（docs/demo-script.md，project.md 9.7）
++// 前三家是固定对比样本，第四家 id='custom' 由用户拖滑杆即时定义
+ // 演示真实公司的负面参数有法律风险，一律虚构
+ import { CompanyParams, defaultParams } from '../engine/params'
+ 
+@@ -54,5 +55,9 @@ export const fictionalCompanies: FictionalCompany[] = [
+   },
+ ]
+ 
+-export const companyById = (id: string) =>
+-  fictionalCompanies.find((c) => c.id === id) ?? fictionalCompanies[3]
++// 未命中 id 时回退到 id='custom'（而非「数组第 4 个」的硬编码下标，
++// 避免数组增删后 fallback 指向错误公司）；custom 缺失时再兜底首家。
++export const companyById = (id: string): FictionalCompany =>
++  fictionalCompanies.find((c) => c.id === id) ??
++  fictionalCompanies.find((c) => c.id === 'custom') ??
++  fictionalCompanies[0]
+diff --git a/web/src/data/street-companies.ts b/web/src/data/street-companies.ts
+index b5a2f9a..b2bbfaf 100644
+--- a/web/src/data/street-companies.ts
++++ b/web/src/data/street-companies.ts
+@@ -69,7 +69,8 @@ function seeded(seed: number) {
+ }
+ 
+ const RANGE: Record<Industry, { base: [number, number]; struct: number[]; equity: [number, number]; off: [number, number]; ratio: string[] }> = {
+-  internet: { base: [260000, 800000], struct: [13, 14, 14, 15, 16], equity: [0, 1200000], off: [20, 24], ratio: ['full', 'full', '0.8', '0.8', '0.6'] },
++  // struct 取值必须 ∈ 词典 salary_structure 枚举 {12,13,14,16}（15 越界，已剔除）
++  internet: { base: [260000, 800000], struct: [13, 14, 14, 16, 16], equity: [0, 1200000], off: [20, 24], ratio: ['full', 'full', '0.8', '0.8', '0.6'] },
+   finance: { base: [180000, 600000], struct: [13, 14, 14, 16], equity: [0, 800000], off: [19, 23], ratio: ['full', 'full', '0.8'] },
+   manufacturing: { base: [120000, 300000], struct: [12, 12, 13, 14], equity: [0, 150000], off: [17.5, 20], ratio: ['full', 'full', 'full', '0.8'] },
+   culture: { base: [100000, 280000], struct: [12, 12, 13], equity: [0, 200000], off: [18, 21], ratio: ['full', 'full', '0.8', '0.6'] },
+diff --git a/web/src/engine/asset.ts b/web/src/engine/asset.ts
+index 694fcd3..557f498 100644
+--- a/web/src/engine/asset.ts
++++ b/web/src/engine/asset.ts
+@@ -2,4 +2,17 @@
+ // 硬编码 /assets/... 会 404 并让 useGLTF.preload 在模块初始化时抛错——10.27 白屏事故根因之二）
+ const BASE = import.meta.env.BASE_URL.replace(/\/$/, '')
+ 
+-export const assetUrl = (path: string) => `${BASE}${path}`
++/**
++ * 拼接资源 URL。
++ * 契约（10.27 白屏事故防线）：path 必须是以 '/' 开头的站内绝对路径，
++ * 且不含 '..' 越界段——否则会拼出 404 地址并让 useGLTF 在模块初始化时抛错。
++ */
++export const assetUrl = (path: string): string => {
++  if (!path.startsWith('/')) {
++    throw new Error(`assetUrl: 路径必须以 "/" 开头（收到 "${path}"）`)
++  }
++  if (path.includes('..')) {
++    throw new Error(`assetUrl: 路径不得包含 ".." 越界段（收到 "${path}"）`)
++  }
++  return `${BASE}${path}`
++}
+diff --git a/web/src/engine/params.ts b/web/src/engine/params.ts
+index 8d2e79d..251f8a8 100644
+--- a/web/src/engine/params.ts
++++ b/web/src/engine/params.ts
+@@ -71,8 +71,10 @@ export function layerLayout(stacks: number, startLayer = 0): StackPos[] {
+     const cz = ((usedRows - 1) / 2) * BILL.d
+     const taper = Math.max(0.5, 1 - layer * 0.045)
+     let placed = 0
++    // z 循环上限必须用 usedRows（而非满行 ROWS）：非 9 倍数层里末列行数更少，
++    // 若仍循环到 ROWS 会越过 cz 居中范围，导致该层向右/前错位。
+     for (let x = 0; x < usedCols && placed < n; x++)
+-      for (let z = 0; z < ROWS && placed < n; z++) {
++      for (let z = 0; z < usedRows && placed < n; z++) {
+         out.push({
+           pos: [
+             (x * BILL.w - cx) * taper,
+diff --git a/web/src/engine/progress.ts b/web/src/engine/progress.ts
+index c67a333..6303985 100644
+--- a/web/src/engine/progress.ts
++++ b/web/src/engine/progress.ts
+@@ -66,7 +66,9 @@ const memory = new Map<string, string>()
+ function rawGet(key: string): string | null {
+   if (!HAS_STORAGE) return memory.get(key) ?? null
+   try {
+-    return window.localStorage.getItem(key)
++    // getItem 返回 null 可能是「写失败已落 memory」的场景（rawSet 配额满/权限被拒时
++    // 只写了 memory），此时必须回退 memory，否则内存兜底读穿失效。
++    return window.localStorage.getItem(key) ?? memory.get(key) ?? null
+   } catch {
+     return memory.get(key) ?? null
+   }
+diff --git a/web/src/engine/sky.ts b/web/src/engine/sky.ts
+deleted file mode 100644
+index dd5e585..0000000
+--- a/web/src/engine/sky.ts
++++ /dev/null
+@@ -1,70 +0,0 @@
+-// 工时天空系统：下班时间滑杆 → 夕阳/月亮实时切换（project.md 5.1 offwork_time）
+-// 17:00 午后 → 18:00 夕阳 → 19:30 暮色 → 20:00 后月亮升起，越晚月亮越高越冷
+-
+-export interface SkyState {
+-  bg: string
+-  fog: string
+-  sunPos: [number, number, number]
+-  sunColor: string
+-  sunIntensity: number
+-  ambient: number
+-  night: boolean
+-  moonPos: [number, number, number]
+-  label: string
+-}
+-
+-const lerp = (a: number, b: number, t: number) => a + (b - a) * t
+-const lerpColor = (c1: number[], c2: number[], t: number) =>
+-  '#' +
+-  c1
+-    .map((c, i) => Math.round(lerp(c, c2[i], t)).toString(16).padStart(2, '0'))
+-    .join('')
+-
+-export function skyFromOffworkHour(h: number): SkyState {
+-  const dusk = Math.min(1, Math.max(0, (h - 17) / 3)) // 17→20 天色变暗
+-  const night = h >= 20
+-
+-  const day = [0x87, 0xce, 0xeb]
+-  // 审美修订：夕阳→暮色压暗一档，拉开钞票山（暗红发光）与背景的明暗对比，主体才跳得出来
+-  const sunset = [0xd9, 0x6e, 0x3f]
+-  const nightC = [0x0b, 0x10, 0x2a]
+-  const bg =
+-    dusk < 0.5
+-      ? lerpColor(day, sunset, dusk * 2)
+-      : lerpColor(sunset, nightC, (dusk - 0.5) * 2)
+-
+-  // 太阳：17:00 高挂 → 19:30 落到地平线以下
+-  const sunAngle = lerp(1.15, -0.25, Math.min(1, (h - 17) / 2.5))
+-  const sunPos: [number, number, number] = [
+-    Math.cos(sunAngle) * 40,
+-    Math.sin(sunAngle) * 30,
+-    -30,
+-  ]
+-
+-  // 月亮：20:00 后升起，越晚越高；凌晨 2 点挂在头顶
+-  const moonT = night ? Math.min(1, (h - 20) / 6) : 0
+-  const moonAngle = lerp(0.1, 1.35, moonT)
+-  const moonPos: [number, number, number] = [
+-    -Math.cos(moonAngle) * 35,
+-    Math.sin(moonAngle) * 26,
+-    -28,
+-  ]
+-
+-  return {
+-    bg,
+-    fog: bg,
+-    sunPos,
+-    sunColor: dusk < 0.6 ? lerpColor([0xff, 0xff, 0xe0], [0xff, 0x7f, 0x50], dusk) : '#6b7fad',
+-    sunIntensity: lerp(1.6, 0.25, dusk),
+-    ambient: lerp(0.7, 0.22, dusk),
+-    night,
+-    moonPos,
+-    label: h <= 18.5 ? '夕阳 · 准点走的温度' : h <= 20 ? '暮色 · 天快黑了' : `月亮 · ${labelForNight(h)}`,
+-  }
+-}
+-
+-function labelForNight(h: number): string {
+-  if (h <= 21) return '晚上九点前'
+-  if (h <= 23) return '深夜强度陈述'
+-  return '永远挂在凌晨的月亮'
+-}
+diff --git a/web/src/engine/sunPosition.ts b/web/src/engine/sunPosition.ts
+index 9261fdc..f89752f 100644
+--- a/web/src/engine/sunPosition.ts
++++ b/web/src/engine/sunPosition.ts
+@@ -129,12 +129,17 @@ export function moonPosition(
+   sceneRotation = 0
+ ): SunPosition {
+   const hour = date.getHours() + date.getMinutes() / 60
+-  // 19:00 升起 → 01:00 最高 → 05:00 落下
+-  const t = (hour - 19 + 24) % 24 / 10 // 0~2.4 覆盖整个夜间
+-  const clamped = Math.max(0, Math.min(1, t))
+-  const altitude = clamped * Math.PI * 0.92
++  // 夜间相位：19:00 升起 → 次日 00:00 最高 → 05:00 落下，映射到 t∈[0,1]
++  // 仅此 10 小时窗口为夜间；其余时刻月亮在地平线下（altitude=0），不参与渲染。
++  // （旧式 (hour-19+24)%24/10 会把 18:00 及整个白天错判为最高相位）
++  const phase = ((hour - 19 + 24) % 24) / 10
++  const isNight = phase <= 1
++  const t = isNight ? phase : 0
++  // 弧线映射：t=0(19:00 升起)→0、t=0.5(次日 00:00 最高)→π/2、t=1(05:00 落下)→0，
++  // 峰值落在午夜且始终 ∈[0, π/2]（旧式 0.92π 线性会越过天顶倒挂）
++  const altitude = Math.sin(t * Math.PI) * (Math.PI / 2)
+   // 从东偏北升到西偏北
+-  const azimuth = (100 + clamped * 160) * DEG
++  const azimuth = (100 + t * 160) * DEG
+ 
+   const cosAlt = Math.cos(altitude)
+   const x = cosAlt * Math.sin(azimuth)
+diff --git a/web/src/engine/theme.ts b/web/src/engine/theme.ts
+index 5a2d9fe..8c93506 100644
+--- a/web/src/engine/theme.ts
++++ b/web/src/engine/theme.ts
+@@ -30,8 +30,10 @@ export interface EnvTheme {
+ }
+ 
+ // —— 时间分段阈值（对应 spec §4 判定表） ——
++// 阈值以词典（dictionary/hr-dictionary.json）为唯一事实源：此处仅服务于
++// 「环境时间→UI 主题」的判定（systemHour/themeForHour/isDusk），
++// 与「参数时间→下班光效」的词典映射互不干扰，勿在此另立一套分叉阈值。
+ const DAWN_START = 6.0
+-const DAWN_END = 8.5
+ const DUSK_START = 17.5
+ const DUSK_END = 19.0
+ 
+@@ -64,40 +66,3 @@ export function resolveTheme(
+   return themeForHour(h)
+ }
+ 
+-/**
+- * 主题判定的时间边界常数（导出便于测试与文档同步）
+- */
+-export const THEME_BOUNDS = {
+-  dawnStart: DAWN_START,
+-  dawnEnd: DAWN_END,
+-  duskStart: DUSK_START,
+-  duskEnd: DUSK_END,
+-} as const
+-
+-/**
+- * 主题描述文案（供 HUD/调试面板展示）
+- */
+-export function themeLabel(name: ThemeName, dusk: boolean): string {
+-  if (name === 'dark') return '夜间 · 深色孪生'
+-  if (dusk) return '黄昏 · 暖金孪生'
+-  return '白天 · 浅色孪生'
+-}
+-
+-/**
+- * 公司的"下班光效"色相与强度（参数时间语义，与环境时间无关）
+- *   ≤18:30 → 暖金日落辉光
+- *   19–21  → 暮色橙紫
+- *   ≥21    → 冷蓝月光
+- * 返回 hex 颜色 + 发光强度倍率。
+- */
+-export function offworkGlow(
+-  offworkTime: number
+-): { color: string; intensity: number; label: string } {
+-  if (offworkTime <= 18.5) {
+-    return { color: '#ffb066', intensity: 1.0, label: '夕阳 · 准点走的温度' }
+-  }
+-  if (offworkTime <= 21) {
+-    return { color: '#ff8a4c', intensity: 0.85, label: '暮色 · 天快黑了' }
+-  }
+-  return { color: '#7fa8ff', intensity: 0.7, label: '深夜强度陈述' }
+-}
+diff --git a/web/src/state/ErrorBoundary.tsx b/web/src/state/ErrorBoundary.tsx
+index 166b162..c6a45ea 100644
+--- a/web/src/state/ErrorBoundary.tsx
++++ b/web/src/state/ErrorBoundary.tsx
+@@ -77,7 +77,10 @@ function FallbackPane({
+         height: '100%',
+         minHeight: 180,
+         padding: '24px 16px',
+-        color: 'var(--ui-ink-secondary, #b7c2cc)',
++        // 降级页是**不透明面板**语义，必须用面板前景色（随主题反相）。
++        // 旧的 --ui-ink-* 是"压在玻璃浮层上"的墨色：浅色主题下是深墨，
++        // 压在不透明/深色底上 ≈1:1 不可见（两级主题均失效）。
++        color: 'var(--ui-panel-fg-muted, #8b949e)',
+         fontSize: 13,
+         textAlign: 'center',
+       }
+@@ -89,15 +92,15 @@ function FallbackPane({
+         gap: 14,
+         minHeight: '100vh',
+         padding: '32px',
+-        color: 'var(--ui-ink-primary, #e6edf3)',
++        color: 'var(--ui-page-fg, #e6edf3)',
+         fontSize: 15,
+         textAlign: 'center',
+-        background: 'var(--ui-page-bg, #0d1117)',
++        background: 'var(--ui-panel-bg, #0d1117)',
+       }
+ 
+   return (
+     <div style={style} role="alert">
+-      <div style={{ fontSize: compact ? 15 : 18, fontWeight: 700, color: 'var(--ui-ink-primary, #e6edf3)' }}>
++      <div style={{ fontSize: compact ? 15 : 18, fontWeight: 700, color: 'var(--ui-page-fg, #e6edf3)' }}>
+         {label ? `${label}加载失败` : '页面出错了'}
+       </div>
+       <div style={{ maxWidth: 460, lineHeight: 1.6 }}>
+diff --git a/web/src/styles.css b/web/src/styles.css
+index c27ef38..a669004 100644
+--- a/web/src/styles.css
++++ b/web/src/styles.css
+@@ -58,6 +58,12 @@ body,
+   --ui-panel-accent: #f0883e;
+   --ui-panel-bg: #0d1117;
+   --ui-panel-border: var(--color-neutral-5);
++  /* —— 品牌金/橙 在「玻璃浮层」上的可读变体（随主题反相）——
++     品牌金 #ffd24a / 橙 #f0883e 是亮色，压在**亮玻璃**（深色主题）上仅 1.1–2.3:1，
++     必须换深色变体；深玻璃（浅色主题）上仍用品牌原色。
++     深色变体按最坏亮玻璃合成底 rgb(221,222,224) 验算：金 4.55:1 / 橙 4.78:1，均 ≥AA。 */
++  --ui-accent-gold: #6e5a00;
++  --ui-accent-orange: #9a4606;
+   transition: background-color 600ms var(--ease-in, ease), color 600ms var(--ease-in, ease);
+ }
+ 
+@@ -82,16 +88,26 @@ body,
+   --ui-panel-accent: #a84d08;
+   --ui-panel-bg: rgba(255, 255, 255, 0.92);
+   --ui-panel-border: rgba(11, 14, 26, 0.1);
++  /* 深玻璃（浅色主题）：品牌原色压在深玻璃上可读，直接用令牌 */
++  --ui-accent-gold: var(--color-brand-gold);
++  --ui-accent-orange: var(--color-brand-orange);
+ }
+ 
+-/* 主题锁定按钮 */
+-.theme-lock {
+-  width: 32px;
+-  height: 32px;
++/* 主题锁定 / 角色切换按钮（在 header 不透明面板内）。
++   ⚠ 它们同时也是 `.mode-switch button` —— 后者的 (0,1,1) 会覆盖仅 class 的规则。
++   这里统一用 `.mode-switch .theme-lock*`（(0,2,0)）保证下面声明**真正生效**
++   （既存问题：--light / --dark 状态色原本被静默覆盖，从未显色）。
++   前景用 --ui-page-fg（随主题反相）；触控目标 ≥44px。 */
++.mode-switch .theme-lock {
++  /* 宽度自适应（「求职者」等文字标签需要），最小 44px 保证触控目标 */
++  width: auto;
++  min-width: 44px;
++  height: 44px;
++  padding: 0 12px;
+   border-radius: 999px;
+   border: 1px solid var(--ui-border-soft);
+   background: var(--ui-surface);
+-  color: var(--ui-ink-primary);
++  color: var(--ui-page-fg);
+   font-size: 15px;
+   line-height: 1;
+   cursor: pointer;
+@@ -99,11 +115,15 @@ body,
+   place-items: center;
+   transition: background var(--motion-fast, 120ms) ease, transform var(--motion-instant, 80ms) ease;
+ }
+-.theme-lock:hover { background: var(--ui-surface-hover); }
+-.theme-lock:active { transform: scale(0.92); }
+-.theme-lock--auto { color: var(--ui-ink-secondary); }
+-.theme-lock--light { color: #d98a00; border-color: rgba(217, 138, 0, 0.4); }
+-.theme-lock--dark { color: #7fa8ff; border-color: rgba(127, 168, 255, 0.4); }
++.mode-switch .theme-lock:hover { background: var(--ui-surface-hover); }
++.mode-switch .theme-lock:active { transform: scale(0.92); }
++/* 「跟随系统」/角色切换：面板内是次级文字 → 面板次级色（随主题反相） */
++.mode-switch .theme-lock--auto { color: var(--ui-panel-fg-muted); }
++.mode-switch .theme-lock--light { color: #d98a00; border-color: rgba(217, 138, 0, 0.4); }
++.mode-switch .theme-lock--dark { color: #7fa8ff; border-color: rgba(127, 168, 255, 0.4); }
++/* 浅色主题面板是**亮底**：金/蓝状态色换深变体以保证对比度（均 ≥4.5:1） */
++.app[data-theme='light'] .mode-switch .theme-lock--light { color: #8a5a00; }
++.app[data-theme='light'] .mode-switch .theme-lock--dark { color: #1f5a96; }
+ 
+ .app {
+   display: flex;
+@@ -139,14 +159,20 @@ header h1 span {
+ }
+ .mode-switch button {
+   background: var(--ui-surface);
+-  color: var(--ui-ink-primary);
++  /* 在 header 不透明面板内 → 面板前景（随主题反相）。旧的 --ui-ink-primary
++     在深色主题下是深墨，压深面板 = 深字压深底，不可见 */
++  color: var(--ui-page-fg);
+   border: 1px solid var(--ui-border-soft);
+   padding: 6px 14px;
++  /* 触控目标 ≥44px */
++  min-height: 44px;
+   cursor: pointer;
+ }
+ .mode-switch button.active {
+   background: var(--color-brand-red-deep);
+   border-color: var(--color-brand-red-deep);
++  /* 红底必须用白字：继承的面板深字压在品牌红上（浅色主题 #0b0e1a 压 #c23a2b 仅 ~3.6:1）不达 AA */
++  color: #fff;
+ }
+ .mode-switch button.replay {
+   color: #4ade80;
+@@ -164,6 +190,8 @@ header h1 span {
+   border-radius: 4px;
+   font-size: 12px;
+   max-width: 240px;
++  /* header 触控目标 ≥44px */
++  min-height: 44px;
+ }
+ 
+ main {
+@@ -296,6 +324,13 @@ main {
+ .readout small {
+   color: var(--ui-panel-fg-muted);
+ }
++/* 浅色主题：readout 是**不透明信息块**，底色必须随之反相。
++   旧的固定 --color-neutral-3 (#161b22) 在浅色主题下 = 面板深字（--ui-page-fg #0b0e1a）
++   压深底 = 不可见。背景/前景同源反相后：白底 + 深字。 */
++.app[data-theme='light'] .readout {
++  background: var(--ui-panel-bg);
++  border-color: var(--ui-panel-border);
++}
+ .cap-note {
+   color: #d4a72c;
+   font-size: 12px;
+@@ -347,7 +382,9 @@ main {
+   background: var(--ui-glass-fill);
+   border: 1px solid #2a3038;
+   border-radius: 6px;
+-  color: var(--color-text-secondary);
++  /* 玻璃浮层（已垫实底）上的文字必须用玻璃墨色系列（随主题反相）。
++     旧的 --color-text-secondary (#8b949e) 压亮玻璃底仅 2.63:1 */
++  color: var(--ui-ink-secondary);
+   padding: 3px 8px;
+   font-size: 10px;
+   line-height: 1.5;
+@@ -382,7 +419,8 @@ main {
+   position: absolute;
+   bottom: 12px;
+   left: 12px;
+-  color: var(--color-text-secondary);
++  /* 玻璃浮层（已垫实底）→ 玻璃墨色系列 */
++  color: var(--ui-ink-secondary);
+   font-size: 12px;
+   background: var(--ui-glass-fill);
+   border-radius: 4px;
+@@ -410,6 +448,8 @@ main {
+   backdrop-filter: blur(12px);
+   -webkit-backdrop-filter: blur(12px);
+   border: 1px solid var(--ui-glass-border);
++  /* 2px 边框（原单独一条 .lot-card 规则已合并至此，避免同选择器重复定义） */
++  border-width: 2px;
+   border-radius: 10px;
+   padding: 10px 14px;
+   color: var(--ui-ink-primary);
+@@ -432,7 +472,8 @@ main {
+   margin-bottom: 3px;
+ }
+ .lot-card-line b {
+-  color: var(--color-brand-orange);
++  /* 名片卡已垫实底：亮玻璃（深色主题）上品牌橙仅 2.28:1 → 用随主题反相的强调橙 */
++  color: var(--ui-accent-orange);
+ }
+ /* 名片数值三宫格：核心数值独立成块（v4 玻璃孪生 · 数值不与氛围混排） */
+ .lot-card-stats {
+@@ -524,7 +565,8 @@ main {
+   border-radius: 999px;
+   border: 1px solid var(--color-brand-gold);
+   background: var(--ui-glass-fill-strong);
+-  color: var(--color-brand-gold);
++  /* 亮玻璃（深色主题）上品牌金仅 1.13:1 → 用随主题反相的强调金 */
++  color: var(--ui-accent-gold);
+   font-family: inherit;
+   font-size: var(--font-size-md);
+   font-weight: 700;
+@@ -581,7 +623,8 @@ main {
+   background: var(--ui-glass-fill);
+   border: 1px solid var(--color-brand-orange);
+   border-radius: 999px;
+-  color: var(--color-brand-orange);
++  /* 亮玻璃（深色主题）上品牌橙仅 2.28:1 → 用随主题反相的强调橙 */
++  color: var(--ui-accent-orange);
+   font-size: 13px;
+   font-weight: 700;
+   padding: 3px 12px;
+@@ -627,7 +670,8 @@ button:disabled {
+ .game-hud-level {
+   font-size: var(--font-size-2xl);
+   font-weight: 800;
+-  color: var(--color-brand-gold);
++  /* 亮玻璃（深色主题）上品牌金仅 1.13:1 → 用随主题反相的强调金 */
++  color: var(--ui-accent-gold);
+   line-height: 1.2;
+ }
+ .xp-pop {
+@@ -741,9 +785,6 @@ button:disabled {
+   margin-right: 6px;
+   vertical-align: 2px;
+ }
+-.lot-card {
+-  border-width: 2px;
+-}
+ .game-toast {
+   position: fixed;
+   top: 64px;
+@@ -757,21 +798,19 @@ button:disabled {
+   border: 1px solid var(--ui-glass-border);
+   border-radius: 999px;
+   padding: 8px 18px;
+-  color: var(--color-text-primary);
++  /* 玻璃浮层文字：玻璃墨色（随主题反相）；原来的两条 .game-toast 规则已合并 */
++  color: var(--ui-ink-primary);
+   font-size: 14px;
+   font-weight: 600;
+   white-space: nowrap;
+   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
++  transition: background-color 600ms ease, color 600ms ease;
+   animation: game-toast-in 220ms ease-out;
+ }
+ .game-toast b {
+   color: var(--color-brand-gold);
+   margin-left: 6px;
+ }
+-.game-toast {
+-  color: var(--ui-ink-primary);
+-  transition: background-color 600ms ease, color 600ms ease;
+-}
+ @keyframes game-toast-in {
+   from {
+     opacity: 0;
+@@ -844,7 +883,8 @@ button:disabled {
+   position: absolute;
+   top: 10px;
+   left: 12px;
+-  color: var(--color-text-secondary);
++  /* 玻璃浮层（已垫实底）→ 玻璃墨色系列 */
++  color: var(--ui-ink-secondary);
+   font-size: 12px;
+   background: var(--ui-glass-fill);
+   border-radius: 4px;
+@@ -867,3 +907,10 @@ footer {
+   background: var(--ui-panel-bg);
+   font-size: 12px;
+ }
++/* ===== 键盘焦点可见性 =====
++   键盘用户必须能看见当前焦点。焦点环用随主题反相的强调橙：
++   深色主题（亮玻璃底）4.78:1 / 浅色主题（深玻璃底）5.22:1，均 >3:1（非文字对比要求）。 */
++:focus-visible {
++  outline: 2px solid var(--ui-accent-orange);
++  outline-offset: 2px;
++}
+diff --git a/web/src/styles/glass-underlay.css b/web/src/styles/glass-underlay.css
+index ba0c5cb..c8dc00f 100644
+--- a/web/src/styles/glass-underlay.css
++++ b/web/src/styles/glass-underlay.css
+@@ -35,7 +35,8 @@
+ .game-hud,
+ .game-toast,
+ .district-chip,
+-.office-status {
++.office-status,
++.office-loading {
+   background-color: var(--ui-glass-underlay);
+ }
+ 
+diff --git a/web/tokens.config.mjs b/web/tokens.config.mjs
+index effa12b..d29eb5d 100644
+--- a/web/tokens.config.mjs
++++ b/web/tokens.config.mjs
+@@ -6,8 +6,16 @@
+ //      UI v3 §12 L2 标注的风险点在此确认并修复）——多段 box-shadow 需保留逗号结构
+ //   2. 注册 `glass` 组参数的输出（透明白/描边/模糊等作为独立 CSS 变量输出）
+ import fs from 'node:fs'
++import path from 'node:path'
++import { fileURLToPath } from 'node:url'
+ import StyleDictionary from 'style-dictionary'
+ 
++// 所有路径以本文件位置解析，不依赖调用时的 cwd
++// （旧版写死 'design/tokens.json' / 'generated/'，只有恰好在 web/ 下执行才成立）
++const here = path.dirname(fileURLToPath(import.meta.url))
++const tokensPath = path.resolve(here, 'design/tokens.json')
++const generatedDir = path.resolve(here, 'generated')
++
+ /**
+  * shadow 类型转换：把 DTCG shadow 值转成 CSS box-shadow 字符串。
+  * 多段阴影（逗号分隔）逐段处理；字符串值原样透传。
+@@ -54,18 +62,18 @@ StyleDictionary.registerTransform({
+ })
+ 
+ const sd = new StyleDictionary({
+-  source: ['design/tokens.json'],
++  source: [tokensPath],
+   platforms: {
+     css: {
+       transformGroup: 'css',
+       transforms: ['shadow/css', 'glass/css'],
+-      buildPath: 'generated/',
++      buildPath: `${generatedDir}${path.sep}`,
+       files: [{ destination: 'design-tokens.output.css', format: 'css/variables' }],
+     },
+     js: {
+       transformGroup: 'js',
+       transforms: ['shadow/css', 'glass/css'],
+-      buildPath: 'generated/',
++      buildPath: `${generatedDir}${path.sep}`,
+       files: [
+         {
+           destination: 'design-tokens.output.mjs',
+@@ -79,7 +87,7 @@ const sd = new StyleDictionary({
+ await sd.buildAllPlatforms()
+ 
+ // 生成类型声明，保证 TS 侧可以直接消费生成的令牌（与 mjs 同名导出）
+-const tokens = JSON.parse(fs.readFileSync('design/tokens.json', 'utf8'))
++const tokens = JSON.parse(fs.readFileSync(tokensPath, 'utf8'))
+ const decls = []
+ const walk = (obj, path) => {
+   for (const [key, value] of Object.entries(obj)) {
+@@ -93,7 +101,7 @@ const walk = (obj, path) => {
+   }
+ }
+ walk(tokens, [])
+-fs.writeFileSync('generated/design-tokens.output.d.mts', decls.join('\n') + '\n')
++fs.writeFileSync(path.join(generatedDir, 'design-tokens.output.d.mts'), decls.join('\n') + '\n')
+ console.log('tokens built: generated/design-tokens.output.css / .mjs / .d.mts')
+ 
+ // —— 构建后自检：number 令牌不得被自定义 transform 破坏 ——
+diff --git a/web/vite.config.ts b/web/vite.config.ts
+index b29b0ce..fe0535b 100644
+--- a/web/vite.config.ts
++++ b/web/vite.config.ts
+@@ -3,7 +3,10 @@ import react from '@vitejs/plugin-react'
+ import { fileURLToPath } from 'node:url'
+ import path from 'node:path'
+ 
+-const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
++const webRoot = path.dirname(fileURLToPath(import.meta.url))
++// 仓库根 = web/ 的上一级。旧值 '../..' 从 web/ 再上两级会误算成 E:\（把整盘塞给 fs.allow），
++// 2026-10-27 配置审查修正。
++const repoRoot = path.resolve(webRoot, '..')
+ 
+ // 各部署目标的 base 前缀（非路径令牌触发，规避 MSYS 路径改写）
+ const BASE_TOKENS: Record<string, string> = {
+@@ -12,15 +15,28 @@ const BASE_TOKENS: Record<string, string> = {
+   modelscope: '/',
+ }
+ 
++// base 令牌 fail-fast：非空但不在映射表内 → 立刻抛错，禁止静默 fallback 到 '/'。
++// 背景（T8）：路径形态的 base 值会被 Git Bash(MSYS) 改写成 C:/Program Files/Git/...，
++// 若此处默默取 '/'，构建照样"成功"却在线上白屏——把错误暴露在构建期而非线上。
++const baseToken = process.env.VITE_BASE_TOKEN
++if (baseToken && !Object.prototype.hasOwnProperty.call(BASE_TOKENS, baseToken)) {
++  throw new Error(
++    `[vite.config] 未知的 VITE_BASE_TOKEN="${baseToken}"；合法值仅：${Object.keys(BASE_TOKENS).join(' / ')}。` +
++      `切勿传入路径形态（如 /guangchang/）——Git Bash(MSYS) 会改写为 C:/Program Files/Git/... 导致线上白屏 ` +
++      `（docs/lessons.md §3 铁律 4 / T8）。`,
++  )
++}
++
+ export default defineConfig({
+   plugins: [react()],
+   // GitHub Pages 部署在 /guangchang/ 子路径。
+   // 注意：不要用 VITE_BASE=/guangchang/ 这类路径形态的环境变量——
+   // Git Bash(MSYS) 会把路径形态的 env 值自动改写成 C:/Program Files/Git/...
+   // 导致线上脚本 404 白屏（10.27 事故）。用非路径令牌触发。
+-  base: BASE_TOKENS[process.env.VITE_BASE_TOKEN ?? ''] ?? '/',
+-  // 词典 JSON 在仓库根 /dictionary，开发时放行 fs 访问
+-  server: { fs: { allow: [repoRoot] } },
++  base: baseToken ? BASE_TOKENS[baseToken] : '/',
++  // 开发仅放行 vite 根（web/）与仓库根词典目录 /dictionary，最小化 fs 暴露面
++  // （旧配置 allow:[repoRoot] 因 repoRoot 误算为 E:\ 而整盘放行）
++  server: { fs: { allow: [webRoot, path.resolve(repoRoot, 'dictionary')] } },
+   // aholo-viewer 自带 worker（splat-worker.js），依赖预打包会丢失它
+   optimizeDeps: { exclude: ['@manycore/aholo-viewer'] },
+ })

@@ -9,73 +9,73 @@
       "drawCalls": 684,
       "drawCallsMin": 684,
       "triangles": 1548542,
-      "fps": 68.5,
+      "fps": 29.9,
       "fpsRounds": [
-        69.4,
-        68.5,
-        57.8
+        31.3,
+        29.9,
+        29.9
       ],
       "memory": {
         "geometries": 623,
-        "textures": 96,
-        "programs": 52
+        "textures": 97,
+        "programs": 80
       },
       "webgl2": true,
       "renderer": "ANGLE (AMD, AMD Radeon(TM) Graphics (0x00001681) Direct3D11 vs_5_0 ps_5_0, D3D11)"
     },
     {
       "tag": "walk(越肩)",
-      "drawCalls": 310,
-      "drawCallsMin": 171,
-      "triangles": 8602284,
-      "fps": 43.5,
+      "drawCalls": 327,
+      "drawCallsMin": 172,
+      "triangles": 8365174,
+      "fps": 14.1,
       "fpsRounds": [
-        45,
-        43.5,
-        40.3
+        14.3,
+        14.1,
+        13.4
       ],
       "memory": {
-        "geometries": 713,
+        "geometries": 712,
         "textures": 157,
-        "programs": 71
+        "programs": 192
       },
       "webgl2": true,
       "renderer": "ANGLE (AMD, AMD Radeon(TM) Graphics (0x00001681) Direct3D11 vs_5_0 ps_5_0, D3D11)"
     },
     {
       "tag": "focus(特写)",
-      "drawCalls": 328,
-      "drawCallsMin": 328,
-      "triangles": 7828415,
-      "fps": 41,
+      "drawCalls": 327,
+      "drawCallsMin": 326,
+      "triangles": 8102869,
+      "fps": 13.7,
       "fpsRounds": [
-        42.6,
-        41,
-        40.2
+        14,
+        13.7,
+        12.5
       ],
       "memory": {
-        "geometries": 713,
+        "geometries": 712,
         "textures": 157,
-        "programs": 71
+        "programs": 192
       },
       "webgl2": true,
       "renderer": "ANGLE (AMD, AMD Radeon(TM) Graphics (0x00001681) Direct3D11 vs_5_0 ps_5_0, D3D11)"
     },
     {
       "tag": "deliver(投递)",
-      "drawCalls": 330,
-      "drawCallsMin": 330,
-      "triangles": 7828529,
-      "fps": 42,
+      "drawCalls": 329,
+      "drawCallsMin": 328,
+      "triangles": 8102983,
+      "fps": 13.2,
       "fpsRounds": [
-        42.7,
-        42,
-        38
+        14.5,
+        13.2,
+        12.2
       ],
       "memory": {
-        "geometries": 714,
+        "geometries": 713,
         "textures": 158,
-        "programs": 85
+        "programs": 193
       },
       "webgl2": true,
       "renderer": "ANGLE (AMD, AMD Radeon(TM) Graphics (0x00001681) Direct3D11 vs_5_0 ps_5_0, D3D11)"

@@ -129,7 +129,7 @@
   --twin-glass-opacity-day: 0.92;
   --twin-ground-env-intensity: 0.9;
   --twin-road-roughness-day: 0.38;
-  --twin-road-roughness-night: 0.6;
+  --twin-road-roughness-night: 0.45;
   --twin-ground-roughness-day: 0.72;
   --twin-fog-near: 34;
   --twin-fog-far: 165;
@@ -140,7 +140,7 @@
   --twin-shadow-normal-bias: 0.035;
   --twin-shadow-bias: -0.0004;
   --twin-grid-opacity-day: 0.46;
-  --twin-grid-opacity-night: 0.28;
+  --twin-grid-opacity-night: 0.22;
   --twin-reflect-opacity-day: 0.09;
   --twin-reflect-opacity-night: 0.14;
   --twin-shaft-opacity-day: 0.15;
