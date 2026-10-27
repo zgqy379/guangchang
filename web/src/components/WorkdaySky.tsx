@@ -18,8 +18,14 @@ import {
   ThemeLightSkyMid,
   ThemeLightSkyHorizon,
   ThemeLightSun,
+  ThemeLightSkyWarmMid,
+  ThemeLightSkyWarmHor,
+  ThemeLightSkyWarmBand,
+  ThemeLightSunDusk,
   ThemeLightHemiSky,
   ThemeLightHemiGround,
+  ThemeLightHemiSkyDusk,
+  ThemeLightHemiGroundDusk,
   ThemeLightFog,
   ThemeDarkSkyTop,
   ThemeDarkSkyMid,
@@ -60,6 +66,8 @@ export interface SkyState {
   topColor: string
   /** 天幕地平线色（渐变用） */
   horizonColor: string
+  /** 地平线暖金余晖带（白天显影；夜间=地平线色） */
+  bandColor: string
 }
 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t
@@ -68,6 +76,13 @@ const lerpColor = (c1: number[], c2: number[], t: number) =>
   c1
     .map((c, i) => Math.round(lerp(c, c2[i], t)).toString(16).padStart(2, '0'))
     .join('')
+
+/** '#rrggbb' → [r,g,b]：让黄昏插值基底也来自设计令牌（白天「洗白」修复，见 skyFromEnv） */
+const hexToRgb = (hex: string): number[] => [
+  parseInt(hex.slice(1, 3), 16),
+  parseInt(hex.slice(3, 5), 16),
+  parseInt(hex.slice(5, 7), 16),
+]
 
 /**
  * 按系统时间 + 主题生成天空状态。
@@ -100,6 +115,7 @@ export function skyFromEnv(
       // 夜间天幕：顶部更深、地平线略亮（城市辉光）
       topColor: ThemeDarkSkyTop,
       horizonColor: ThemeDarkSkyHorizon,
+      bandColor: ThemeDarkSkyHorizon,
     }
   }
 
@@ -107,21 +123,27 @@ export function skyFromEnv(
   const sun = sunPosition(now)
   const below = isBelowHorizon(sun)
 
-  // 黄昏暖化：17:30-19:00 之间把天幕往暖金推
-  const duskT = Math.max(0, Math.min(1, (envHour - 17.5) / 1.5))
+  // 暖金时段：15:25 起随真实太阳降低渐暖，18:30 全暖（低仰角长影 + 暖色温）。
+  // 依据 art-style-options-v3 ①（长阴影 = 电影感来源）与 twin-style-spec-v4 §4；
+  // 插值基底一律取自设计令牌——旧版硬编码调色板与令牌脱钩，是白天「洗白」根因之一。
+  const duskT = Math.max(0, Math.min(1, (envHour - 15.25) / 3.25))
   const warm = duskT > 0
 
-  const topRgb = [0xdf, 0xe9, 0xf2]
-  const midRgb = [0xee, 0xf4, 0xf8]
-  const horRgb = [0xf7, 0xfa, 0xfc]
-  const duskMid = [0xf3, 0xd6, 0xb4]
-  const duskHor = [0xfa, 0xdc, 0xb0]
+  const topRgb = hexToRgb(ThemeLightSkyTop)
+  const midRgb = hexToRgb(ThemeLightSkyMid)
+  const horRgb = hexToRgb(ThemeLightSkyHorizon)
+  const warmMidRgb = hexToRgb(ThemeLightSkyWarmMid)
+  const warmHorRgb = hexToRgb(ThemeLightSkyWarmHor)
+  const warmBandRgb = hexToRgb(ThemeLightSkyWarmBand)
 
   const bg = warm
-    ? lerpColor(midRgb, duskMid, duskT)
+    ? lerpColor(midRgb, warmMidRgb, duskT)
     : ThemeLightSkyMid
-  const bgTop = warm ? lerpColor(topRgb, duskMid, duskT * 0.55) : ThemeLightSkyTop
-  const bgHor = warm ? lerpColor(horRgb, duskHor, duskT) : ThemeLightSkyHorizon
+  const bgTop = warm ? lerpColor(topRgb, warmMidRgb, duskT * 0.55) : ThemeLightSkyTop
+  const bgHor = warm ? lerpColor(horRgb, warmHorRgb, duskT) : ThemeLightSkyHorizon
+  // 地平线暖金余晖带：白天也保持一条淡暖带（≥0.35 起步），随暖度加深——
+  // 给浅色天幕与白色楼体之间一层「空气厚度」（twin §3.1「明确暖带」）
+  const bgBand = lerpColor(horRgb, warmBandRgb, Math.max(0.35, duskT))
 
   // —— 合成主光位 ——
   // 真实太阳落到地平线下时（黄昏后段，或用户把主题手动锁成"白天"），
@@ -148,18 +170,25 @@ export function skyFromEnv(
 
   return {
     bg,
-    fog: warm ? lerpColor([0xee, 0xf4, 0xf8], [0xfa, 0xdc, 0xb0], duskT) : ThemeLightFog,
+    fog: warm ? lerpColor(midRgb, warmHorRgb, duskT) : ThemeLightFog,
     sunPos,
-    sunColor: warm ? lerpColor([0xff, 0xff, 0xe6], [0xff, 0xa8, 0x5c], duskT) : ThemeLightSun,
+    sunColor: warm
+      ? lerpColor(hexToRgb(ThemeLightSun), hexToRgb(ThemeLightSunDusk), duskT)
+      : ThemeLightSun,
     sunIntensity,
     ambient: below ? 0.5 : 0.85,
     night: false,
     moonPos: moonPosition(now).position,
-    label: warm ? '黄昏 · 暖金孪生' : '白天 · 浅色孪生',
-    hemiSky: warm ? lerpColor([0xcf, 0xe4, 0xf5], [0xf0, 0xcf, 0xa8], duskT) : ThemeLightHemiSky,
-    hemiGround: warm ? lerpColor([0xd8, 0xd2, 0xc8], [0xc9, 0xb0, 0x92], duskT) : ThemeLightHemiGround,
+    label: warm ? (envHour >= 17.5 ? '黄昏 · 暖金孪生' : '午后 · 暖金孪生') : '白天 · 浅色孪生',
+    hemiSky: warm
+      ? lerpColor(hexToRgb(ThemeLightHemiSky), hexToRgb(ThemeLightHemiSkyDusk), duskT)
+      : ThemeLightHemiSky,
+    hemiGround: warm
+      ? lerpColor(hexToRgb(ThemeLightHemiGround), hexToRgb(ThemeLightHemiGroundDusk), duskT)
+      : ThemeLightHemiGround,
     topColor: bgTop,
     horizonColor: bgHor,
+    bandColor: bgBand,
   }
 }
 
@@ -167,7 +196,8 @@ export function skyFromEnv(
 export function skyGradientTexture(
   top: string,
   mid: string,
-  horizon: string
+  horizon: string,
+  warmBand?: string
 ): THREE.CanvasTexture {
   const c = document.createElement('canvas')
   c.width = 4
@@ -175,8 +205,11 @@ export function skyGradientTexture(
   const ctx = c.getContext('2d')!
   const grad = ctx.createLinearGradient(0, 0, 0, 256)
   grad.addColorStop(0, top)
-  grad.addColorStop(0.44, mid)
-  grad.addColorStop(0.55, horizon)
+  grad.addColorStop(0.4, mid)
+  // 地平线上方的暖金余晖带（twin §3.1）：给浅色天幕一层「空气厚度」，
+  // 让白色楼体与天幕分离；夜间不传则退化为地平线色
+  grad.addColorStop(0.5, warmBand ?? horizon)
+  grad.addColorStop(0.58, horizon)
   grad.addColorStop(1, mid)
   ctx.fillStyle = grad
   ctx.fillRect(0, 0, 4, 256)
@@ -284,8 +317,8 @@ export function WorkdaySky({
   const horizonColor = sky.horizonColor
 
   const skyTex = useMemo(
-    () => skyGradientTexture(topColor, sky.bg, horizonColor),
-    [topColor, sky.bg, horizonColor]
+    () => skyGradientTexture(topColor, sky.bg, horizonColor, sky.bandColor),
+    [topColor, sky.bg, horizonColor, sky.bandColor]
   )
 
   // 天幕渐变 CanvasTexture：依赖变化（主题/天色切换）时释放旧纹理，卸载时释放当前纹理，

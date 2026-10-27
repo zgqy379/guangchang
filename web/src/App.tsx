@@ -1,8 +1,18 @@
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
-import { Canvas } from '@react-three/fiber'
+import { Canvas, useThree } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
-import { CompanyParams, defaultParams, totalPackage } from './engine/params'
+import {
+  CompanyParams,
+  defaultParams,
+  totalPackage,
+  yuanToStacks,
+  incrementPackage,
+  layerLayout,
+  BILL,
+  MOUNTAIN_HEIGHT_SCALE,
+  MOUNTAIN_SCALE,
+} from './engine/params'
 import { formatValue } from './engine/dictionary'
 import { HRPanel } from './components/HRPanel'
 import { schrodingerCapNote } from './components/SchrodingerBills'
@@ -35,6 +45,7 @@ const RoamCamera = lazy(() =>
 import { fictionalCompanies, companyById } from './data/fictional-companies'
 import { STREET_LOTS, type Lot } from './data/street-companies'
 import { assetUrl } from './engine/asset'
+import { ColorSceneHallFloor } from '../generated/design-tokens.output.mjs'
 import { ErrorBoundary, SceneErrorBoundary } from './state/ErrorBoundary'
 import { RoleGate, type Role } from './components/role/RoleGate'
 import { loadRole, saveRole, loadBasket, saveBasket } from './engine/progress'
@@ -54,6 +65,45 @@ const OFFICE_SCENES = [
   { file: 'culture.spz', label: '文创 · Loft（SpatialGen · SPZ 3.9MB）' },
   { file: 'office-promptonly.spz', label: '互联网 · 纯文案生成（World · SPZ 4.1MB）' },
 ]
+
+// 单人模式构图自适应：低薪参数山太矮（0.16–0.32m），固定机位下主体 <8% 画幅、
+// 90×90 地板占 >80%（盲审「60% 空黑」根因）。按引擎公式同源算出山高/占地，
+// 相机距离 = k × max(footprint, 1.4)，目标高度随山抬升；参数变化时一次性重设（不逐帧 lerp）。
+// 只动相机与 OrbitControls 目标，不碰 MoneyMountain/SchrodingerBills 内部。
+function MountainFit({ params, growthKey }: { params: CompanyParams; growthKey: number }) {
+  const camera = useThree((s) => s.camera)
+  const controls = useThree((s) => s.controls) as unknown as {
+    target: THREE.Vector3
+    update: () => void
+  } | null
+  const fit = useMemo(() => {
+    const baseL = layerLayout(yuanToStacks(params.annualBaseSalary), 0)
+    const inc = incrementPackage(params)
+    const incL = layerLayout(yuanToStacks(inc), baseL.length ? baseL[baseL.length - 1].layer + 1 : 0)
+    const layers = baseL.length + (inc > 0 ? incL.length : 0)
+    const mountainH = layers * BILL.stackH * MOUNTAIN_HEIGHT_SCALE
+    const stacks = yuanToStacks(params.annualBaseSalary) + yuanToStacks(inc)
+    const footprint = Math.min(3, Math.max(1, Math.ceil(stacks / 9))) * BILL.w * MOUNTAIN_SCALE
+    const dist = THREE.MathUtils.clamp(2.6 * Math.max(footprint, 1.4), 3.0, 8.5)
+    const ty = THREE.MathUtils.clamp(0.22 + mountainH * 0.5, 0.28, 1.05)
+    return { mountainH, dist, ty }
+  }, [params])
+  useLayoutEffect(() => {
+    const dir = new THREE.Vector3(3.1, 2.1, 4.3).normalize()
+    camera.position.set(
+      dir.x * fit.dist,
+      Math.max(1.35, dir.y * fit.dist + fit.ty * 0.6),
+      dir.z * fit.dist
+    )
+    camera.lookAt(-0.4, fit.ty, 0)
+    if (controls) {
+      controls.target.set(-0.4, fit.ty, 0)
+      controls.update()
+    }
+    // growthKey 变化必伴随 params 变化；显式列出以防同参重播时相机不复位
+  }, [camera, controls, fit, growthKey])
+  return null
+}
 
 function Scene({
   name,
@@ -82,10 +132,10 @@ function Scene({
       {/* lazy 3D 组件首次加载会挂起：Canvas 内必须有 Suspense，否则挂起冒泡到根、整树空白 */}
       <Suspense fallback={null}>
         <WorkdaySky envHour={envHour} theme={theme} />
-        {/* 大地板：让展台坐在"地面"上而非悬空，地砖路可延伸向远方 */}
+        {/* 大地板：让展台坐在"地面"上而非悬空，地砖路可延伸向远方（色入令牌 scene.hallFloor） */}
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.02, 0]}>
           <planeGeometry args={[90, 90]} />
-          <meshStandardMaterial color="#10141a" roughness={1} />
+          <meshStandardMaterial color={ColorSceneHallFloor} roughness={1} />
         </mesh>
         <CompanyPlot
           position={[0, 0, 0]}
@@ -105,7 +155,11 @@ function Scene({
         {roam ? (
           <RoamCamera enabled refs={roamRefs} />
         ) : (
-          <OrbitControls target={[-0.4, 0.7, 0]} maxPolarAngle={Math.PI / 2.1} />
+          <>
+            {/* makeDefault：MountainFit 通过 useThree(controls) 接管目标点（原固定 target 已移除） */}
+            <OrbitControls makeDefault maxPolarAngle={Math.PI / 2.1} />
+            <MountainFit params={params} growthKey={growthKey} />
+          </>
         )}
       </Suspense>
     </Canvas>
@@ -308,9 +362,10 @@ export default function App() {
           {mode === 'single' && (
             <button
               className={roam ? 'active' : 'roam-btn'}
+              title={roam ? '点击地面行走，或用 WASD 移动' : '进入漫游模式'}
               onClick={() => setRoam((r) => !r)}
             >
-              {roam ? '🚶 漫游中（点击地面行走 / WASD）' : '🚶 漫游模式'}
+              {roam ? '🚶 漫游中 · 点地行走' : '🚶 漫游模式'}
             </button>
           )}
           {mode === 'office' && (

@@ -744,6 +744,58 @@ function ArchWay({ industry, axisX, sign, theme }: { industry: keyof typeof INDU
   )
 }
 
+// 金色粒子爆发：投递落点的世界层强化（design-audit 四轮 8+ 清单 #3）。
+// 16 粒加性混合点精灵，仅在 DeliveryFX 存活的 ~1.15s 内 +1 draw call，随后随组件卸载归零。
+const GOLD_BURST_N = 16
+function GoldBurst({ x, z }: { x: number; z: number }) {
+  const ref = useRef<THREE.Points>(null)
+  const t = useRef(0)
+  // 确定性伪随机（不引随机数种子库）：初速方向/大小由索引决定，每次投递同一朵「金花」
+  const seeds = useMemo(
+    () =>
+      Array.from({ length: GOLD_BURST_N }, (_, i) => {
+        const a = (i / GOLD_BURST_N) * Math.PI * 2 + (i % 3) * 0.4
+        const r = 0.22 + ((i * 37) % 11) / 24
+        return { vx: Math.cos(a) * r, vy: 0.9 + ((i * 53) % 13) / 10, vz: Math.sin(a) * r }
+      }),
+    []
+  )
+  useFrame((_, dt) => {
+    t.current += dt
+    const pts = ref.current
+    if (!pts) return
+    // 与金环同拍：t∈[0.7,1.15] 才爆发（飞袋落位之后）
+    const life = Math.min(1, Math.max(0, (t.current - 0.7) / 0.45))
+    const pos = pts.geometry.attributes.position as THREE.BufferAttribute
+    for (let i = 0; i < GOLD_BURST_N; i++) {
+      const s = seeds[i]
+      const d = life * 0.9
+      pos.setXYZ(i, x + s.vx * d, 0.5 + s.vy * d - 1.4 * d * d, z + s.vz * d)
+    }
+    pos.needsUpdate = true
+    const mat = pts.material as THREE.PointsMaterial
+    mat.opacity = 1 - life
+    pts.visible = life > 0 && life < 1
+  })
+  return (
+    <points ref={ref} visible={false}>
+      <bufferGeometry>
+        <bufferAttribute attach="attributes-position" args={[new Float32Array(GOLD_BURST_N * 3), 3]} />
+      </bufferGeometry>
+      <pointsMaterial
+        color={ColorBrandGold}
+        size={0.16}
+        sizeAttenuation
+        transparent
+        opacity={1}
+        map={lampGlowTexture()}
+        depthWrite={false}
+        blending={THREE.AdditiveBlending}
+      />
+    </points>
+  )
+}
+
 // 投递飞袋：抛物线飞向摊位 + 落点金环爆开 + 瞬时补光（世界层反馈）
 function DeliveryFX({
   d,
@@ -799,6 +851,7 @@ function DeliveryFX({
         />
       </mesh>
       <pointLight ref={light} position={[d.to[0], 1.6, d.to[1]]} color={ColorBrandGold} intensity={0} distance={8} />
+      <GoldBurst x={d.to[0]} z={d.to[1]} />
     </group>
   )
 }

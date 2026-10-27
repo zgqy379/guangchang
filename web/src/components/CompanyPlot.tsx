@@ -67,6 +67,10 @@ export function CompanyPlot({
     return layers * BILL.stackH * MOUNTAIN_HEIGHT_SCALE
   }, [params])
 
+  // 数据浮标引线长度：低薪小山（0.16–0.32m）下旧定长 0.56m 是山体 3.5 倍，读作「断线+悬空标签」。
+  // 改为随山高缩放并封顶旧值：小山 = 山高×0.5（比例锚定），大山 = 0.56（高薪大山行为与现状逐像素一致）。
+  const leadLen = Math.min(0.56, mountainH * 0.5)
+
   return (
     <group position={position}>
       {/* 展台补光：夜色下把 Avatar/山体从暗地板上托出来（ColorSceneSun 暖白） */}
@@ -93,10 +97,17 @@ export function CompanyPlot({
           incrementYuan={incrementPackage(params)}
         />
         <CarvedZone baseYuan={params.annualBaseSalary} ratio={params.socialInsuranceBaseRatio} />
-        <SchrodingerBills
-          equityYuan={params.equityValue}
-          baseYuan={params.annualBaseSalary}
-        />
+        {/* 悬浮钞票带跟山：SchrodingerBills 内部把钞票铺在 y∈[1.6,3.2]（带底 1.6 是按旧构图定的绝对高度），
+            外包 group 整体下移 1.6 → 带底恒 = 山顶。不变式：钞票带相对山顶恒定——
+            山高 0.32m 时贴在山上而非半空，山高 2m 时仅整体上移 0.4m ≈ 现状。
+            不做 max(0,·) 钳位：带底 = mountainH ≥ 0 永不入地；若钳位，山高 <1.6m 时带悬回 1.6–3.2 半空，复活脱接。
+            外壳变换只做在这一层，不改 SchrodingerBills 内部。 */}
+        <group position={[0, mountainH - 1.6, 0]}>
+          <SchrodingerBills
+            equityYuan={params.equityValue}
+            baseYuan={params.annualBaseSalary}
+          />
+        </group>
         <GlowPath />
         {/* 首个 Aholo 真实资产：逛厂币捆（Lux3D 生成 → Draco 压缩 2.2MB） */}
         <AssetProp url={assetUrl("/assets/money/gc-bill-bundle.glb")} position={[1.7, 0, 1.1]} targetSize={0.55} />
@@ -113,11 +124,13 @@ export function CompanyPlot({
       {/* 山顶数据浮标：核心金额直接钉在山上 + 引线连到山尖（盲审：视线找不到主体） */}
       {!roam && (
         <>
-          <mesh position={[-0.5, mountainH + 0.27, -1.5]}>
-            <boxGeometry args={[0.014, 0.56, 0.014]} />
+          {/* 引线：底端仍埋入峰顶 0.01m，长度 leadLen（= 0.56 时与旧版逐像素等价） */}
+          <mesh position={[-0.5, mountainH - 0.01 + leadLen / 2, -1.5]}>
+            <boxGeometry args={[0.014, leadLen, 0.014]} />
             <meshBasicMaterial color={ColorBrandOrange} />
           </mesh>
-          <Html position={[-0.5, mountainH + 0.58, -1.5]} center distanceFactor={13}>
+          {/* 标签 y = 山顶 + 引线顶端（杆顶上方 0.03m，与旧版间距一致），随引线长度自动升降 */}
+          <Html position={[-0.5, mountainH - 0.01 + leadLen + 0.03, -1.5]} center distanceFactor={13}>
             <div className="peak-tag">
               ¥{Math.round(totalPackage(params) / 10000)}万 · {params.salaryStructure}薪
             </div>

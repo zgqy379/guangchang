@@ -28,6 +28,19 @@ const DOOR_OFFSET_Z = -3.6
 
 const tempObject = new THREE.Object3D()
 
+/**
+ * 摊位个体识别：用 lotNo（稳定、连号、跨主题不变）哈希对行业色做克制的 HSL 微扰。
+ * 同行业 16 摊不再完全同色，但幅度控制在「仍读成一族」（art-style 结论 1）。
+ * 纯 instanceColor 操作，0 draw call 增量；颜色仅装饰，不承载状态语义（可访问性规则不受影响）。
+ */
+export function applyLotJitter(target: THREE.Color, lotId: string): THREE.Color {
+  const seed = parseInt(lotId.slice(-2), 10) || 0
+  const hue = ((seed % 7) - 3) * 0.011 // ±0.033 ≈ ±12°
+  const lightness = ((seed % 5) - 2) * 0.012 // ±0.024
+  const sat = ((seed % 3) - 1) * 0.02 // ±0.02
+  return target.offsetHSL(hue, sat, lightness)
+}
+
 /** 计算子元素的世界 matrix：摊位位置 + RotY(摊位旋转) × (门面偏置 + 子元素局部位置) */
 function instanceMatrixFor(
   pl: LotPlacement,
@@ -197,9 +210,13 @@ export function OfficeFacadeInstanced({
         </instancedMesh>
       ))}
       {/* cap：实体头顶 */}
+      {/* cap：实体头顶（instanceColor 染色）。
+          ⚠ 勿给此材质加 vertexColors：BoxGeometry 无 color 顶点属性，
+          USE_COLOR 会把 vColor 乘成 0（纯黑棚顶，M6b 起潜伏，2026-10-27 才被红帽实验定位）。
+          instanceColor 不依赖 vertexColors，单独生效。 */}
       <instancedMesh ref={capRef} args={[undefined, undefined, count]} castShadow receiveShadow>
         <boxGeometry args={[6.66, 0.42, 5.44]} />
-        <meshStandardMaterial vertexColors />
+        <meshStandardMaterial />
       </instancedMesh>
       {/* glass：底层玻璃幕墙 */}
       <instancedMesh ref={glassRef} args={[undefined, undefined, count]}>

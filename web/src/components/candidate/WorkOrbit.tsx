@@ -70,8 +70,11 @@ export function WorkOrbit({ works, position, focus = false }: WorkOrbitProps) {
         const x = Math.cos(angle) * r
         const z = Math.sin(angle) * r
 
+        // ⚠ 勿给 R3F 元素加 data-* 属性：R3F 会把 dashed key 当 pierce 路径
+        // ['data','work','id'] 解析，instance.data 为 undefined 直接崩（T13）。
+        // 标识用 React key 或实例字段。
         return (
-          <group key={work.id} data-work-id={i} position={[x, 0, z]} rotation={[0, -angle, 0]} scale={focus ? 1.15 : 1}>
+          <group key={work.id} position={[x, 0, z]} rotation={[0, -angle, 0]} scale={focus ? 1.15 : 1}>
             {/* 作品卡片：面向外侧（玩家走近时可正面阅读） */}
             <mesh position={[0, 1.35, 0]} rotation={[0, Math.PI, 0]}>
               {work.type === 'ui' && (

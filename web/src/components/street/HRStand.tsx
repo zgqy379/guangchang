@@ -81,9 +81,9 @@ export function facadeTexture(floors: number, mode: 'day' | 'night' = 'night') {
 
   const bg = ctx.createLinearGradient(0, 0, 0, 512)
   if (day) {
-    // 白天：冷白玻璃底（浅色主题下与天幕融合）
-    bg.addColorStop(0, '#dbe7f0')
-    bg.addColorStop(1, '#c2d4e2')
+    // 白天：冷白玻璃底（加深一档、微增蓝铬度，与提亮后的天幕拉开分离度）
+    bg.addColorStop(0, '#d3e2ee')
+    bg.addColorStop(1, '#b5c9db')
   } else {
     bg.addColorStop(0, '#1a2431')
     bg.addColorStop(1, '#0f161f')
@@ -97,7 +97,7 @@ export function facadeTexture(floors: number, mode: 'day' | 'night' = 'night') {
   for (let f = 0; f < floors; f++) {
     if (day) {
       // 楼层分隔：深色结构线（线框感）
-      ctx.fillStyle = '#7d97ab'
+      ctx.fillStyle = '#6f8ba1'
       ctx.fillRect(0, f * fh, 512, 2)
       ctx.fillStyle = 'rgba(255,255,255,0.55)'
       ctx.fillRect(0, f * fh + 2, 512, 1)
@@ -114,12 +114,12 @@ export function facadeTexture(floors: number, mode: 'day' | 'night' = 'night') {
       const h = fh * 0.48
       if (day) {
         // 白天：淡青玻璃块（半透感由底色渐变模拟），无暖光窗
-        ctx.fillStyle = '#8fb0c6'
+        ctx.fillStyle = '#7fa3bd'
         ctx.fillRect(x - 2, y - 2, w + 4, h + 4)
         const glass = ctx.createLinearGradient(x, y, x, y + h)
-        glass.addColorStop(0, '#cfe4f2')
-        glass.addColorStop(0.55, '#a8c8dd')
-        glass.addColorStop(1, '#8fb4cc')
+        glass.addColorStop(0, '#c5e0f4')
+        glass.addColorStop(0.55, '#98bedb')
+        glass.addColorStop(1, '#80a5c2')
         ctx.fillStyle = glass
         ctx.fillRect(x, y, w, h)
         // 斜向高光条：玻璃反光的标识
@@ -147,12 +147,12 @@ export function facadeTexture(floors: number, mode: 'day' | 'night' = 'night') {
   }
   for (let col = 1; col < cols; col++) {
     // 竖梃：白天为深色结构柱，夜间为暗色
-    ctx.fillStyle = day ? 'rgba(90,120,142,0.75)' : 'rgba(6,10,14,0.6)'
+    ctx.fillStyle = day ? 'rgba(70,98,124,0.8)' : 'rgba(6,10,14,0.6)'
     ctx.fillRect(col * cw - 2, 0, 4, 512)
   }
   // 底部环境光遮蔽（AO）：贴图烘焙，不花任何 draw call 就让体块"落地"
   const ao = ctx.createLinearGradient(0, 512, 0, 512 * 0.62)
-  ao.addColorStop(0, day ? 'rgba(24,38,54,0.46)' : 'rgba(0,0,0,0.55)')
+  ao.addColorStop(0, day ? 'rgba(18,32,48,0.55)' : 'rgba(0,0,0,0.55)')
   ao.addColorStop(1, 'rgba(0,0,0,0)')
   ctx.fillStyle = ao
   ctx.fillRect(0, 512 * 0.62, 512, 512 * 0.38)
@@ -174,9 +174,9 @@ export function glassTexture(mode: 'day' | 'night' = 'night') {
     const ctx = c.getContext('2d')!
     // 白天：玻璃反射天空（浅蓝渐变）
     const g = ctx.createLinearGradient(0, 0, 0, 96)
-    g.addColorStop(0, '#b7d3e8')
-    g.addColorStop(0.5, '#94b8d4')
-    g.addColorStop(1, '#7ea4c2')
+    g.addColorStop(0, '#a9c9e4')
+    g.addColorStop(0.5, '#86aecd')
+    g.addColorStop(1, '#7298ba')
     ctx.fillStyle = g
     ctx.fillRect(0, 0, 256, 96)
     // 室内工位（白天是暗色剪影，透过玻璃可见）
@@ -197,7 +197,7 @@ export function glassTexture(mode: 'day' | 'night' = 'night') {
       ctx.stroke()
     }
     // 竖梃 + 横梁（深色结构，勾出玻璃分格）
-    ctx.fillStyle = 'rgba(78,102,124,0.8)'
+    ctx.fillStyle = 'rgba(60,86,110,0.85)'
     for (let i = 1; i < 4; i++) ctx.fillRect(i * 64 - 2, 0, 4, 96)
     ctx.fillRect(0, 44, 256, 3)
     const tex = new THREE.CanvasTexture(c)

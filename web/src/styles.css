@@ -58,6 +58,15 @@ body,
   --ui-panel-accent: #f0883e;
   --ui-panel-bg: #0d1117;
   --ui-panel-border: var(--color-neutral-5);
+  /* —— 不透明面板/状态按钮专用的随主题反相变体（与 --ui-panel-* 家族同列）——
+     用在顶栏等不透明面板内的状态文字（theme-lock / replay / roam），
+     与压玻璃浮层的 --ui-accent-gold/orange 是两族，勿混用。
+     原字面量不随主题反相：#4ade80 等亮色在浅色主题亮底上 ≈1.9:1 不达 AA，
+     故按 dark（默认）/ light 成对定义，随主题自动反相。 */
+  --ui-panel-sun: #d98a00;       /* 「跟随日光」状态文字 */
+  --ui-panel-sky: #7fa8ff;       /* 「跟随夜色」状态文字 */
+  --ui-accent-success: #4ade80;  /* 成功 / 回放状态文字 */
+  --ui-accent-info: #8fb4d9;     /* 信息 / 漫游状态文字 */
   /* —— 品牌金/橙 在「玻璃浮层」上的可读变体（随主题反相）——
      品牌金 #ffd24a / 橙 #f0883e 是亮色，压在**亮玻璃**（深色主题）上仅 1.1–2.3:1，
      必须换深色变体；深玻璃（浅色主题）上仍用品牌原色。
@@ -88,6 +97,12 @@ body,
   --ui-panel-accent: #a84d08;
   --ui-panel-bg: rgba(255, 255, 255, 0.92);
   --ui-panel-border: rgba(11, 14, 26, 0.1);
+  /* 浅色主题：不透明面板/状态按钮色取深变体（与 .app 块成对反相，
+     旧的零散 .app[data-theme='light'] 覆盖行因此可整行删除） */
+  --ui-panel-sun: #8a5a00;
+  --ui-panel-sky: #1f5a96;
+  --ui-accent-success: #166b3d;
+  --ui-accent-info: #33587a;
   /* 深玻璃（浅色主题）：品牌原色压在深玻璃上可读，直接用令牌 */
   --ui-accent-gold: var(--color-brand-gold);
   --ui-accent-orange: var(--color-brand-orange);
@@ -119,11 +134,12 @@ body,
 .mode-switch .theme-lock:active { transform: scale(0.92); }
 /* 「跟随系统」/角色切换：面板内是次级文字 → 面板次级色（随主题反相） */
 .mode-switch .theme-lock--auto { color: var(--ui-panel-fg-muted); }
-.mode-switch .theme-lock--light { color: #d98a00; border-color: rgba(217, 138, 0, 0.4); }
-.mode-switch .theme-lock--dark { color: #7fa8ff; border-color: rgba(127, 168, 255, 0.4); }
-/* 浅色主题面板是**亮底**：金/蓝状态色换深变体以保证对比度（均 ≥4.5:1） */
-.app[data-theme='light'] .mode-switch .theme-lock--light { color: #8a5a00; }
-.app[data-theme='light'] .mode-switch .theme-lock--dark { color: #1f5a96; }
+/* 状态文字色改用不透明面板专用随主题反相变体（--ui-panel-sun/sky，
+   见 .app 变量块成对定义）；原「浅色主题覆盖两行」已整行删除——
+   变量随主题反相后无需再写第二遍。
+   边框为与文字同色相的 40% 透明装饰性描边，保留字面量。 */
+.mode-switch .theme-lock--light { color: var(--ui-panel-sun); border-color: rgba(217, 138, 0, 0.4); }
+.mode-switch .theme-lock--dark { color: var(--ui-panel-sky); border-color: rgba(127, 168, 255, 0.4); }
 
 .app {
   display: flex;
@@ -175,11 +191,15 @@ header h1 span {
   color: #fff;
 }
 .mode-switch button.replay {
-  color: #4ade80;
+  /* 状态文字改用随主题反相变体（浅色主题白底上原 #4ade80 ≈1.9:1 不达 AA） */
+  color: var(--ui-accent-success);
+  /* 装饰性描边，随文字色对 */
   border-color: #14532d;
 }
 .mode-switch button.roam-btn {
-  color: #8fb4d9;
+  /* 同上（浅色主题白底上原 #8fb4d9 ≈2.2:1 不达 AA） */
+  color: var(--ui-accent-info);
+  /* 装饰性描边，随文字色对 */
   border-color: #2c4a63;
 }
 .mode-switch .office-select {
@@ -192,6 +212,53 @@ header h1 span {
   max-width: 240px;
   /* header 触控目标 ≥44px */
   min-height: 44px;
+}
+
+/* —— 顶栏移动端响应式：390px 等窄屏破版修复 ——
+   原 header 是不允许换行的单行 space-between flex，且 .mode-switch 容器
+   零样式规则：9 个 min-height:44px 控件（含长文案「漫游中」）在窄屏下
+   堆叠爆高、遮挡 main。沿用全站既有断点粒度：860px 先放开两行换行，
+   720px 再收成单行横向滚动。触控硬约束 min-height:44px 任何断点不降。 */
+@media (max-width: 860px) {
+  /* 放开换行并加行距：标题行与控制行各占一行，不再互相抢宽 */
+  header {
+    flex-wrap: wrap;
+    row-gap: 6px;
+  }
+  /* .mode-switch 原本只有子元素规则、没有容器规则：补上 flex 容器，
+     让控件受控地两行换行而不是 inline 盲排 */
+  .mode-switch {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+  }
+}
+@media (max-width: 720px) {
+  /* 顶栏压成单行：长副题隐藏、主标题降 18px，把宽度让给控制条 */
+  header h1 span {
+    display: none;
+  }
+  header h1 {
+    font-size: 18px;
+  }
+  /* 控制条改单行横向滚动（不再换行堆高）；滚动条隐藏但滚动可用。
+     按钮只收窄左右 padding，min-height:44px 触控硬约束不降。 */
+  .mode-switch {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    max-width: 100%;
+    scrollbar-width: none; /* Firefox 隐藏滚动条 */
+  }
+  .mode-switch::-webkit-scrollbar {
+    display: none; /* WebKit 隐藏滚动条 */
+  }
+  .mode-switch button,
+  .mode-switch .theme-lock {
+    padding-left: 6px;
+    padding-right: 6px;
+    /* min-height: 44px 保持不变（触控目标硬约束） */
+  }
 }
 
 main {
@@ -332,24 +399,13 @@ main {
   border-color: var(--ui-panel-border);
 }
 .cap-note {
-  color: #d4a72c;
+  /* #d4a72c 与设计令牌 --color-state-warning 值完全相同 → 改引用令牌 */
+  color: var(--color-state-warning);
   font-size: 12px;
 }
 
-.preset-b {
-  margin-top: 12px;
-  padding: 10px;
-  background: var(--color-neutral-3);
-  border: 1px solid var(--color-border-strong);
-  border-radius: 6px;
-}
-.preset-b select {
-  background: #0d1117;
-  color: var(--color-text-primary);
-  border: 1px solid var(--color-border-strong);
-  padding: 3px;
-  margin-left: 6px;
-}
+/* .preset-b 死规则整块删除：全项目 grep（tsx/ts/html/css）零引用，
+   连带清掉其内部硬编码 #0d1117。 */
 .tagline {
   color: var(--ui-panel-fg-muted);
   font-size: 12px;
@@ -380,7 +436,8 @@ main {
 }
 .scale-note {
   background: var(--ui-glass-fill);
-  border: 1px solid #2a3038;
+  /* 装饰性描边归令牌（原硬编码 #2a3038） */
+  border: 1px solid var(--color-border-subtle);
   border-radius: 6px;
   /* 玻璃浮层（已垫实底）上的文字必须用玻璃墨色系列（随主题反相）。
      旧的 --color-text-secondary (#8b949e) 压亮玻璃底仅 2.63:1 */
@@ -408,7 +465,8 @@ main {
   width: 6px;
 }
 .controls::-webkit-scrollbar-thumb {
-  background: #2a3038;
+  /* 归令牌（原硬编码 #2a3038，与 --color-border-strong #30363d 视觉差异极小） */
+  background: var(--color-border-strong);
   border-radius: 3px;
 }
 .controls::-webkit-scrollbar-track {
@@ -592,7 +650,8 @@ main {
   justify-content: center;
 }
 .lot-card-actions button {
-  background: #1f5a96;
+  /* 深信息底（白字 ≈5.5:1 达 AA）：改用新增设计令牌 */
+  background: var(--color-state-info-deep);
   border: none;
   color: #fff;
   border-radius: 6px;
@@ -631,8 +690,9 @@ main {
   white-space: nowrap;
 }
 .basket-badge {
-  background: #1f5a96;
-  border: 1px solid #58a6ff;
+  /* 与 .lot-card-actions button 同源：深信息底 + info 描边，均归令牌 */
+  background: var(--color-state-info-deep);
+  border: 1px solid var(--color-state-info);
   color: #fff;
   border-radius: 6px;
   padding: 6px 10px;
@@ -678,7 +738,9 @@ button:disabled {
   position: absolute;
   right: 12px;
   top: 10px;
-  color: var(--color-brand-gold);
+  /* 亮玻璃（深色主题）上品牌金仅 1.13:1 → 用随主题反相的强调金
+     （与 .game-hud-level / .street-cta 同构）；金调背景/描边/辉光为装饰性，保留 */
+  color: var(--ui-accent-gold);
   background: rgba(255, 210, 74, 0.12);
   border: 1px solid rgba(255, 210, 74, 0.45);
   border-radius: 999px;
@@ -808,7 +870,8 @@ button:disabled {
   animation: game-toast-in 220ms ease-out;
 }
 .game-toast b {
-  color: var(--color-brand-gold);
+  /* 亮玻璃（深色主题）上品牌金仅 1.13:1 → 用随主题反相的强调金（与 .street-cta 同构） */
+  color: var(--ui-accent-gold);
   margin-left: 6px;
 }
 @keyframes game-toast-in {

@@ -15,6 +15,7 @@ export declare const ColorBrandGold: string
 export declare const ColorBrandOrange: string
 export declare const ColorStateSuccess: string
 export declare const ColorStateInfo: string
+export declare const ColorStateInfoDeep: string
 export declare const ColorStateWarning: string
 export declare const ColorIndustryInternet: string
 export declare const ColorIndustryFinance: string
@@ -27,6 +28,7 @@ export declare const ColorSceneBillOrangeDark: string
 export declare const ColorSceneBooth: string
 export declare const ColorSceneRoad: string
 export declare const ColorSceneFloor: string
+export declare const ColorSceneHallFloor: string
 export declare const ColorSceneGate: string
 export declare const ColorSceneGateDark: string
 export declare const ColorSceneLamp: string
@@ -66,6 +68,12 @@ export declare const ThemeLightSkyTop: string
 export declare const ThemeLightSkyMid: string
 export declare const ThemeLightSkyHorizon: string
 export declare const ThemeLightSun: string
+export declare const ThemeLightSkyWarmMid: string
+export declare const ThemeLightSkyWarmHor: string
+export declare const ThemeLightSkyWarmBand: string
+export declare const ThemeLightSunDusk: string
+export declare const ThemeLightHemiSkyDusk: string
+export declare const ThemeLightHemiGroundDusk: string
 export declare const ThemeLightHemiSky: string
 export declare const ThemeLightHemiGround: string
 export declare const ThemeLightFog: string

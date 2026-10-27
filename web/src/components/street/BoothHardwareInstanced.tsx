@@ -26,6 +26,7 @@ import { INDUSTRIES } from '../../data/street-companies'
 import type { Industry } from '../../data/street-companies'
 import type { ThemeName } from '../../engine/theme'
 import { ColorStateSuccess } from '../../../generated/design-tokens.output.mjs'
+import { applyLotJitter } from './OfficeFacadeInstanced'
 
 const tempObject = new THREE.Object3D()
 const tempColor = new THREE.Color()
@@ -166,7 +167,12 @@ export function BoothHardwareInstanced({
     setMat(glowRef, (m) => {
       placements.forEach((pl, i) => {
         m.setMatrixAt(i, instanceMatrixFor(pl, 0, 2.31, 0, 2.18, 1.72, 1, Math.PI / 2))
-        tempColor.set(delivered.has(pl.lot.id) ? ColorStateSuccess : INDUSTRIES[pl.lot.industry].color)
+        if (delivered.has(pl.lot.id)) {
+          tempColor.set(ColorStateSuccess)
+        } else {
+          // 个体识别：光环行业色 × lotNo 微扰（已投递绿章不扰，状态色不参与装饰变换）
+          applyLotJitter(tempColor.set(INDUSTRIES[pl.lot.industry].color), pl.lot.id)
+        }
         m.setColorAt(i, tempColor)
       })
       m.instanceMatrix.needsUpdate = true
@@ -185,7 +191,8 @@ export function BoothHardwareInstanced({
     setMat(signRef, (m) => {
       placements.forEach((pl, i) => {
         m.setMatrixAt(i, instanceMatrixFor(pl, -1.225, 1.52, 0.5, 0.18, 1.46, 1))
-        tempColor.set(INDUSTRIES[pl.lot.industry].color)
+        // 个体识别：侧招灯条不再全街同色（lotNo 微扰，0 DC）
+        applyLotJitter(tempColor.set(INDUSTRIES[pl.lot.industry].color), pl.lot.id)
         m.setColorAt(i, tempColor)
       })
       m.instanceMatrix.needsUpdate = true
@@ -236,7 +243,8 @@ export function BoothHardwareInstanced({
       placements.forEach((pl, i) => {
         const rotY = (parseInt(pl.lot.id.slice(-2), 10) % 7) * 0.02 - 0.06
         m.setMatrixAt(i, instanceMatrixFor(pl, -1.24, 2.5, -0.4, 0.52, 1.5, 1, rotY))
-        tempColor.set(INDUSTRIES[pl.lot.industry].color)
+        // 个体识别：侧旗同色系微扰
+        applyLotJitter(tempColor.set(INDUSTRIES[pl.lot.industry].color), pl.lot.id)
         m.setColorAt(i, tempColor)
       })
       m.instanceMatrix.needsUpdate = true

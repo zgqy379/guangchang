@@ -7,6 +7,7 @@
 import { useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
+import { Html } from '@react-three/drei'
 import {
   ColorBrandGold,
   ColorSceneBillRed,
@@ -101,11 +102,15 @@ export function SalaryCloud({
           depthWrite={false}
         />
       </mesh>
-      {/* 暴露标签（仅 exact 模式显示精确数字；band 模式只显示区间） */}
+      {/* 暴露标签（仅 exact 模式显示精确数字；band 模式只显示区间）。
+          ⚠ 必须用 drei <Html>：裸 <div> 直接写在 Canvas 里会被 R3F 当 THREE intrinsic
+          校验，报「Div is not part of the THREE namespace」并触发 SceneErrorBoundary（T13）。 */}
       {exposeMode === 'exact' && (
-        <div style={{ position: 'absolute', top: -20, left: -40, color: color, fontSize: 12, fontWeight: 600 }}>
-          ¥{Math.round(salary / 10000)}万
-        </div>
+        <Html center position={[0, 0.55, 0]} distanceFactor={8}>
+          <div style={{ color: color, fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap' }}>
+            ¥{Math.round(salary / 10000)}万
+          </div>
+        </Html>
       )}
     </group>
   )

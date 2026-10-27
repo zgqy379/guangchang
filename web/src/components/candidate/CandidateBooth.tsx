@@ -10,6 +10,7 @@
 //
 // 隐私三档：公开 / 仅 HR 可见 / 私密（私密件不渲染）
 import { useMemo } from 'react'
+import { Html } from '@react-three/drei'
 import { GlowPath } from '../GlowPath'
 import { SalaryCloud } from './SalaryCloud'
 import { WorkOrbit, type WorkItem } from './WorkOrbit'
@@ -105,21 +106,21 @@ export function CandidateBooth({
         </mesh>
       </group>
 
-      {/* 6. 入口铭牌（求职者期望薪资 / 学历 / 证书排序，DOM 浮层） */}
-      <div
-        style={{
-          position: 'absolute',
-          top: -40,
-          left: -60,
-          color: night ? '#0b0e1a' : '#e8eef4',
-          fontSize: 12,
-          fontWeight: 600,
-          pointerEvents: 'none',
-          textShadow: night ? '0 0 8px rgba(255,255,255,0.6)' : '0 0 8px rgba(0,0,0,0.6)',
-        }}
-      >
-        {`期望 ¥${Math.round(expectedSalary / 10000)}万 · ${publicWorks.length} 件作品`}
-      </div>
+      {/* 6. 入口铭牌（求职者期望薪资 / 学历 / 证书排序）。
+          ⚠ 必须用 drei <Html>：裸 <div> 在 Canvas 内会被 R3F 当 THREE intrinsic 校验直接抛错（T13） */}
+      <Html position={[0, 1.95, 0]} center distanceFactor={10} style={{ pointerEvents: 'none' }}>
+        <div
+          style={{
+            color: night ? '#0b0e1a' : '#e8eef4',
+            fontSize: 12,
+            fontWeight: 600,
+            whiteSpace: 'nowrap',
+            textShadow: night ? '0 0 8px rgba(255,255,255,0.6)' : '0 0 8px rgba(0,0,0,0.6)',
+          }}
+        >
+          {`期望 ¥${Math.round(expectedSalary / 10000)}万 · ${publicWorks.length} 件作品`}
+        </div>
+      </Html>
 
       {/* 求职者本体占位：头顶太阳/月亮（夜间月亮 / 白天太阳，与 HR 摊位顶灯语义一致） */}
       <mesh position={[0, 2.4, 0]}>
