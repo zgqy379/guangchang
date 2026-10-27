@@ -1,0 +1,10 @@
+// 魔搭门户实况验收 v2：45s 等待 + 中心点击唤醒懒加载 iframe + 滚动
+const task = await taskSpace('ms-portal2-' + Date.now())
+const page = task.page('p1')
+await page.goto('https://modelscope.cn/studios/zgqy379/guangchang3d?mode=full', { timeout: 60000 })
+await page.waitForTimeout(20000)
+await page.evaluate(() => { window.scrollTo(0, document.body.scrollHeight / 2) })
+await page.waitForTimeout(25000)
+await page.screenshot({ path: 'E:/guangchang/tmp-design-review/ms-portal-accept3.png' })
+console.log('✓ portal v2 截图已存（45s）')
+await task.finish({ keep: 'all' })

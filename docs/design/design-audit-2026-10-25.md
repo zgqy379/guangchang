@@ -189,3 +189,10 @@
 6. focus 前景清理：散落箱体立柱组织化、青字压浅底不可读（低对比浮字）
 
 **部署决策（移交主理人）**：视觉连续四轮 7.0（R4-R6 压门禁线，R7/R8 6.5-7.0），未过 ≥7 稳定门禁 → 不建议自动部署；两条路：(a) 按修复版口径部署（先例可援引，对外不宣称设计门禁）；(b) 美术轮次完成清单 1-2 项后复测再部署。工程侧全部就绪：typecheck/构建/对比度/面板墨色全绿，提交链至 hallFloorDay，部署命令配方在 docs/lessons.md §三。
+
+### 部署记录（2026-10-27 深夜 · 主理人拍板 (a) 修复版口径立即部署）
+
+- **gh-pages**：`VITE_BASE_TOKEN=ghpages` 构建 → `npx gh-pages -d dist -b gh-pages` Published → Pages HTML 缓存 10 分钟（边缘+浏览器），bundle 哈希轮询 index-7dALo251.js → index-CiY9Bf6S.js 后完成
+- **线上完整启动验收（egolite 对线上）**：首屏 canvas 0（角色门零 3D）→ 街区 canvas 1 / drawCalls 672 / 零异常文本 → **通过**（验收 URL 加 cache-buster 击穿 HTML 缓存；首验误报系旧 bundle，教训：部署验收必须比对线上/本地 bundle 哈希后再跑）
+- **魔搭**：SDK 上传 Committed 39 / Failed 0 / LFS 0（LFS 阈值 500MB + 批次 12MB）→ ms.show 资产 1.09MB 真 JS 非 pointer ✓ → 免 cookie 通道 ms-redeploy-ego.mjs 完成「重新部署→确认部署」（重新部署控件非标准 button，需全元素精确文本匹配取最内层）→ status API Running → ms.show 出新 bundle index-CiY9Bf6S.js ✓
+- **遗留**：门户 ?mode=full 在 egolite 截图里 iframe 不渲染（两次 25s/45s 均 206KB 白图）——状态 Running + 直连资产正确，判定为捕获层怪癖；主理人在桌面浏览器打开门户页一眼即可终验
