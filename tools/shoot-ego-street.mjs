@@ -27,7 +27,11 @@ try {
 } catch (e) { console.log('cdp normalize skipped:', String(e).slice(0, 80)) }
 
 const shot = async (name) => {
-  await normalize()
+  restoreW() // 长跑中途窗口被前台应用最小化 → 每张截图前自愈（盲审管线稳定性）
+  try {
+    const { windowId } = await page.cdp('Browser.getWindowForTarget')
+    await page.cdp('Browser.setWindowBounds', { windowId, bounds: { windowState: 'normal' } })
+  } catch (e) {}
   await page.screenshot({ path: `${OUT}/${name}.png` })
   console.log('  ✓', name)
 }
@@ -116,7 +120,7 @@ await shot('deliver')
 
 // ---------- 夜（dark，重载取干净状态）----------
 console.log('→ 夜')
-await page.reload({ waitUntil: 'load' })
+await page.reload({ waitUntil: 'load', timeout: 60000 })
 await page.waitForSelector('.gc-role-gate, .mode-switch', { timeout: 30000 })
 if (await page.evaluate(() => !!document.querySelector('.gc-role-gate'))) await page.evaluate(() => { const c = document.querySelector('.gc-role-card--candidate') || document.querySelector('.gc-role-card'); if (c) c.click() })
 await page.waitForSelector('.mode-switch', { timeout: 30000 })
@@ -136,7 +140,7 @@ await shot('night/deliver')
 // ---------- 移动端（390×844，CDP 视口，白天）----------
 console.log('→ 移动')
 await page.cdp('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 1, mobile: true })
-await page.reload({ waitUntil: 'load' })
+await page.reload({ waitUntil: 'load', timeout: 60000 })
 await page.waitForSelector('.gc-role-gate, .mode-switch', { timeout: 30000 })
 if (await page.evaluate(() => !!document.querySelector('.gc-role-gate'))) await page.evaluate(() => { const c = document.querySelector('.gc-role-card--candidate') || document.querySelector('.gc-role-card'); if (c) c.click() })
 await page.waitForSelector('.mode-switch', { timeout: 30000 })
@@ -157,3 +161,4 @@ await page.waitForTimeout(900)
 await shot('mobile/mobile-expanded')
 await page.cdp('Emulation.clearDeviceMetricsOverride')
 console.log('=== DONE: 14 shots →', OUT)
+await task.finish({ keep: false }) // 关闭任务窗口释放 WebGL 上下文：多次运行不关闭会累积上下文导致中后段渲染冻结
