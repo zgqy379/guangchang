@@ -57,6 +57,7 @@ import {
   type ThemeName,
   type LockMode,
 } from './engine/theme'
+import { FROZEN_HOUR } from './engine/time'
 
 // 四套 Aholo 生成的办公室 3DGS：街区摊位按行业进入，办公室模式下也可手动切换对比
 const OFFICE_SCENES = [
@@ -186,14 +187,16 @@ export default function App() {
 
   // ===== 环境主题（v4 玻璃数字孪生）=====
   // 系统时钟 → 主题；用户可锁定（评审演示时不被系统时间打断）
+  // ?hour= 冻结（截图确定性，engine/time.ts）：冻结时初始 envHour 取参数且 60s 轮询跳过
   const [lockMode, setLockMode] = useState<LockMode>('auto')
-  const [envHour, setEnvHour] = useState(() => systemHour())
-  const [theme, setTheme] = useState<ThemeName>(() => resolveTheme(systemHour(), 'auto'))
+  const [envHour, setEnvHour] = useState(() => FROZEN_HOUR ?? systemHour())
+  const [theme, setTheme] = useState<ThemeName>(() => resolveTheme(FROZEN_HOUR ?? systemHour(), 'auto'))
   const [pendingTheme, setPendingTheme] = useState<ThemeName | null>(null)
 
   // 每 60 秒检查一次系统时间；临界点抖动时延迟 3 秒再应用（防闪烁）
   useEffect(() => {
     const tick = () => {
+      if (FROZEN_HOUR !== null) return
       const h = systemHour()
       setEnvHour(h)
       const next = resolveTheme(h, lockMode)

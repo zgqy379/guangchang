@@ -51,13 +51,25 @@ function instanceMatrixFor(
   sy: number,
   sz: number,
 ) {
+  return roofMatrixFor(pl, localX, localY, DOOR_OFFSET_Z + localZ, sx, sy, sz)
+}
+
+/** 屋面元素的世界 matrix：以楼体中心为原点（无门面偏置） */
+function roofMatrixFor(
+  pl: LotPlacement,
+  localX: number,
+  localY: number,
+  localZ: number,
+  sx: number,
+  sy: number,
+  sz: number,
+) {
   const r = pl.rotationY
   const c = Math.cos(r)
   const s = Math.sin(r)
-  const dz = DOOR_OFFSET_Z + localZ
-  const wx = pl.position[0] + localX * c - dz * s
+  const wx = pl.position[0] + localX * c - localZ * s
   const wy = localY
-  const wz = pl.position[2] + localX * s + dz * c
+  const wz = pl.position[2] + localX * s + localZ * c
 
   tempObject.position.set(wx, wy, wz)
   tempObject.rotation.set(0, r, 0)
@@ -102,6 +114,8 @@ export function OfficeFacadeInstanced({
   const floorKeys = [3, 4, 6, 9]
 
   const capRef = useRef<THREE.InstancedMesh>(null)
+  const ridgeRef = useRef<THREE.InstancedMesh>(null)
+  const skylightRef = useRef<THREE.InstancedMesh>(null)
   const glassRef = useRef<THREE.InstancedMesh>(null)
   const ledRef = useRef<THREE.InstancedMesh>(null)
 
@@ -154,18 +168,49 @@ export function OfficeFacadeInstanced({
     })
 
     // cap：实体头顶，per-instance 颜色（行业色）
+    // 屋顶配方 v2（决策纸②）：日间不再「lerp 向白 40%」（洗白把色相拉向同一粉彩均值，
+    // 四区色距被压缩——R8「米色/橙红难辨」根因），改 offsetHSL 压饱和+压明度：
+    // 深色域里四区色相自然分开，且大面不再是高明度平涂。夜间配方不动（R7 已验收）。
     const capMesh = capRef.current
     if (capMesh) {
+      const roofColors: THREE.Color[] = []
       placements.forEach((pl, li) => {
         const bHeight =
           pl.lot.industry === 'internet' ? 8 : pl.lot.industry === 'finance' ? 11.5 : pl.lot.industry === 'manufacturing' ? 4.6 : 4.2
-        capMesh.setMatrixAt(li, instanceMatrixFor(pl, 0, bHeight + 0.1, 0, 1, 1, 1))
+        capMesh.setMatrixAt(li, roofMatrixFor(pl, 0, bHeight + 0.1, 0, 1, 1, 1))
         const industryColor = new THREE.Color(INDUSTRIES[pl.lot.industry].color)
-        const headColor = industryColor.clone().lerp(new THREE.Color(ThemeLightGlassHead), envNight ? 0.34 : 0.4)
+        const headColor = envNight
+          ? industryColor.clone().lerp(new THREE.Color(ThemeLightGlassHead), 0.34)
+          : industryColor.clone().offsetHSL(0, -0.08, -0.1)
+        roofColors.push(headColor)
         capMesh.setColorAt(li, headColor)
       })
       capMesh.instanceMatrix.needsUpdate = true
       capMesh.instanceColor!.needsUpdate = true
+      // 屋顶母题套件（决策纸②）：脊线=屋顶色提亮一档，天窗/设备箱=压暗一档，
+      // 让近半画面的屋顶从「纯色平涂」变成有微表面的面。矩阵始终写入（防夜间实例堆原点），
+      // 夜间由 visible=false 隐藏（夜间屋顶近黑，母题无意义）。
+      const ridgeMesh = ridgeRef.current
+      const skyMesh = skylightRef.current
+      if (ridgeMesh && skyMesh) {
+        placements.forEach((pl, li) => {
+          const bHeight =
+            pl.lot.industry === 'internet' ? 8 : pl.lot.industry === 'finance' ? 11.5 : pl.lot.industry === 'manufacturing' ? 4.6 : 4.2
+          const roof = roofColors[li]
+          const ridgeY = bHeight + 0.31 + 0.07
+          ridgeMesh.setMatrixAt(li, roofMatrixFor(pl, 0, ridgeY, 0, 6.3, 0.14, 0.42))
+          ridgeMesh.setColorAt(li, roof.clone().offsetHSL(0, -0.04, 0.07))
+          ;[-1.7, 1.7].forEach((lx, k) => {
+            const idx = li * 2 + k
+            skyMesh.setMatrixAt(idx, roofMatrixFor(pl, lx, bHeight + 0.31 + 0.09, (k === 0 ? -1 : 1) * 0.9, 1.2, 0.2, 1.5))
+            skyMesh.setColorAt(idx, roof.clone().offsetHSL(0, -0.05, -0.07))
+          })
+        })
+        ridgeMesh.instanceMatrix.needsUpdate = true
+        if (ridgeMesh.instanceColor) ridgeMesh.instanceColor.needsUpdate = true
+        skyMesh.instanceMatrix.needsUpdate = true
+        if (skyMesh.instanceColor) skyMesh.instanceColor.needsUpdate = true
+      }
     }
 
     // glass：底层玻璃幕墙
@@ -223,6 +268,16 @@ export function OfficeFacadeInstanced({
         <boxGeometry args={[6.66, 0.42, 5.44]} />
         <meshStandardMaterial />
       </instancedMesh>
+      {/* 屋顶母题：脊线（1 DC）+ 天窗/设备箱（1 DC）。仅昼间挂载（夜间隐藏不卸载，矩阵始终有效）。
+          instanceColor 染色；勿加 vertexColors（T14） */}
+      <instancedMesh ref={ridgeRef} args={[undefined, undefined, count]} visible={!night}>
+        <boxGeometry args={[1, 1, 1]} />
+        <meshStandardMaterial roughness={0.55} />
+      </instancedMesh>
+      <instancedMesh ref={skylightRef} args={[undefined, undefined, count * 2]} visible={!night}>
+        <boxGeometry args={[1, 1, 1]} />
+        <meshStandardMaterial roughness={0.3} metalness={0.15} />
+      </instancedMesh>
       {/* glass：底层玻璃幕墙 —— 三层配方：白天低透明蓝灰（大堂退暗）＋夜间不透明暗玻璃（暖窗显出）。
           夜间不再隐藏：白幕真凶是无贴图白方块阴影面（已修），暗玻璃走 ACES 后不再过曝，
           且能托住雨棚立柱不悬浮（盲审 R5 短板②） */}
@@ -235,10 +290,12 @@ export function OfficeFacadeInstanced({
           toneMapped
         />
       </instancedMesh>
-      {/* led：门楣 LED */}
+      {/* led：门楣 LED。⚠ 勿加 vertexColors：BoxGeometry 无 color 顶点属性，USE_COLOR 乘
+          未绑定 attribute = 纯黑（T14 同配方，R9 前该 LED 实际渲染成黑条、被评审批
+          「悬空黑胶带」；instanceColor 单独生效即可染色） */}
       <instancedMesh ref={ledRef} args={[undefined, undefined, count]}>
         <boxGeometry args={[2.9, 0.42, 0.1]} />
-        <meshStandardMaterial vertexColors emissiveIntensity={0.85} />
+        <meshStandardMaterial emissiveIntensity={0.85} />
       </instancedMesh>
     </group>
   )

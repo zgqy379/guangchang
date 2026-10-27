@@ -70,7 +70,7 @@
   --game-xp-per-level: 50;
   --game-xp-rarity-s-salary: 800000;
   --game-xp-rarity-a-salary: 400000;
-  --theme-light-sky-top: #cfe0ef;
+  --theme-light-sky-top: #b7d0e8;
   --theme-light-sky-mid: #e4eef6;
   --theme-light-sky-horizon: #f4f8fb;
   --theme-light-sun: #ffe9c6;
@@ -131,8 +131,8 @@
   --twin-road-roughness-day: 0.38;
   --twin-road-roughness-night: 0.45;
   --twin-ground-roughness-day: 0.72;
-  --twin-fog-near: 34;
-  --twin-fog-far: 165;
+  --twin-fog-near: 46;
+  --twin-fog-far: 200;
   --twin-exposure-day: 1.05;
   --twin-exposure-night: 1.35;
   --twin-shadow-map-size: 2048;

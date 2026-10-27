@@ -254,6 +254,54 @@ function twinGridTexture() {
   return t
 }
 
+// 建筑接地暗影：radial 暗贴图垫在 64 栋楼底（1 draw call）。
+// 贴地感不依赖 shadow map 精度——低太阳角（黄昏/清晨）时定向阴影被拉长稀疏，
+// 接地暗影兜底「楼是站在地上不是浮在玻璃上」（决策纸 ①；径向对称，无需对齐朝向）。
+let GROUNDING_TEX: THREE.CanvasTexture | null = null
+function groundingTexture() {
+  if (GROUNDING_TEX) return GROUNDING_TEX
+  const c = document.createElement('canvas')
+  c.width = c.height = 128
+  const ctx = c.getContext('2d')!
+  const g = ctx.createRadialGradient(64, 64, 0, 64, 64, 64)
+  g.addColorStop(0, 'rgba(0,0,0,0.85)')
+  g.addColorStop(0.55, 'rgba(0,0,0,0.38)')
+  g.addColorStop(1, 'rgba(0,0,0,0)')
+  ctx.fillStyle = g
+  ctx.fillRect(0, 0, 128, 128)
+  GROUNDING_TEX = new THREE.CanvasTexture(c)
+  return GROUNDING_TEX
+}
+
+function BuildingGrounding({ night }: { night: boolean }) {
+  const ref = useRef<THREE.InstancedMesh>(null)
+  useLayoutEffect(() => {
+    const m = ref.current
+    if (!m) return
+    const o = new THREE.Object3D()
+    placed.forEach((pl, i) => {
+      o.position.set(pl.position[0], 0.009, pl.position[2])
+      o.rotation.set(-Math.PI / 2, 0, 0)
+      o.scale.set(11, 9, 1)
+      o.updateMatrix()
+      m.setMatrixAt(i, o.matrix)
+    })
+    m.instanceMatrix.needsUpdate = true
+  }, [])
+  return (
+    <instancedMesh ref={ref} args={[undefined, undefined, placed.length]}>
+      <planeGeometry args={[1, 1]} />
+      <meshBasicMaterial
+        map={groundingTexture()}
+        color="#000000"
+        transparent
+        opacity={night ? 0.16 : 0.24}
+        depthWrite={false}
+      />
+    </instancedMesh>
+  )
+}
+
 // 参数碑：碑高=总包、5 灯条=五险、顶灯=下班时间（4 个 InstancedMesh）
 function ParamSteles({ theme }: { theme: ThemeName }) {
   const night = theme === 'dark'
@@ -1356,7 +1404,7 @@ export function StreetScene({
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
     <Canvas
       dpr={[1, 2]}
-      camera={{ position: [22, 44, 22], fov: 45 }}
+      camera={{ position: [26, 36, 26], fov: 45 }}
       // 阴影：此前 Canvas 未开 shadows → 整场景**零阴影**（地面全靠假光池）
       shadows
       gl={{ toneMapping: THREE.ACESFilmicToneMapping }}
@@ -1379,6 +1427,7 @@ export function StreetScene({
       {/* IBL：程序化天幕烘成环境贴图 → 玻璃体块有天光反射、路面有磨砂反射（不增 draw call） */}
       <TwinEnvironment envHour={envHour} theme={theme} />
       <Roads theme={theme} />
+      <BuildingGrounding night={theme === 'dark'} />
       <RoadLanes />
       <DistrictRoadSigns night={theme === 'dark'} />
       <DistantSkyline theme={theme} />

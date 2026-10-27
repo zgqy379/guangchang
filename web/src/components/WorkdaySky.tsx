@@ -10,8 +10,10 @@
 
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
+import { useFrame } from '@react-three/fiber'
 import { Stars } from '@react-three/drei'
 import { sunPosition, moonPosition, isBelowHorizon } from '../engine/sunPosition'
+import { sceneNow } from '../engine/time'
 import type { ThemeName } from '../engine/theme'
 import {
   ThemeLightSkyTop,
@@ -303,6 +305,62 @@ function SunLight({
   )
 }
 
+/**
+ * 云带（仅昼间）：单个开口圆柱 + 程序化云条贴图，慢速环绕 = 1 draw call。
+ * 目的（决策纸 ①）：给天空「内容」——建筑与天幕分离需要参照系（A1 igloo 的天空层次语汇）。
+ * 贴图模块级缓存：与太阳辉光贴图同寿命策略，**不可 dispose**。
+ */
+let CLOUD_STRIP_TEX: THREE.CanvasTexture | null = null
+function cloudStripTexture() {
+  if (CLOUD_STRIP_TEX) return CLOUD_STRIP_TEX
+  const c = document.createElement('canvas')
+  c.width = 1024
+  c.height = 256
+  const ctx = c.getContext('2d')!
+  for (let i = 0; i < 16; i++) {
+    // 云团避开左右边缘（wrapS repeat 不做跨缝镜像），扁椭圆软斑叠成带状
+    const x = 100 + Math.random() * 824
+    const y = 66 + Math.random() * 104
+    const rx = 70 + Math.random() * 130
+    const ry = rx * (0.18 + Math.random() * 0.16)
+    const g = ctx.createRadialGradient(x, y, 0, x, y, rx)
+    g.addColorStop(0, `rgba(255,255,255,${0.42 + Math.random() * 0.3})`)
+    g.addColorStop(1, 'rgba(255,255,255,0)')
+    ctx.save()
+    ctx.translate(x, y)
+    ctx.scale(1, ry / rx)
+    ctx.translate(-x, -y)
+    ctx.fillStyle = g
+    ctx.fillRect(x - rx, y - rx, rx * 2, rx * 2)
+    ctx.restore()
+  }
+  const t = new THREE.CanvasTexture(c)
+  t.wrapS = THREE.RepeatWrapping
+  t.colorSpace = THREE.SRGBColorSpace
+  CLOUD_STRIP_TEX = t
+  return t
+}
+
+function CloudBand() {
+  const ref = useRef<THREE.Mesh>(null)
+  useFrame((_, dt) => {
+    if (ref.current) ref.current.rotation.y += dt * 0.004
+  })
+  return (
+    <mesh ref={ref} position={[0, 62, 0]}>
+      <cylinderGeometry args={[150, 150, 34, 32, 1, true]} />
+      <meshBasicMaterial
+        map={cloudStripTexture()}
+        transparent
+        opacity={0.5}
+        side={THREE.BackSide}
+        depthWrite={false}
+        fog={false}
+      />
+    </mesh>
+  )
+}
+
 export function WorkdaySky({
   envHour,
   theme,
@@ -316,7 +374,8 @@ export function WorkdaySky({
   fogFar?: number
   now?: Date
 }) {
-  const date = useMemo(() => now ?? new Date(), [now])
+  // ?hour= 冻结（截图确定性）优先，否则真实时钟——统一走 engine/time.ts
+  const date = useMemo(() => now ?? sceneNow(), [now])
   const sky = useMemo(
     () => skyFromEnv(envHour, theme, date),
     [envHour, theme, date]
@@ -345,6 +404,8 @@ export function WorkdaySky({
         <sphereGeometry args={[170, 24, 16]} />
         <meshBasicMaterial map={skyTex} side={THREE.BackSide} fog={false} />
       </mesh>
+      {/* 云带：昼间天空的「内容」层（1 draw call；夜间星空主导不挂载） */}
+      {!sky.night && <CloudBand />}
       <fog attach="fog" args={[sky.fog, fogNear, fogFar]} />
       {/* 半球光：白天冷天光，夜间深蓝 */}
       <hemisphereLight

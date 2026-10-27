@@ -18,6 +18,7 @@ import { useEffect, useMemo } from 'react'
 import * as THREE from 'three'
 import { useThree } from '@react-three/fiber'
 import { skyFromEnv, skyGradientTexture } from '../WorkdaySky'
+import { sceneNow } from '../../engine/time'
 import type { ThemeName } from '../../engine/theme'
 import {
   ThemeDarkHemiGround,
@@ -39,7 +40,8 @@ export function TwinEnvironment({
 }) {
   const gl = useThree((s) => s.gl)
   const scene = useThree((s) => s.scene)
-  const date = useMemo(() => now ?? new Date(), [now])
+  // ?hour= 冻结（截图确定性）优先，否则真实时钟——统一走 engine/time.ts
+  const date = useMemo(() => now ?? sceneNow(), [now])
   const sky = useMemo(() => skyFromEnv(envHour, theme, date), [envHour, theme, date])
   const night = theme === 'dark'
 
