@@ -9,10 +9,11 @@
 
 ## 二、当前状态快照（接手第一件事：逐条核对）
 
-- **分支**：`feat/debt-reduction-week1`；提交链 `a2e89c7(基线) → polish9 → 1ef5f33 → 0ff968a → 92cf078 → d7bd8fd → 5b226c1 → 49e6d6a → 9bc66a4(部署)`；工作区应干净（仅 `.arts/`、`tmp-design-review/` 未跟踪）
+- **分支**：`feat/debt-reduction-week1`；提交链 `a2e89c7(基线) → … → 9bc66a4(部署) → 66f7474(交接) → 67129ef(评分准则) → a98f2cb(R1–R8 评审入库)`；`main` 与 `feat/debt-reduction-week1` 均已推送 origin（2026-10-27 23:2x，origin/main 此前落后 42 个提交）。工作区仅 `.arts/` 未跟踪；`tmp-design-review/` 已 gitignore；另有未跟踪设计草稿 `docs/design/{charter,gap-report,signature}.md`，归属设计冲刺，勿误删。
 - **部署**：
-  - gh-pages：**已上线并通过线上完整启动验收**（egolite 对 https://zgqy379.github.io/guangchang/ ：首屏 canvas 0 → 街区 canvas 1 / 672 drawCalls / 零异常）。注意 Pages HTML 有 10 分钟缓存，验收 URL 加 `?v=Date.now()`
-  - 魔搭 `zgqy379/guangchang3d`：**已上传（Committed 39 / Failed 0 / LFS 0）+ 重新部署已提交 + status Running + ms.show 已出新 bundle**（1.09MB 真 JS 非 LFS pointer）。**遗留**：门户 `?mode=full` 在 egolite 截图里 iframe 不渲染（捕获层怪癖）——需要你在桌面浏览器打开门户页**人工终验一眼**（GLB 角色渲染 = Draco 链路通）
+  - gh-pages：**当前为 a98f2cb（R7/R8）构建 `index-CiY9Bf6S.js`**，已通过线上完整启动验收（首屏 canvas 0 → 街区 canvas 1 / 672 drawCalls / 零异常）。注意 Pages HTML 有 10 分钟缓存，验收 URL 加 `?v=Date.now()`
+  - 魔搭 `zgqy379/guangchang3d`：**当前同为 `index-CiY9Bf6S.js`（1,020,830B 真 JS，非 LFS pointer）**，Draco 192,420B 与 avatar-idle.glb 3,078,664B 均 200；门户 `?mode=full` 在 egolite 截图里 iframe 不渲染（捕获层怪癖）——需在桌面浏览器人工终验一眼。
+  - **部署事故（勿重演）**：22:35 gh-pages 曾被 34c1efe 的 R5/R6 基线构建（`index-DxLFAF67.js` / 666 DC）误覆盖，22:55 已恢复 R7/R8。**禁止直接发布基线 worktree 的 dist**；部署必须从目标 HEAD 构建，发布后比对双端 bundle 哈希与角色门字符串。
 - **验收工具链**：`tools/shoot-ego-street.mjs`（egolite 14 张全流程，内建窗口自愈 CDP+ShowWindow）、`tools/shoot-street.cjs`（Chrome 管线，长跑更稳，egolite 渲染进程连跑多场会挂起——挂起时换它）、`tools/shoot-single.cjs`（Chrome，单人 3 图）、`tools/accept-live.mjs`（线上验收）、`tools/ms-upload-polish9.py` + `tools/ms-redeploy-ego.mjs`（魔搭上传+重部署，免 cookie）
 - **验证命令**：`cd web && npm run build`（tokens+tsc+vite；**tsc 失败时 vite 不跑、dist 保持旧版**——截图前必须看到新的 `✓ built`）；`node tools/check-contrast.mjs`、`node tools/check-panel-ink.mjs`（后者建议把 forms/ 目录纳入扫描——本次 GcSlider/GcSelect 墨色漏检的教训）
 
@@ -47,6 +48,8 @@
 ## 六、部署（已完成，若需再部署照此）
 
 gh-pages：`cd web; $env:VITE_BASE_TOKEN='ghpages'; npm run build; Copy-Item ../docs/video/demo-video.mp4 dist/ -Force; npx gh-pages -d dist -b gh-pages`（推送后 **Pages HTML 缓存 10 分钟**，验收 URL 加 `?v=` 击穿，并轮询线上/本地 bundle 哈希一致后再验收）。魔搭：`python tools/ms-upload-polish9.py`（LFS 阈值 500MB + 批次 12MB，报告须 Committed N / **LFS 0**）→ `cmd /c "ego-browser nodejs < E:\guangchang\tools\ms-redeploy-ego.mjs"`（免 cookie，egolite 自带登录态；**「重新部署」控件非标准 button，用全元素精确文本匹配取最内层**）→ 状态 API `GET /api/v1/studio/zgqy379/guangchang3d/status`。魔搭门户 `?mode=full` 在 egolite 截图 iframe 不渲染（捕获怪癖）——人工终验一眼。
+
+**发布前置检查（22:35 事故后新增）**：① `dist` 必须来自目标 HEAD 的构建（看新的 `✓ built` 与 `dist/index.html` 的 bundle 哈希）；② 发布后同时比对 Pages 与魔搭 index.html 指向的 bundle 哈希，双端必须一致；③ 校验 bundle 含「直接逛招聘街区」且不是 132B 的 LFS pointer；④ **基线 worktree 的 dist 一律不得直接发布**。
 
 ## 七、可粘贴提示词正文（发给下一个 agent 的开场白）
 

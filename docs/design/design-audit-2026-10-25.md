@@ -196,6 +196,7 @@
 - **线上完整启动验收（egolite 对线上）**：首屏 canvas 0（角色门零 3D）→ 街区 canvas 1 / drawCalls 672 / 零异常文本 → **通过**（验收 URL 加 cache-buster 击穿 HTML 缓存；首验误报系旧 bundle，教训：部署验收必须比对线上/本地 bundle 哈希后再跑）
 - **魔搭**：SDK 上传 Committed 39 / Failed 0 / LFS 0（LFS 阈值 500MB + 批次 12MB）→ ms.show 资产 1.09MB 真 JS 非 pointer ✓ → 免 cookie 通道 ms-redeploy-ego.mjs 完成「重新部署→确认部署」（重新部署控件非标准 button，需全元素精确文本匹配取最内层）→ status API Running → ms.show 出新 bundle index-CiY9Bf6S.js ✓
 - **遗留**：门户 ?mode=full 在 egolite 截图里 iframe 不渲染（两次 25s/45s 均 206KB 白图）——状态 Running + 直连资产正确，判定为捕获层怪癖；主理人在桌面浏览器打开门户页一眼即可终验
+- **部署更正（22:55）**：22:35 gh-pages 曾被 34c1efe 的 R5/R6 基线构建覆盖（`index-DxLFAF67.js` / 666 DC），非对外目标版本；22:55 已恢复 a98f2cb（R7/R8）构建 `index-CiY9Bf6S.js`。**双端当前一致**：Pages 与魔搭 index.html 均指向 `index-CiY9Bf6S.js`（1,020,830B，含角色门），Draco 192,420B 与 avatar-idle.glb 3,078,664B 均 200。教训：部署必须从目标 HEAD 构建，发布后比对双端 bundle 哈希，禁止直接发布基线 worktree 的 dist。
 
 ## 八轮之后的盲区清单（2026-10-27 深夜复盘 · 第 9+ 轮候选项）
 
