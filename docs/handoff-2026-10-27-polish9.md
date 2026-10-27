@@ -2,6 +2,7 @@
 
 > 写给下一个 AI agent 的全面接手提示词。本文档 = 状态快照 + 操作手册 + 待办清单 + 可粘贴提示词正文。
 > 权威序：`AGENTS.md`（操作契约）> `project.md` > `docs/lessons.md` > 本文。本文过期不作数，以 git log 与 design-audit 为准。
+> ⚠️ **2026-10-28 复核**：§零/§二/§三 的状态行已失效（代码已重建、gh-pages 已换循环①-⑥ 构建、R1–R8 评审原文已入库 `docs/design/reviews/`）。最新状态见 `docs/adversarial-review-2026-10-28.md` 与 `project.md` v1.4.1。
 
 ## 零、交付物更新（2026-10-28 00:45，接手先读）
 

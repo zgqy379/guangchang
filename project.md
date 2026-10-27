@@ -103,6 +103,16 @@
 - **不许动清单**：asset.ts · 主题三件套 · 街区布局常量（T10 穿模修复值）· MoneyMountain/SchrodingerBills · AvatarActor 漫游逻辑 · RoamCamera/WorkdaySky/NPC · OfficeViewer 取景算法 · tokens.config.mjs 的 transform · 双端部署配置。
 - 详细分期（21 天 + 3 天缓冲，八期 P0–P7）与最短路径见 `docs/design/role-flow-engineering-v1.md` §7 与 `role-flow-master-v1.md` §7。
 
+## v1.4.1 变更记录（2026-10-28 · 第二轮对抗式审查修复）
+
+**触发**：主理人交办深度对抗式审查（报告独立成文 `docs/adversarial-review-2026-10-28.md`）。同日已发生并在此回写的事实：报告书 v3（10 页）、2:09 实机演示视频、MIT LICENSE、OG 分享图、`v1.0-submission` tag、Draco JS 回退解码器 stub 化、街区视觉循环①-⑥（R9–R14，R13 首过 7 分、R14 视觉冻结）、办公室取景 p98 修复（b40fc11）。
+
+**本轮修复**：OfficeFacadeInstanced 实例矩阵改 `useLayoutEffect`（AGENTS.md 铁律 #4 唯一漏网）；GalleryCorridor 材质缓存 + dispose（GPU 泄漏）；AvatarPanel/FactoryWizard 移除假进度与冻结假剩余时间（诚实硬门槛）；诊断钩子 `window.__st/__cam/__gl/__roam` 按 localhost/`?debug=1` 门控（验收工具不受影响）；`.arts/` 入 gitignore；THIRD_PARTY_NOTICES 补 InteriorGS 历史截图披露。
+
+**口径对齐**：draw call 三口径统一为「实测 687（2026-10-28）+ ≤200 产品期红线」；盲审轮数统一为 R1–R14 十四轮；"越肩 13.5fps" 确认为后台页签限流造成的测量污染（lessons §12.2），报告改用可见页签复测值。
+
+**遗留待裁决**：回放等待态接入公开导航的时点（组件已就绪）；InteriorGS 历史截图是否做 git 历史重写（破坏性）；`tmp-design-review/` 旧构建残留清理时点（Mimosa deep 扫描 76 条误报的唯一来源）。
+
 ## v1.2 变更记录（2026-10-25 深夜 · 街区版）
 
 **触发**：用户验收反馈——当前 Demo 只有求职者 3D 形象、没有 HR 3D 形象、参数没有悬浮具象化在 HR 身边、没有"平台场景"，要求做成**十字路口四大领域招聘街区**。产品定位从"参数可视化 Demo"升级为"3D 招聘会街区"。计划书随之修订。
@@ -807,7 +817,7 @@ function MoneyMountain({ salary }: { salary: number }) {
 |--|--|
 | 首屏加载 | ≤ 5MB |
 | 移动端帧率 | ≥ 45fps（中端机） |
-| Draw calls | ≤ 200 |
+| Draw calls | ≤ 200（产品期红线；街区 Demo 2026-10-28 实测 687——实例化自 2136 降档，64 摊近景 mesh 为主要余量，下一阶段继续合并） |
 | 首次可交互时间 | ≤ 3s |
 
 达标手段：Draco 模型压缩、KTX2 纹理、LOD 分级、`frameloop="demand"`、
@@ -970,7 +980,7 @@ API实测(今起) │           │           │ 提交 11.19 19:00
   （`/docs/report-skeleton.md`），每周填一节，M5 只做定稿不做初稿
 - **迭代存档从今天开始**：格式规范见 `/docs/iterations/README.md`——
   每次生成必存 prompt+参数+版本，只截成功图拼不出"迭代对比"
-- **进度状态（10.26 二次更新）**：✅ 报名/组队/选题全部完成（进度条 01–03 绿，报名+团队积分均已发放，04 作品提交已开启）｜✅ W1 核心实测完成：逛厂币路线确立、Avatar 生成+绑骨、OUS 上传链路验证｜✅ 街区版 Demo 上线（四模式 + HUD + 参数碑 + 办公室 3DGS）、报告书 PDF、Demo 视频、魔搭创空间｜✅ 10.26 合规修复：Draco 解码器自托管（原 jsDelivr 外链在弱网/国内下 `ERR_CONNECTION_CLOSED` 导致模型全部加载失败）、公开构建不再暴露受限 InteriorGS 入口、受限截图移出公开仓库、报告链接与事实口径修正、新增 `THIRD_PARTY_NOTICES.md`｜⏳ 待办：官网正式提交并留存回执、小红书/X 发布、移动端真机数据（✅ 魔搭「重新部署」已于 2026-10-27 完成，构建中）
+- **进度状态（10.26 二次更新）**：✅ 报名/组队/选题全部完成（进度条 01–03 绿，报名+团队积分均已发放，04 作品提交已开启）｜✅ W1 核心实测完成：逛厂币路线确立、Avatar 生成+绑骨、OUS 上传链路验证｜✅ 街区版 Demo 上线（四模式 + HUD + 参数碑 + 办公室 3DGS）、报告书 PDF、Demo 视频、魔搭创空间｜✅ 10.26 合规修复：Draco 解码器自托管（原 jsDelivr 外链在弱网/国内下 `ERR_CONNECTION_CLOSED` 导致模型全部加载失败）、公开构建不再暴露受限 InteriorGS 入口、受限截图移出公开仓库、报告链接与事实口径修正、新增 `THIRD_PARTY_NOTICES.md`｜⏳ 待办：官网正式提交并留存回执、小红书/X 发布、移动端真机数据（魔搭 2026-10-28 已部署循环①-⑥ 构建）
 
 | 里程碑 | 时间 | 关键交付 | 验收标准 |
 |--|--|--|--|
@@ -985,9 +995,9 @@ API实测(今起) │           │           │ 提交 11.19 19:00
 
 | 提交物 | 性质 | 状态 |
 |--|--|--|
-| **可运行 Demo 链接** | 必交 | ✅ **https://zgqy379.github.io/guangchang/**（10.26 合规修复版：Draco 自托管、真实浏览器验收通过——街区/HUD/钱山/Avatar 正常渲染、控制台零报错）；✅ **魔搭创空间：https://modelscope.cn/studios/zgqy379/guangchang3d**（新构建已上传 `Normal committed / LFS 0`；**2026-10-27 经 egolite(ego-browser) 自动点「重新部署→确认部署」成功，页面已转入「构建中」**）。**部署 checklist：受限资产禁止放 `web/public/`（构建输入）；dist 内无 `*.ply`；不依赖任何第三方 CDN；部署后完整启动验收（真机/真实浏览器，curl 200 不算数）** |
-| **Demo 视频** | 必交（双保险） | ✅ **https://zgqy379.github.io/guangchang/demo-video.mp4**（实测 39.9s，1280×720/25fps：标题卡→招聘街区鸟瞰（HUD/参数碑/小地图）→落地越肩→真 HR 特写→投递结算→对比篮 A/B→四区巡游→片尾卡；实机录屏含字幕，无音轨） |
-| 项目报告书（PDF/PPT 或链接） | 必交 | ✅ `docs/report.pdf` v2（3 页）：可点击链接、Aholo 能力运用表、关键资产迭代与 Aholo 产物图、主要工具与素材授权、安全与合规声明 |
+| **可运行 Demo 链接** | 必交 | ✅ **https://zgqy379.github.io/guangchang/**（10.26 合规修复版：Draco 自托管、真实浏览器验收通过——街区/HUD/钱山/Avatar 正常渲染、控制台零报错）；✅ **魔搭创空间：https://modelscope.cn/studios/zgqy379/guangchang3d**（2026-10-28 循环①-⑥ 构建已上传并重部署成功，与 Pages 同源同代）。**部署 checklist：受限资产禁止放 `web/public/`（构建输入）；dist 内无 `*.ply`；不依赖任何第三方 CDN；部署后完整启动验收（真机/真实浏览器，curl 200 不算数）** |
+| **Demo 视频** | 必交（双保险） | ✅ **https://zgqy379.github.io/guangchang/demo-video.mp4**（2 分 09 秒，1600×900，中文旁白 + 操作字幕，实机录屏；工程源 `docs/video/demo-v2/`。⚠️ 魔搭端同名文件曾为旧 39.9s 版，2026-10-28 同步） |
+| 项目报告书（PDF/PPT 或链接） | 必交 | ✅ `docs/report.pdf` v3.1（10 页，2026-10-28）：双端链接、Aholo 能力运用表、关键资产迭代与 Aholo 产物图、十四轮盲审与根因事故、工程事实与合规声明 |
 | 小红书发布链接 | 加分 | ⏳ 未发布（官方：不发则该维度 0 分，不影响资格）。计划见 `docs/content-plan.md` |
 | 项目源代码 | 加分 | ✅ github.com/zgqy379/guangchang（**已转公开**——Pages 免费额度需要；InteriorGS 受限资产与其截图均已移出公开仓库，授权清单见 `THIRD_PARTY_NOTICES.md`） |
 
