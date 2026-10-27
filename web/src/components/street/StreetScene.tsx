@@ -55,6 +55,7 @@ import type { ThemeName } from '../../engine/theme'
 // 进度读写统一走 engine/progress.ts（另一路新建的持久化层）。
 // 键名与结构与原来的 'gc-street-progress-v1' 完全一致 → 既有进度不丢、无需迁移。
 import { loadStreetProgress, saveStreetProgress } from '../../engine/progress'
+import { debugHooksEnabled } from '../../engine/debug'
 
 const placed = placeLots()
 const fmtClock = (h: number) => `${String(Math.floor(h)).padStart(2, '0')}:${h % 1 ? '30' : '00'}`
@@ -1445,9 +1446,11 @@ export function StreetScene({
     }),
     []
   )
-  // 诊断钩子：漫游状态（target / focus / position）——排查特写相机为何没切过去
+  // 诊断钩子：漫游状态（target / focus / position）——排查特写相机为何没切过去（门控见 engine/debug）
   useEffect(() => {
-    ;(window as unknown as { __roam: RoamRefs }).__roam = refs
+    if (debugHooksEnabled()) {
+      ;(window as unknown as { __roam: RoamRefs }).__roam = refs
+    }
   }, [refs])
   // 相机两段式（用户规格）：初始=鸟瞰全景（避免初始机位落进建筑内部），
   // 首次交互（点击地面/导航柱）后切换为第三人称跟随
@@ -1518,10 +1521,12 @@ export function StreetScene({
       gl={{ toneMapping: THREE.ACESFilmicToneMapping }}
       onCreated={({ camera, scene, gl }) => {
         cameraRef.current = camera
-        // 场景图诊断钩子（T9 排查工具链沿用）：window.__st / __cam / __gl
-        ;(window as unknown as { __st: THREE.Scene; __cam: THREE.Camera; __gl: THREE.WebGLRenderer }).__st = scene
-        ;(window as unknown as { __st: THREE.Scene; __cam: THREE.Camera; __gl: THREE.WebGLRenderer }).__cam = camera
-        ;(window as unknown as { __st: THREE.Scene; __cam: THREE.Camera; __gl: THREE.WebGLRenderer }).__gl = gl
+        // 场景图诊断钩子（T9 排查工具链沿用）：window.__st / __cam / __gl（门控见 engine/debug）
+        if (debugHooksEnabled()) {
+          ;(window as unknown as { __st: THREE.Scene; __cam: THREE.Camera; __gl: THREE.WebGLRenderer }).__st = scene
+          ;(window as unknown as { __st: THREE.Scene; __cam: THREE.Camera; __gl: THREE.WebGLRenderer }).__cam = camera
+          ;(window as unknown as { __st: THREE.Scene; __cam: THREE.Camera; __gl: THREE.WebGLRenderer }).__gl = gl
+        }
         // 初始鸟瞰：俯瞰十字路口全景（用户规格——原初始机位落在 lot0 建筑内部=全黑）
         camera.lookAt(0, 0, 0)
         // 首帧编译完成后再撤加载遮罩（避免黑屏窗口期）

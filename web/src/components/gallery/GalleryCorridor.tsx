@@ -4,7 +4,7 @@
 //   · 求职者的空间不在招聘街区里，而在独立的作品廊场景
 //   · 环形走廊 + 展位，求职者展位 + ≤1 他人展位（演示用）
 //   · 作品廊不进顶栏、不改四臂罗盘；从街道路牌与"我的"页进入
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import * as THREE from 'three'
 
 interface GalleryCorridorProps {
@@ -46,9 +46,24 @@ export function GalleryCorridor({ radius = 12, width = 3, night = false }: Galle
   // 中央庭院地面
   const courtGeo = useMemo(() => new THREE.CircleGeometry(innerR - 0.5, segments), [innerR, segments])
 
-  const corridorColor = night ? '#0a1420' : '#dbe7f0'
-  const wallColor = night ? '#1a2431' : '#c2d4e2'
-  const courtColor = night ? '#0f1a28' : '#eef3f8'
+  // 材质按主题缓存（useMemo）+ 卸载/换主题时 dispose：
+  // JSX props 里内联 new 材质会在每次重渲染泄漏 GPU 材质（同仓 WorkdaySky/CompanyPlot 的缓存纪律）
+  const materials = useMemo(
+    () => ({
+      court: new THREE.MeshStandardMaterial({ color: night ? '#0f1a28' : '#eef3f8', roughness: 0.8 }),
+      corridor: new THREE.MeshStandardMaterial({ color: night ? '#0a1420' : '#dbe7f0', roughness: 0.6 }),
+      wall: new THREE.MeshStandardMaterial({ color: night ? '#1a2431' : '#c2d4e2', roughness: 0.7 }),
+    }),
+    [night]
+  )
+  useEffect(
+    () => () => {
+      materials.court.dispose()
+      materials.corridor.dispose()
+      materials.wall.dispose()
+    },
+    [materials]
+  )
 
   return (
     <group>
@@ -56,24 +71,24 @@ export function GalleryCorridor({ radius = 12, width = 3, night = false }: Galle
       <mesh
         rotation={[-Math.PI / 2, 0, 0]}
         geometry={courtGeo}
-        material={new THREE.MeshStandardMaterial({ color: courtColor, roughness: 0.8 })}
+        material={materials.court}
       />
       {/* 走廊地面 */}
       <mesh
         rotation={[-Math.PI / 2, 0, 0]}
         geometry={corridorGeo}
-        material={new THREE.MeshStandardMaterial({ color: corridorColor, roughness: 0.6 })}
+        material={materials.corridor}
       />
       {/* 走廊墙面（外侧） */}
       <mesh
         geometry={wallGeo}
-        material={new THREE.MeshStandardMaterial({ color: wallColor, roughness: 0.7 })}
+        material={materials.wall}
         position={[0, 1.5, 0]}
       />
       {/* 走廊墙面（内侧，朝向庭院） */}
       <mesh
         geometry={wallGeo}
-        material={new THREE.MeshStandardMaterial({ color: wallColor, roughness: 0.7 })}
+        material={materials.wall}
         position={[0, 1.5, 0]}
         scale={[-1, 1, 1]}
       />

@@ -8,6 +8,7 @@
 import { Suspense, useMemo } from 'react'
 import { Canvas } from '@react-three/fiber'
 import * as THREE from 'three'
+import { debugHooksEnabled } from '../../engine/debug'
 import { GalleryCorridor } from './GalleryCorridor'
 import { CandidateBooth } from '../candidate/CandidateBooth'
 import { type WorkItem } from '../candidate/WorkOrbit'
@@ -71,10 +72,12 @@ export function GalleryScene({
           camera.position.set(0, 34, 34)
           camera.lookAt(0, 0, 0)
         }
-        // 场景图诊断钩子
-        ;(window as unknown as { __st: THREE.Scene; __cam: THREE.Camera; __gl: THREE.WebGLRenderer }).__st = scene
-        ;(window as unknown as { __st: THREE.Scene; __cam: THREE.Camera; __gl: THREE.WebGLRenderer }).__cam = camera
-        ;(window as unknown as { __st: THREE.Scene; __cam: THREE.Camera; __gl: THREE.WebGLRenderer }).__gl = gl
+        // 场景图诊断钩子（门控见 engine/debug）
+        if (debugHooksEnabled()) {
+          ;(window as unknown as { __st: THREE.Scene; __cam: THREE.Camera; __gl: THREE.WebGLRenderer }).__st = scene
+          ;(window as unknown as { __st: THREE.Scene; __cam: THREE.Camera; __gl: THREE.WebGLRenderer }).__cam = camera
+          ;(window as unknown as { __st: THREE.Scene; __cam: THREE.Camera; __gl: THREE.WebGLRenderer }).__gl = gl
+        }
         onReady?.()
       }}
     >

@@ -2,7 +2,7 @@
 // 契约：部署验收必须对着线上做完整启动确认（DOM 挂载 + canvas 存在 + Runtime 零异常），curl 200 不算数
 const task = await taskSpace('gc-accept-live-' + Date.now())
 const page = task.page('p1')
-const URL = 'https://zgqy379.github.io/guangchang/?v=' + Date.now() // 击穿 Pages 10 分钟 HTML 缓存（部署验收必须拉到新 bundle）
+const URL = 'https://zgqy379.github.io/guangchang/?v=' + Date.now() + '&debug=1' // 击穿 Pages 缓存；?debug=1 挂诊断钩子（engine/debug 门控，线上默认不暴露）
 console.log('→ goto', URL)
 await page.goto(URL, { waitUntil: 'load', timeout: 60000 })
 await page.waitForSelector('.gc-role-gate, .mode-switch', { timeout: 45000 })

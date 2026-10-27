@@ -12,7 +12,7 @@
 //   5. door  门
 //
 // 楼层灯带、屋顶（条件渲染，数量少）保持在 HRStand 中作为独立 mesh。
-import { useEffect, useRef } from 'react'
+import { useLayoutEffect, useRef } from 'react'
 import * as THREE from 'three'
 import type { LotPlacement } from '../../data/street-companies'
 import { INDUSTRIES } from '../../data/street-companies'
@@ -161,7 +161,8 @@ export function OfficeFacadeInstanced({
   const countRef = useRef(0)
 
   // ---------- 初始化 count ----------
-  useEffect(() => {
+  // useLayoutEffect：useEffect 首帧不跑会留下 64 实例未就位/叠原点窗口（同 BoothHardwareInstanced 注释）
+  useLayoutEffect(() => {
     if (countRef.current === count) return
     countRef.current = count
     const setCount = (ref: React.RefObject<THREE.InstancedMesh> | null, n: number) => {
@@ -178,7 +179,7 @@ export function OfficeFacadeInstanced({
   }, [count, floorGroups.size])
 
   // ---------- 每帧更新实例 matrix 和颜色 ----------
-  useEffect(() => {
+  useLayoutEffect(() => {
     const tempCol = new THREE.Color()
 
     // body：按楼层数分组

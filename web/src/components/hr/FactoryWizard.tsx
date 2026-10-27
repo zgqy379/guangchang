@@ -63,6 +63,9 @@ const REPLAY_CHANNEL = {
   elapsed: 0,
 }
 
+/** 回放时长（秒）：26s 加速播放真实 652s 链路（约 25×） */
+const REPLAY_DURATION = 26
+
 export function FactoryWizard({ onPublish }: FactoryWizardProps) {
   const [stepIndex, setStepIndex] = useState(0)
   const [companyName, setCompanyName] = useState('')
@@ -77,6 +80,7 @@ export function FactoryWizard({ onPublish }: FactoryWizardProps) {
   })
   const [channel, setChannel] = useState<typeof REPLAY_CHANNEL | null>(null)
   const [stageIndex, setStageIndex] = useState(0)
+  const [replayElapsed, setReplayElapsed] = useState(0)
   const [generating, setGenerating] = useState(false)
   const timerRef = useRef<number | null>(null)
 
@@ -90,6 +94,7 @@ export function FactoryWizard({ onPublish }: FactoryWizardProps) {
     let idx = 0
     const tick = () => {
       elapsed += 1
+      setReplayElapsed(elapsed)
       const nextIdx = Math.min(3, Math.floor(elapsed / 6.5))
       if (nextIdx !== idx) {
         setStageIndex(nextIdx)
@@ -106,10 +111,13 @@ export function FactoryWizard({ onPublish }: FactoryWizardProps) {
     }
   }, [currentStep, channel])
 
+  // 诚实规则②：剩余时间显示真实剩余——按真实先验随回放实际进度递减，
+  // 禁止冻结假值（旧实现 channel.elapsed 恒 0 → 全程显示 10:52 不动）
   const remaining = useMemo(() => {
     if (!channel) return 0
-    return Math.max(0, channel.estimate - (channel.elapsed || 0))
-  }, [channel])
+    const progress = Math.min(1, replayElapsed / REPLAY_DURATION)
+    return Math.max(0, Math.round(channel.estimate * (1 - progress)))
+  }, [channel, replayElapsed])
 
   const nextStep = () => {
     if (stepIndex < STEPS.length - 1) {
@@ -135,6 +143,7 @@ export function FactoryWizard({ onPublish }: FactoryWizardProps) {
   const startReplay = () => {
     setChannel(REPLAY_CHANNEL)
     setStageIndex(0)
+    setReplayElapsed(0)
     setGenerating(true)
   }
 
@@ -222,7 +231,7 @@ export function FactoryWizard({ onPublish }: FactoryWizardProps) {
                   ))}
                 </div>
                 <div className="gc-fw__replay-timer">
-                  剩余：{Math.floor(remaining / 60)}:{String(Math.floor(remaining % 60)).padStart(2, '0')} （真实生成还需 652s，当前为 25× 加速演示）
+                  真实生成剩余约 {Math.floor(remaining / 60)}:{String(Math.floor(remaining % 60)).padStart(2, '0')}（652 秒先验 · 随回放 25× 加速推进）
                 </div>
                 <div className="gc-fw__replay-honesty">
                   这是演示回放产物，非现场生成。等待的过程被加速，生成结果本身真实。

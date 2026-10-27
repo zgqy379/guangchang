@@ -18,6 +18,7 @@
 // 外观参数不进词典（project.md 5.2.2），走独立的"形象装配表"，
 // 每个外观参数满足「参数三要件」：3D 载体 + 即时反馈 + 可见性分级
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { assetUrl } from '../../engine/asset'
 import './AvatarPanel.css'
 
 export type ImagePath = 'photo-paste' | 'preset' | 'replay' | 'later'
@@ -49,6 +50,9 @@ const REPLAY_CHANNEL: Channel = {
   elapsed: 0,
 }
 
+/** 回放时长（秒）：26s 加速播放真实 85s 链路（约 25×） */
+const REPLAY_DURATION = 26
+
 interface AvatarPanelProps {
   /** 选择完成后回调（返回选定的头像配置） */
   onComplete: (config: {
@@ -67,6 +71,7 @@ export function AvatarPanel({ onComplete, firstVisit = true }: AvatarPanelProps)
   const [exposeMode, setExposeMode] = useState<'band' | 'exact'>('band')
   const [channel, setChannel] = useState<Channel | null>(null)
   const [stageIndex, setStageIndex] = useState(0)
+  const [replayElapsed, setReplayElapsed] = useState(0)
   const [photoFile, setPhotoFile] = useState<File | null>(null)
   const [photoPreview, setPhotoPreview] = useState<string | null>(null)
   const [generating, setGenerating] = useState(false)
@@ -79,6 +84,7 @@ export function AvatarPanel({ onComplete, firstVisit = true }: AvatarPanelProps)
     let idx = 0
     const tick = () => {
       elapsed += 1
+      setReplayElapsed(elapsed)
       // 每 ~6.5s 推进一个阶段（4 个阶段 / 26s）
       const nextIdx = Math.min(3, Math.floor(elapsed / 6.5))
       if (nextIdx !== idx) {
@@ -96,10 +102,13 @@ export function AvatarPanel({ onComplete, firstVisit = true }: AvatarPanelProps)
     }
   }, [path, channel])
 
+  // 诚实规则②：剩余时间显示真实剩余——按真实先验随回放实际进度递减，
+  // 禁止冻结假值（旧实现 channel.elapsed 恒 0 → 全程显示 1:25 不动）
   const remaining = useMemo(() => {
     if (!channel) return 0
-    return Math.max(0, channel.estimate - (channel.elapsed || 0))
-  }, [channel])
+    const progress = Math.min(1, replayElapsed / REPLAY_DURATION)
+    return Math.max(0, Math.round(channel.estimate * (1 - progress)))
+  }, [channel, replayElapsed])
 
   const handlePhotoSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -108,39 +117,27 @@ export function AvatarPanel({ onComplete, firstVisit = true }: AvatarPanelProps)
       alert('请选择图片文件')
       return
     }
+    // 只做本地预览，贴入由下方按钮显式完成。
+    // 不摆"处理中"假等待——贴入即本地 URL 直贴，零处理零耗时（诚实硬门槛：无假进度）。
     setPhotoFile(file)
-    const url = URL.createObjectURL(file)
-    setPhotoPreview(url)
-    // 路径 A：照片贴入，≤1 秒，照片不出浏览器
-    setGenerating(true)
-    window.setTimeout(() => {
-      setGenerating(false)
-      onComplete({
-        path: 'photo-paste',
-        avatarUrl: url,
-        expectedSalary,
-        exposeMode,
-      })
-    }, 800) // 模拟 ≤1 秒本地处理
-  }, [onComplete, expectedSalary, exposeMode])
+    setPhotoPreview(URL.createObjectURL(file))
+  }, [])
 
   const handlePresetSelect = useCallback((idx: number) => {
-    const presets = ['/assets/avatar/avatar-idle.glb']
-    setGenerating(true)
-    window.setTimeout(() => {
-      setGenerating(false)
-      onComplete({
-        path: 'preset',
-        avatarUrl: presets[idx],
-        expectedSalary,
-        exposeMode,
-      })
-    }, 300)
+    // 预设形象零等待：立即完成（不摆 300ms 假进度）
+    const presets = [assetUrl('/assets/avatar/avatar-idle.glb')]
+    onComplete({
+      path: 'preset',
+      avatarUrl: presets[idx],
+      expectedSalary,
+      exposeMode,
+    })
   }, [onComplete, expectedSalary, exposeMode])
 
   const handleReplayStart = useCallback(() => {
     setChannel(REPLAY_CHANNEL)
     setStageIndex(0)
+    setReplayElapsed(0)
     setGenerating(true)
   }, [])
 
@@ -162,7 +159,7 @@ export function AvatarPanel({ onComplete, firstVisit = true }: AvatarPanelProps)
   }
 
   const pathDescs: Record<ImagePath, string> = {
-    'photo-paste': '本地 Canvas 裁切 512² + 直方图调色 → 贴入 3D 形象，照片不出浏览器',
+    'photo-paste': '选照片即贴入预设 3D 形象，照片不出浏览器（本地裁切/调色为规划项）',
     preset: '直接选预生成形象，零等待',
     replay: '演示回放真实生成链路（诚实降级，非假进度条）',
     later: '先进街区，随时回来改装',
@@ -206,7 +203,7 @@ export function AvatarPanel({ onComplete, firstVisit = true }: AvatarPanelProps)
       {/* 路径 A：照片贴入 */}
       {path === 'photo-paste' && (
         <div className="gc-ap__section gc-ap__section--photo">
-          <div className="gc-ap__section-title">照片贴入（主路径 · ≤1 秒）</div>
+          <div className="gc-ap__section-title">照片贴入（主路径 · 照片不出浏览器）</div>
           <input
             type="file"
             accept="image/*"
@@ -217,11 +214,6 @@ export function AvatarPanel({ onComplete, firstVisit = true }: AvatarPanelProps)
             <div className="gc-ap__photo-preview">
               <img src={photoPreview} alt="预览" />
               <span className="gc-ap__photo-note">照片仅在本地处理，不上传任何服务器</span>
-            </div>
-          )}
-          {generating && (
-            <div className="gc-ap__processing">
-              <span className="gc-ap__processing-text">本地贴入中…（照片不出浏览器）</span>
             </div>
           )}
           <button
@@ -277,7 +269,7 @@ export function AvatarPanel({ onComplete, firstVisit = true }: AvatarPanelProps)
             ))}
           </div>
           <div className="gc-ap__replay-timer">
-            剩余：{Math.floor(remaining / 60)}:{String(Math.floor(remaining % 60)).padStart(2, '0')} （真实生成还需约 85 秒，当前 25× 加速演示）
+            真实生成剩余约 {Math.floor(remaining / 60)}:{String(Math.floor(remaining % 60)).padStart(2, '0')}（85 秒先验 · 随回放 25× 加速推进）
           </div>
           <div className="gc-ap__replay-honesty">
             这是演示回放产物，非现场生成。等待的过程被加速，生成结果本身真实。
