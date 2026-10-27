@@ -41,3 +41,5 @@ docs/video/check*.jpg
 /.qoder-credits/
 docs/video/frames_timed/
 docs/video/frames_cap_v8/
+
+tmp-design-review/
