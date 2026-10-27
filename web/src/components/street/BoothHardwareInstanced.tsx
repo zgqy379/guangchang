@@ -151,8 +151,13 @@ export function BoothHardwareInstanced({
     setMat(boothRef, (m) => {
       placements.forEach((pl, i) => {
         m.setMatrixAt(i, instanceMatrixFor(pl, 0, 0.07, 0, 2.2, 0.14, 2.2))
+        // 个体识别：台面中性明度微扰（±3%），instanceColor 乘法通道，不开 vertexColors（T14 教训：无 color 属性时 USE_COLOR 会乘成纯黑）
+        const seed = parseInt(pl.lot.id.slice(-2), 10) || 0
+        tempColor.set('#ffffff').offsetHSL(0, 0, ((seed % 5) - 2) * 0.03)
+        m.setColorAt(i, tempColor)
       })
       m.instanceMatrix.needsUpdate = true
+      if (m.instanceColor) m.instanceColor.needsUpdate = true
     })
 
     // shadow
@@ -268,8 +273,17 @@ export function BoothHardwareInstanced({
           v === 0 ? [2.86, 0.08, 2.3] : v === 1 ? [1.52, 0.88, 4] : v === 2 ? [2.72, 0.08, 2.24] : [1.96, 0.1, 1.96]
         const [rx, ry, rz] = v === 0 ? [0, 2.36, 0] : v === 1 ? [0, 2.36, 0] : v === 2 ? [0, 2.4, 0] : [0, 2.36, 0]
         mesh.setMatrixAt(idx, instanceMatrixFor(pl, rx, ry, rz, sx, sy, sz, rotY))
+        // 个体识别：棚顶行业色 × lotNo 微扰 —— instanceColor 通道（不开 vertexColors，T14）。
+        // 白天 material.color 置白由实例色接管；夜间实例色置白、material 深色保夜景统一。
+        if (!night) {
+          applyLotJitter(tempColor.set(INDUSTRIES[pl.lot.industry].color), pl.lot.id)
+        } else {
+          tempColor.set('#ffffff')
+        }
+        mesh.setColorAt(idx, tempColor)
       })
       mesh.instanceMatrix.needsUpdate = true
+      if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true
     })
   }, [placements, count, night, envNight, delivered])
 
@@ -342,7 +356,9 @@ export function BoothHardwareInstanced({
           >
             {roofGeometry(v)}
             <meshStandardMaterial
-              color={night ? '#1b232c' : INDUSTRIES[ind].color}
+              // 个体识别：白天 color 置白、instanceColor 接管（行业色 × lotNo 微扰）；
+              // ⚠ 不加 vertexColors（T14：无 color 顶点属性时 USE_COLOR 乘成纯黑）
+              color={night ? '#1b232c' : '#ffffff'}
               roughness={night ? 0.7 : 0.72}
               emissive={INDUSTRIES[ind].color}
               emissiveIntensity={night ? 0.3 : 0.08}

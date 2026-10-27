@@ -144,8 +144,13 @@ export function OfficeFacadeInstanced({
         const bHeight =
           pl.lot.industry === 'internet' ? 8 : pl.lot.industry === 'finance' ? 11.5 : pl.lot.industry === 'manufacturing' ? 4.6 : 4.2
         mesh.setMatrixAt(ii, instanceMatrixFor(pl, 0, bHeight / 2, 0, 1, bHeight, 1))
+        // 个体识别：楼体明度微扰（±3.5%），16 栋同层楼不再完全同亮度（instanceColor 通道，T14 教训已避）
+        const seed = parseInt(pl.lot.id.slice(-2), 10) || 0
+        tempCol.set('#ffffff').offsetHSL(0, 0, ((seed % 5) - 2) * 0.035)
+        mesh.setColorAt(ii, tempCol)
       })
       mesh.instanceMatrix.needsUpdate = true
+      if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true
     })
 
     // cap：实体头顶，per-instance 颜色（行业色）

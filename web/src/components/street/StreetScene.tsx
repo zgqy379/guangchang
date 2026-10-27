@@ -470,7 +470,7 @@ function districtSignTexture(ind: keyof typeof INDUSTRIES) {
   return tex
 }
 
-function DistrictRoadSigns() {
+function DistrictRoadSigns({ night }: { night: boolean }) {
   const arms: { ind: keyof typeof INDUSTRIES; x: number; z: number; rot: number }[] = [
     { ind: 'internet', x: 13.5, z: 0, rot: Math.PI / 2 },
     { ind: 'finance', x: -13.5, z: 0, rot: -Math.PI / 2 },
@@ -482,7 +482,8 @@ function DistrictRoadSigns() {
       {arms.map((a) => (
         <mesh key={a.ind} rotation={[-Math.PI / 2, 0, a.rot]} position={[a.x, 0.026, a.z]}>
           <planeGeometry args={[5.2, 1.95]} />
-          <meshBasicMaterial map={districtSignTexture(a.ind)} transparent opacity={0.62} depthWrite={false} />
+          {/* 路标夜面：basic 材质不受光，夜间提到 0.95 透明度保寻路可见（盲审 R2 短板①） */}
+          <meshBasicMaterial map={districtSignTexture(a.ind)} transparent opacity={night ? 0.95 : 0.62} depthWrite={false} />
         </mesh>
       ))}
     </group>
@@ -654,16 +655,17 @@ function StreetLamps({ theme }: { theme: ThemeName }) {
           />
         </points>
       )}
-      {/* 地面暖光池（廉价假光，替代 64 个点光源；仅夜间） */}
+      {/* 地面暖光池（廉价假光，替代 64 个点光源；仅夜间）
+          盲审 R2 短板①：夜间鸟瞰地面死黑 → 光池加大提亮（5.2m/0.95） */}
       {night && (
         <instancedMesh ref={poolRef} args={[undefined, undefined, mats.length]}>
-          <planeGeometry args={[4.2, 4.2]} />
+          <planeGeometry args={[5.2, 5.2]} />
           <meshBasicMaterial
             map={poolTex}
             transparent
             depthWrite={false}
             blending={THREE.AdditiveBlending}
-            opacity={0.75}
+            opacity={0.95}
           />
         </instancedMesh>
       )}
@@ -1333,7 +1335,7 @@ export function StreetScene({
       <TwinEnvironment envHour={envHour} theme={theme} />
       <Roads theme={theme} />
       <RoadLanes />
-      <DistrictRoadSigns />
+      <DistrictRoadSigns night={theme === 'dark'} />
       <DistantSkyline theme={theme} />
       <StreetLamps theme={theme} />
       <ArchWay industry="internet" axisX sign={1} theme={theme} />

@@ -6,18 +6,18 @@
   "metrics": [
     {
       "tag": "hero(鸟瞰)",
-      "drawCalls": 324,
-      "drawCallsMin": 324,
-      "triangles": 1544582,
-      "fps": 99,
+      "drawCalls": 322,
+      "drawCallsMin": 322,
+      "triangles": 995654,
+      "fps": 76.3,
       "fpsRounds": [
-        109.9,
-        99,
-        78.1
+        78.7,
+        76.3,
+        71.4
       ],
       "memory": {
         "geometries": 312,
-        "textures": 47,
+        "textures": 45,
         "programs": 45
       },
       "webgl2": true,
@@ -25,18 +25,18 @@
     },
     {
       "tag": "walk(越肩)",
-      "drawCalls": 161,
-      "drawCallsMin": 156,
+      "drawCalls": 172,
+      "drawCallsMin": 98,
       "triangles": 7907671,
-      "fps": 69,
+      "fps": 49.8,
       "fpsRounds": [
-        73.5,
-        69,
-        66.7
+        50.5,
+        49.8,
+        44.2
       ],
       "memory": {
-        "geometries": 370,
-        "textures": 100,
+        "geometries": 419,
+        "textures": 109,
         "programs": 64
       },
       "webgl2": true,
@@ -44,17 +44,17 @@
     },
     {
       "tag": "focus(特写)",
-      "drawCalls": 180,
-      "drawCallsMin": 180,
-      "triangles": 7815729,
-      "fps": 63.7,
+      "drawCalls": 182,
+      "drawCallsMin": 181,
+      "triangles": 8090409,
+      "fps": 48.5,
       "fpsRounds": [
-        64.9,
-        63.7,
-        56.8
+        51.5,
+        48.5,
+        43.5
       ],
       "memory": {
-        "geometries": 447,
+        "geometries": 449,
         "textures": 115,
         "programs": 64
       },
@@ -63,17 +63,17 @@
     },
     {
       "tag": "deliver(投递)",
-      "drawCalls": 182,
-      "drawCallsMin": 182,
-      "triangles": 7815843,
-      "fps": 56.5,
+      "drawCalls": 183,
+      "drawCallsMin": 183,
+      "triangles": 7816059,
+      "fps": 40.8,
       "fpsRounds": [
-        60.6,
-        56.5,
-        45.7
+        44.6,
+        40.8,
+        25
       ],
       "memory": {
-        "geometries": 448,
+        "geometries": 450,
         "textures": 116,
         "programs": 79
       },

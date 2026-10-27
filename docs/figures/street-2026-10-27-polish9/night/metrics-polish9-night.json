@@ -9,11 +9,11 @@
       "drawCalls": 684,
       "drawCallsMin": 684,
       "triangles": 1548542,
-      "fps": 85.5,
+      "fps": 68.5,
       "fpsRounds": [
-        96.2,
-        85.5,
-        81.3
+        69.4,
+        68.5,
+        57.8
       ],
       "memory": {
         "geometries": 623,
@@ -25,18 +25,18 @@
     },
     {
       "tag": "walk(越肩)",
-      "drawCalls": 209,
-      "drawCallsMin": 188,
-      "triangles": 7908319,
-      "fps": 65.8,
+      "drawCalls": 310,
+      "drawCallsMin": 171,
+      "triangles": 8602284,
+      "fps": 43.5,
       "fpsRounds": [
-        65.8,
-        65.8,
-        64.1
+        45,
+        43.5,
+        40.3
       ],
       "memory": {
-        "geometries": 681,
-        "textures": 149,
+        "geometries": 713,
+        "textures": 157,
         "programs": 71
       },
       "webgl2": true,
@@ -44,14 +44,14 @@
     },
     {
       "tag": "focus(特写)",
-      "drawCalls": 326,
-      "drawCallsMin": 326,
-      "triangles": 7828405,
-      "fps": 63.3,
+      "drawCalls": 328,
+      "drawCallsMin": 328,
+      "triangles": 7828415,
+      "fps": 41,
       "fpsRounds": [
-        64.5,
-        63.3,
-        62.9
+        42.6,
+        41,
+        40.2
       ],
       "memory": {
         "geometries": 713,
@@ -63,14 +63,14 @@
     },
     {
       "tag": "deliver(投递)",
-      "drawCalls": 328,
-      "drawCallsMin": 328,
-      "triangles": 7828519,
-      "fps": 58.8,
+      "drawCalls": 330,
+      "drawCallsMin": 330,
+      "triangles": 7828529,
+      "fps": 42,
       "fpsRounds": [
-        59.5,
-        58.8,
-        57.5
+        42.7,
+        42,
+        38
       ],
       "memory": {
         "geometries": 714,
