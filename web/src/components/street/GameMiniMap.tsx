@@ -219,10 +219,26 @@ export function GameMiniMap({
   const [open, setOpen] = useState(false)
 
   useEffect(() => {
+    // 导航器位置刷新：100ms → 200ms 降频，并加「位移/转向阈值」门控 ——
+    // 玩家静止时不再持续 setState，避免每次全量重渲染（罗盘 64 点 + 邻近列表 + 四区进度）。
+    let lastX = Number.POSITIVE_INFINITY
+    let lastZ = Number.POSITIVE_INFINITY
+    let lastH = Number.POSITIVE_INFINITY
     const id = window.setInterval(() => {
       const p = refs.position.current
-      setPos({ x: p.x, z: p.z, h: refs.heading?.current ?? 0 })
-    }, 100)
+      const h = refs.heading?.current ?? 0
+      if (
+        Math.abs(p.x - lastX) < 0.08 &&
+        Math.abs(p.z - lastZ) < 0.08 &&
+        Math.abs(h - lastH) < 0.02
+      ) {
+        return
+      }
+      lastX = p.x
+      lastZ = p.z
+      lastH = h
+      setPos({ x: p.x, z: p.z, h })
+    }, 200)
     return () => window.clearInterval(id)
   }, [refs])
 

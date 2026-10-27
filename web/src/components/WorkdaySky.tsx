@@ -8,7 +8,7 @@
 //
 // 主题：白天浅色（玻璃孪生，冷白天幕）/ 夜间深色（深靛 + 星空）。
 
-import { useLayoutEffect, useMemo, useRef } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { Stars } from '@react-three/drei'
 import { sunPosition, moonPosition, isBelowHorizon } from '../engine/sunPosition'
@@ -185,7 +185,11 @@ export function skyGradientTexture(
   return t
 }
 
-/** 太阳/月亮辉光贴图（加性混合，给天空一个光源核心） */
+/**
+ * 太阳/月亮辉光贴图（加性混合，给天空一个光源核心）。
+ * 模块级单例缓存、跨实例复用：**不可 dispose**（否则其它实例/重挂载会拿到已释放纹理），
+ * 生命周期与页面一致，仅随页面卸载回收。
+ */
 let SUN_GLOW_TEX: THREE.CanvasTexture | null = null
 function sunGlowTexture() {
   if (SUN_GLOW_TEX) return SUN_GLOW_TEX
@@ -284,10 +288,11 @@ export function WorkdaySky({
     [topColor, sky.bg, horizonColor]
   )
 
-  // 主题切换时天幕做渐变过渡（避免硬切）
-  useMemo(() => {
-    // 预热一次，确保首帧纹理可用
+  // 天幕渐变 CanvasTexture：依赖变化（主题/天色切换）时释放旧纹理，卸载时释放当前纹理，
+  // 否则每次主题切换都会泄漏一张 GPU 纹理。needsUpdate 是副作用——用 useEffect 而非 useMemo。
+  useEffect(() => {
     skyTex.needsUpdate = true
+    return () => skyTex.dispose()
   }, [skyTex])
 
   const sunUp = sky.night ? true : sky.sunPos[1] > -2

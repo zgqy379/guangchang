@@ -1,4 +1,5 @@
-// 三家虚构演示公司（docs/demo-script.md，project.md 9.7）
+// 四家虚构演示公司（docs/demo-script.md，project.md 9.7）
+// 前三家是固定对比样本，第四家 id='custom' 由用户拖滑杆即时定义
 // 演示真实公司的负面参数有法律风险，一律虚构
 import { CompanyParams, defaultParams } from '../engine/params'
 
@@ -54,5 +55,9 @@ export const fictionalCompanies: FictionalCompany[] = [
   },
 ]
 
-export const companyById = (id: string) =>
-  fictionalCompanies.find((c) => c.id === id) ?? fictionalCompanies[3]
+// 未命中 id 时回退到 id='custom'（而非「数组第 4 个」的硬编码下标，
+// 避免数组增删后 fallback 指向错误公司）；custom 缺失时再兜底首家。
+export const companyById = (id: string): FictionalCompany =>
+  fictionalCompanies.find((c) => c.id === id) ??
+  fictionalCompanies.find((c) => c.id === 'custom') ??
+  fictionalCompanies[0]

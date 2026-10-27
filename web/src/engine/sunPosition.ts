@@ -129,12 +129,17 @@ export function moonPosition(
   sceneRotation = 0
 ): SunPosition {
   const hour = date.getHours() + date.getMinutes() / 60
-  // 19:00 升起 → 01:00 最高 → 05:00 落下
-  const t = (hour - 19 + 24) % 24 / 10 // 0~2.4 覆盖整个夜间
-  const clamped = Math.max(0, Math.min(1, t))
-  const altitude = clamped * Math.PI * 0.92
+  // 夜间相位：19:00 升起 → 次日 00:00 最高 → 05:00 落下，映射到 t∈[0,1]
+  // 仅此 10 小时窗口为夜间；其余时刻月亮在地平线下（altitude=0），不参与渲染。
+  // （旧式 (hour-19+24)%24/10 会把 18:00 及整个白天错判为最高相位）
+  const phase = ((hour - 19 + 24) % 24) / 10
+  const isNight = phase <= 1
+  const t = isNight ? phase : 0
+  // 弧线映射：t=0(19:00 升起)→0、t=0.5(次日 00:00 最高)→π/2、t=1(05:00 落下)→0，
+  // 峰值落在午夜且始终 ∈[0, π/2]（旧式 0.92π 线性会越过天顶倒挂）
+  const altitude = Math.sin(t * Math.PI) * (Math.PI / 2)
   // 从东偏北升到西偏北
-  const azimuth = (100 + clamped * 160) * DEG
+  const azimuth = (100 + t * 160) * DEG
 
   const cosAlt = Math.cos(altitude)
   const x = cosAlt * Math.sin(azimuth)

@@ -6,7 +6,15 @@
 //      UI v3 §12 L2 标注的风险点在此确认并修复）——多段 box-shadow 需保留逗号结构
 //   2. 注册 `glass` 组参数的输出（透明白/描边/模糊等作为独立 CSS 变量输出）
 import fs from 'node:fs'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import StyleDictionary from 'style-dictionary'
+
+// 所有路径以本文件位置解析，不依赖调用时的 cwd
+// （旧版写死 'design/tokens.json' / 'generated/'，只有恰好在 web/ 下执行才成立）
+const here = path.dirname(fileURLToPath(import.meta.url))
+const tokensPath = path.resolve(here, 'design/tokens.json')
+const generatedDir = path.resolve(here, 'generated')
 
 /**
  * shadow 类型转换：把 DTCG shadow 值转成 CSS box-shadow 字符串。
@@ -54,18 +62,18 @@ StyleDictionary.registerTransform({
 })
 
 const sd = new StyleDictionary({
-  source: ['design/tokens.json'],
+  source: [tokensPath],
   platforms: {
     css: {
       transformGroup: 'css',
       transforms: ['shadow/css', 'glass/css'],
-      buildPath: 'generated/',
+      buildPath: `${generatedDir}${path.sep}`,
       files: [{ destination: 'design-tokens.output.css', format: 'css/variables' }],
     },
     js: {
       transformGroup: 'js',
       transforms: ['shadow/css', 'glass/css'],
-      buildPath: 'generated/',
+      buildPath: `${generatedDir}${path.sep}`,
       files: [
         {
           destination: 'design-tokens.output.mjs',
@@ -79,7 +87,7 @@ const sd = new StyleDictionary({
 await sd.buildAllPlatforms()
 
 // 生成类型声明，保证 TS 侧可以直接消费生成的令牌（与 mjs 同名导出）
-const tokens = JSON.parse(fs.readFileSync('design/tokens.json', 'utf8'))
+const tokens = JSON.parse(fs.readFileSync(tokensPath, 'utf8'))
 const decls = []
 const walk = (obj, path) => {
   for (const [key, value] of Object.entries(obj)) {
@@ -93,7 +101,7 @@ const walk = (obj, path) => {
   }
 }
 walk(tokens, [])
-fs.writeFileSync('generated/design-tokens.output.d.mts', decls.join('\n') + '\n')
+fs.writeFileSync(path.join(generatedDir, 'design-tokens.output.d.mts'), decls.join('\n') + '\n')
 console.log('tokens built: generated/design-tokens.output.css / .mjs / .d.mts')
 
 // —— 构建后自检：number 令牌不得被自定义 transform 破坏 ——

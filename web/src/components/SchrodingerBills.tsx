@@ -5,6 +5,7 @@ import { useLayoutEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { BILL, yuanToStacks } from '../engine/params'
 import { antiGamingParams } from '../engine/dictionary'
+import { ColorSceneGlassLit, ThemeLightWire } from '../../generated/design-tokens.output.mjs'
 
 // 确定性伪随机（同参数渲染结果稳定，便于录屏）
 function seeded(seed: number) {
@@ -70,10 +71,10 @@ export function SchrodingerBills({
     <instancedMesh key={positions.length} ref={ref} args={[undefined, undefined, positions.length]}>
       <boxGeometry args={[BILL.w * 1.2, BILL.stackH * 1.2, BILL.d * 1.2]} />
       <meshStandardMaterial
-        color="#8fb4d9"
+        color={ThemeLightWire}
         transparent
         opacity={ag.maxOpacity}
-        emissive="#3a5f82"
+        emissive={ColorSceneGlassLit}
         emissiveIntensity={0.4}
       />
     </instancedMesh>
@@ -87,5 +88,9 @@ export const schrodingerCapNote = (params: { equityYuan: number; baseYuan: numbe
   }
   const eff = yuanToStacks(params.equityYuan * ag.scaleFactor)
   const cap = Math.floor(yuanToStacks(params.baseYuan) * ag.capRatio)
-  return eff > cap ? `期权按规则封顶（超出 ${(1 - cap / eff).toFixed(0)}% 未渲染）` : ''
+  // 未渲染占比 = 被封顶截掉的体积 / 原始有效体积 = 1 - cap/eff。
+  // 注意必须 ×100：此前漏乘导致 (1-cap/eff) ∈ (0,1) 被 toFixed(0) 恒取整为 0/1，
+  // 文案永远显示"超出 0%/1%"（真实可达 88%）。
+  const hiddenPct = ((1 - cap / eff) * 100).toFixed(0)
+  return eff > cap ? `期权按规则封顶（${hiddenPct}% 的体积超出上限未渲染）` : ''
 }

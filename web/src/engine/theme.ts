@@ -30,8 +30,10 @@ export interface EnvTheme {
 }
 
 // —— 时间分段阈值（对应 spec §4 判定表） ——
+// 阈值以词典（dictionary/hr-dictionary.json）为唯一事实源：此处仅服务于
+// 「环境时间→UI 主题」的判定（systemHour/themeForHour/isDusk），
+// 与「参数时间→下班光效」的词典映射互不干扰，勿在此另立一套分叉阈值。
 const DAWN_START = 6.0
-const DAWN_END = 8.5
 const DUSK_START = 17.5
 const DUSK_END = 19.0
 
@@ -64,40 +66,3 @@ export function resolveTheme(
   return themeForHour(h)
 }
 
-/**
- * 主题判定的时间边界常数（导出便于测试与文档同步）
- */
-export const THEME_BOUNDS = {
-  dawnStart: DAWN_START,
-  dawnEnd: DAWN_END,
-  duskStart: DUSK_START,
-  duskEnd: DUSK_END,
-} as const
-
-/**
- * 主题描述文案（供 HUD/调试面板展示）
- */
-export function themeLabel(name: ThemeName, dusk: boolean): string {
-  if (name === 'dark') return '夜间 · 深色孪生'
-  if (dusk) return '黄昏 · 暖金孪生'
-  return '白天 · 浅色孪生'
-}
-
-/**
- * 公司的"下班光效"色相与强度（参数时间语义，与环境时间无关）
- *   ≤18:30 → 暖金日落辉光
- *   19–21  → 暮色橙紫
- *   ≥21    → 冷蓝月光
- * 返回 hex 颜色 + 发光强度倍率。
- */
-export function offworkGlow(
-  offworkTime: number
-): { color: string; intensity: number; label: string } {
-  if (offworkTime <= 18.5) {
-    return { color: '#ffb066', intensity: 1.0, label: '夕阳 · 准点走的温度' }
-  }
-  if (offworkTime <= 21) {
-    return { color: '#ff8a4c', intensity: 0.85, label: '暮色 · 天快黑了' }
-  }
-  return { color: '#7fa8ff', intensity: 0.7, label: '深夜强度陈述' }
-}

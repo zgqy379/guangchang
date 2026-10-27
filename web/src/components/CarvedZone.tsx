@@ -9,6 +9,7 @@ import {
   layerLayout,
   yuanToStacks,
 } from '../engine/params'
+import { ColorTextMuted } from '../../generated/design-tokens.output.mjs'
 
 // 词典 mapping 参数：carveScale 按档位（full=完整小切口 … min=明显大切口）
 const CARVE_SCALE: Record<string, number> = {
@@ -58,7 +59,8 @@ export function CarvedZone({
   return (
     <instancedMesh key={positions.length} ref={ref} args={[undefined, undefined, Math.max(1, positions.length)]}>
       <boxGeometry args={[BILL.w, BILL.stackH, BILL.d]} />
-      <meshStandardMaterial color="#6b7280" roughness={0.95} />
+      {/* 被切走的钱堆：中性灰（ColorTextMuted）表达"损耗/缩水"，与山体红橙对比 */}
+      <meshStandardMaterial color={ColorTextMuted} roughness={0.95} />
     </instancedMesh>
   )
 }

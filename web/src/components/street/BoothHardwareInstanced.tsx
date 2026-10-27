@@ -19,12 +19,13 @@
 //  10. flagPole 区域色侧旗柱 cylinder
 //  11. flag    区域色侧旗旗帜 plane（per-instance 颜色：行业色）
 //  12-15. roof 雨棚顶（按 4 种行业变体分组，4 个 InstancedMesh）
-import { useEffect, useRef } from 'react'
+import { useLayoutEffect, useRef } from 'react'
 import * as THREE from 'three'
 import type { LotPlacement } from '../../data/street-companies'
 import { INDUSTRIES } from '../../data/street-companies'
 import type { Industry } from '../../data/street-companies'
 import type { ThemeName } from '../../engine/theme'
+import { ColorStateSuccess } from '../../../generated/design-tokens.output.mjs'
 
 const tempObject = new THREE.Object3D()
 const tempColor = new THREE.Color()
@@ -115,7 +116,9 @@ export function BoothHardwareInstanced({
   const industryList: Industry[] = ['internet', 'finance', 'manufacturing', 'culture']
 
   // ---------- 初始化 count ----------
-  useEffect(() => {
+  // 必须 useLayoutEffect：写在 useEffect 会在首帧渲染之后才设置 count，
+  // 首帧全部实例矩阵尚未写入 → 全叠原点（AGENTS 铁律：InstancedMesh 矩阵走 useLayoutEffect）
+  useLayoutEffect(() => {
     countRef.current = count
     const setCount = (ref: React.RefObject<THREE.InstancedMesh> | null, n: number) => {
       const m = ref?.current
@@ -136,7 +139,8 @@ export function BoothHardwareInstanced({
   }, [count])
 
   // ---------- 每帧更新 matrix / 颜色 ----------
-  useEffect(() => {
+  // 改 useLayoutEffect：矩阵必须在首帧提交前写入，否则首帧全叠原点（T 事故同源）
+  useLayoutEffect(() => {
     const setMat = (ref: React.RefObject<THREE.InstancedMesh>, fn: (m: THREE.InstancedMesh) => void) => {
       const m = ref.current
       if (m) fn(m)
@@ -162,7 +166,7 @@ export function BoothHardwareInstanced({
     setMat(glowRef, (m) => {
       placements.forEach((pl, i) => {
         m.setMatrixAt(i, instanceMatrixFor(pl, 0, 2.31, 0, 2.18, 1.72, 1, Math.PI / 2))
-        tempColor.set(delivered.has(pl.lot.id) ? '#3ee58a' : INDUSTRIES[pl.lot.industry].color)
+        tempColor.set(delivered.has(pl.lot.id) ? ColorStateSuccess : INDUSTRIES[pl.lot.industry].color)
         m.setColorAt(i, tempColor)
       })
       m.instanceMatrix.needsUpdate = true

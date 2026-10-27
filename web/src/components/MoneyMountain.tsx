@@ -2,7 +2,7 @@
 // 2026-10-25 重构：固定 3×3 层叠布局（金额差 = 高度差，真"山"）；
 // 旧版 sqrt 布局任何金额都只堆一层（15万不可见 / 100万是地毯）
 import { useFrame } from '@react-three/fiber'
-import { useLayoutEffect, useMemo, useRef } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import {
   BILL,
@@ -144,6 +144,14 @@ export function MoneyMountain({
     }),
     []
   )
+
+  // 纸币 CanvasTexture 由本组件创建（非全局缓存）：卸载时释放，防 GPU 纹理泄漏
+  useEffect(() => {
+    return () => {
+      textures.base.dispose()
+      textures.inc.dispose()
+    }
+  }, [textures])
 
   return (
     <group>

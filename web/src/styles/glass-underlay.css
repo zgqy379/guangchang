@@ -35,7 +35,8 @@
 .game-hud,
 .game-toast,
 .district-chip,
-.office-status {
+.office-status,
+.office-loading {
   background-color: var(--ui-glass-underlay);
 }
 

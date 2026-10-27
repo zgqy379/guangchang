@@ -24,6 +24,9 @@ docs/iterations/**/*.zip
 docs/iterations/**/*.spz
 assets/interiorgs-0024/
 web/public/assets/office/*.ply
+# 受限扫描资产（InteriorGS 等）PLY 兜底：任何位置的 *.ply 一律不进公开仓库（防 T7/T12b 二次泄露复发）
+web/public/**/*.ply
+*.ply
 # 受限授权资产（InteriorGS 等）的截图/渲染图同样不得进公开仓库
 docs/iterations/**/*interiorgs*
 web/public/**/*interiorgs*

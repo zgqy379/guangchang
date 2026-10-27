@@ -392,9 +392,9 @@ project.md 的立意是"**参数空间化 3D 求职招聘街区**"，v1.2 强调
 
 | # | 文件 | 改动 | 状态 |
 |---|---|---|---|
-| N1 | `web/src/engine/theme.ts` | **新增**：主题状态机（`systemHour` / `resolveTheme` / `isDusk` / `offworkGlow` / `LockMode`） | ✅ |
+| N1 | `web/src/engine/theme.ts` | **新增**：主题状态机；已接入 `systemHour` / `resolveTheme` / `isDusk` / `LockMode`。原列表中的 `offworkGlow` **未实现/未接入**（当前代码查无此导出，2026-10-27 审查更正） | ⚠️ |
 | N2 | `web/src/engine/sunPosition.ts` | **新增**：真实天文太阳/月亮位置（NOAA/SunCalc 简化式） | ✅ |
-| M1 | `web/src/engine/sky.ts` | 未改（`skyFromEnv` 新写于 WorkdaySky.tsx 内，旧文件保留供其他模式用） | ✅ |
+| M1 | `web/src/engine/sky.ts` | **未改 + 全项目零 import（死代码）**：`skyFromEnv` 已新写于 WorkdaySky.tsx 内，旧 `sky.ts` 无任何引用——待删除，故不计入"已落地"（2026-10-27 审查更正） | ❌ |
 | M2 | `web/src/components/WorkdaySky.tsx` | 重写：主题化天幕（浅/深两套渐变）、真实太阳位置、方向性阴影、冷色补光 | ✅ |
 | M3 | `web/src/components/street/HRStand.tsx` | `facadeTexture(floors, mode)` / `glassTexture(mode)` 双模式；摊位/雨棚/牌坊/屋顶全部主题化；加孪生轮廓线框 | ✅ |
 | M4 | `web/src/components/street/StreetScene.tsx` | 地面/路面/天际线/路灯/牌坊/导航柱/参数碑主题化；新增 `twinGridTexture()` 网格地面 | ✅ |
@@ -430,6 +430,7 @@ project.md 的立意是"**参数空间化 3D 求职招聘街区**"，v1.2 强调
 
 ### C.4 尚未完成（下一轮）
 
+- [ ] **清理死代码**：`web/src/engine/sky.ts`（全项目零 import）；`theme.ts` 原列的 `offworkGlow` 未实现/未接入（附录 C 曾虚标 ✅，2026-10-27 更正）
 - [ ] **孪生数据体**：参数以发光体块悬浮在建筑内部（当前仍是参数碑 + 悬浮标签）
 - [ ] **实体头剪影差异**：四区顶冠形态差异化（互联网平顶+天线 / 金融尖顶 / 智造水塔 / 文创坡顶）已有雏形，但需在鸟瞰下强化个体识别
 - [ ] **办公室 3DGS 孪生叠加层**：点云 + 线框 + "扫描中"状态（缓解写实扫描与孪生风的割裂）

@@ -77,7 +77,10 @@ function FallbackPane({
         height: '100%',
         minHeight: 180,
         padding: '24px 16px',
-        color: 'var(--ui-ink-secondary, #b7c2cc)',
+        // 降级页是**不透明面板**语义，必须用面板前景色（随主题反相）。
+        // 旧的 --ui-ink-* 是"压在玻璃浮层上"的墨色：浅色主题下是深墨，
+        // 压在不透明/深色底上 ≈1:1 不可见（两级主题均失效）。
+        color: 'var(--ui-panel-fg-muted, #8b949e)',
         fontSize: 13,
         textAlign: 'center',
       }
@@ -89,15 +92,15 @@ function FallbackPane({
         gap: 14,
         minHeight: '100vh',
         padding: '32px',
-        color: 'var(--ui-ink-primary, #e6edf3)',
+        color: 'var(--ui-page-fg, #e6edf3)',
         fontSize: 15,
         textAlign: 'center',
-        background: 'var(--ui-page-bg, #0d1117)',
+        background: 'var(--ui-panel-bg, #0d1117)',
       }
 
   return (
     <div style={style} role="alert">
-      <div style={{ fontSize: compact ? 15 : 18, fontWeight: 700, color: 'var(--ui-ink-primary, #e6edf3)' }}>
+      <div style={{ fontSize: compact ? 15 : 18, fontWeight: 700, color: 'var(--ui-page-fg, #e6edf3)' }}>
         {label ? `${label}加载失败` : '页面出错了'}
       </div>
       <div style={{ maxWidth: 460, lineHeight: 1.6 }}>

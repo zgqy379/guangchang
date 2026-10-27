@@ -11,9 +11,11 @@ import { assetUrl } from '../../engine/asset'
 import {
   ColorSceneBillOrange,
   ColorSceneBillRed,
+  ColorSceneFloor,
   ColorSceneGate,
   ColorSceneWindow,
   ColorStateInfo,
+  ColorStateSuccess,
   ThemeLightGlassBody,
   TwinContactOpacityDay,
 } from '../../../generated/design-tokens.output.mjs'
@@ -27,9 +29,25 @@ const HR_POOL = [
 const NEAR = 26 // 真 HR GLB 自带 idle clip 为 T-pose；近景改用玩家 Avatar 的 idle clip（同 52 根 Mixamo 骨）
 const FAR = 34
 
+// 落地漫游（follow）时的 HR GLB 预热。
+// 必须**分批**：follow 首次触发若一次性并发拉 9 个 HR GLB（≈16MB），会瞬间占满带宽
+// 并挤压主线程，反而拖慢近景首个人形出现。策略：
+//   ① 玩家 idle clip（所有 RealHR 共用、近景真 HR 渲染的前置）立即拉
+//   ② HR 池分 2 个一批、每批错开 600ms 陆续拉 → 保持 roam 顺滑
+// 幂等：follow 可能反复切换，模块级标记保证批调度只注册一次（useGLTF.preload 自身也有缓存）
+let hrPreloadScheduled = false
 export function preloadHRModels() {
   useGLTF.preload(assetUrl('/assets/avatar/avatar-idle.glb'), DRACO_PATH)
-  for (const f of HR_POOL) useGLTF.preload(assetUrl(`/assets/hr/${f}-idle.glb`), DRACO_PATH)
+  if (hrPreloadScheduled) return
+  hrPreloadScheduled = true
+  const BATCH = 2
+  const STEP_MS = 600
+  HR_POOL.forEach((f, i) => {
+    const delay = Math.floor(i / BATCH) * STEP_MS
+    window.setTimeout(() => {
+      useGLTF.preload(assetUrl(`/assets/hr/${f}-idle.glb`), DRACO_PATH)
+    }, delay)
+  })
 }
 
 /**
@@ -270,10 +288,10 @@ export function deliveredTexture() {
   ctx.beginPath()
   ctx.roundRect(2, 2, 252, 60, 10)
   ctx.fill()
-  ctx.strokeStyle = '#3ee58a'
+  ctx.strokeStyle = ColorStateSuccess
   ctx.lineWidth = 2
   ctx.stroke()
-  ctx.fillStyle = '#7dffb0'
+  ctx.fillStyle = ColorStateSuccess
   ctx.font = '600 26px "Microsoft YaHei", sans-serif'
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
@@ -339,7 +357,8 @@ function RealHR({ hrIndex }: { hrIndex: number }) {
         const lifted = mats.map((m) => {
           const mat = m.clone() as THREE.MeshStandardMaterial
           if (mat.emissive) {
-            mat.emissive.set('#1b2635')
+            // 夜色暗部抬光：用「场景暗面」令牌（不再写死 #1b2635）
+            mat.emissive.set(ColorSceneFloor)
             mat.emissiveIntensity = 0.4
           }
           return mat
@@ -455,7 +474,7 @@ export function HRStand({ lot, onEnterOffice, delivered = false, theme = 'dark' 
           </sprite>
           <mesh position={[0, -0.2, 0]}>
             <sphereGeometry args={[0.06, 8, 8]} />
-            <meshBasicMaterial color="#3ee58a" />
+            <meshBasicMaterial color={ColorStateSuccess} />
           </mesh>
         </group>
       )}

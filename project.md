@@ -531,8 +531,8 @@ HR 视角：我的摊位 / 建厂进度 / 收到的投递 → 访客模式 → �
 
 | 招聘参数 | 3D 映射规则 | 感知直觉 |
 |---|---|---|
-| 年薪 15 万 | 15cm 高百元钞堆（1,500 张） | 膝盖高度 |
-| 年薪 100 万 | 1 米高钞票塔（1 万张） | 一人高 |
+| 年薪 15 万 | 金字塔钞票山：1,500 张→30 沓→4 层，渲染高约 0.32 m | 小腿高度 |
+| 年薪 100 万 | 金字塔钞票山：1 万张→200 沓→23 层，渲染高约 1.84 m | 一人高 |
 | 年薪结构（14/16 薪） | 钞票山分色：底座 12 薪 + 顶部异色增量层 | 多出来的钱换了个颜色，一目了然 |
 | 五险一金缴费基数比例 | 钞票山旁被"切走"的部分**按基数比例缩放**：全额缴纳=完整切口，60% 基数=切口明显更大 | 到手前损耗的真实差距 |
 | 公积金部分 | 额外标注"退休前锁定" | 流动性损失 |
@@ -731,30 +731,47 @@ dictionary/
 ## 7.4 关键技术点：Instanced Mesh 钞票山
 
 ```tsx
-// 薪酬钞票山：万级实例单次 draw call（v1.1 修复实例数 bug）
+// 薪酬钞票山：万级实例单次 draw call（v1.1 修复实例数 bug；层容量算法已对齐 engine/params.ts）
 import { useRef, useLayoutEffect, useMemo } from 'react'
 import * as THREE from 'three'
 
-// 钞票尺寸：155mm × 77mm × 0.1mm（第五套人民币100元），50 张一沓
+// 钞票尺寸：155mm × 77mm × 0.1mm（第五套人民币100元），50 张一沓（每沓 5,000 元）
 const BILL_W = 0.155, BILL_D = 0.077, STACK_H = 0.005
+// 感知放大：真实比例下 15 万年薪只堆到 15cm 高，在米级场景中不可感知。
+// 水平等比 ×2.5（公司间比例严格保持）；高度另做感知增强 ×16（MOUNTAIN_HEIGHT_SCALE）。
+const MOUNTAIN_HEIGHT_SCALE = 16
 
 function MoneyMountain({ salary }: { salary: number }) {
   const meshRef = useRef<THREE.InstancedMesh>(null)
   const temp = useMemo(() => new THREE.Object3D(), [])
 
-  // 实例数由 salary 实际算出，而不是写死 —— 修复：旧版固定 10000，
+  // 实例数由 salary 实算而非写死 —— 修复：旧版固定 10000，
   // 年薪低于 50 万时未设置的实例全部堆在原点形成"幽灵柱"
   const layout = useMemo(() => {
-    const bundles = Math.floor(salary / 100 / 50)
-    const positions: [number, number, number][] = []
-    let layer = 0, remaining = bundles
+    // 层容量固定 3×3=9 沓/层，逐层居中 + 锥度收缩 → 金额差直接变成"高度差"。
+    // 【禁用 ceil(sqrt(N)) 布局】ceil(sqrt(N))²≥N 恒成立 → 任何金额都只堆一层，
+    // 15 万不可见、100 万是一块平铺地毯（2026-10-25 审查修复，实际实现在 engine/params.ts）。
+    const stacks = Math.max(0, Math.floor(salary / 5000))
+    const COLS = 3, ROWS = 3
+    const positions: { pos: [number, number, number]; layer: number }[] = []
+    let remaining = stacks, layer = 0
     while (remaining > 0) {
-      const side = Math.ceil(Math.sqrt(remaining)) // 金字塔逐层收窄
-      for (let x = 0; x < side && remaining > 0; x++)
-        for (let z = 0; z < side && remaining > 0; z++) {
-          positions.push([x * BILL_W, layer * STACK_H, z * BILL_D])
-          remaining--
+      const n = Math.min(COLS * ROWS, remaining)
+      const usedCols = Math.min(COLS, n)
+      const usedRows = Math.min(ROWS, Math.ceil(n / COLS))
+      const cx = ((usedCols - 1) / 2) * BILL_W
+      const cz = ((usedRows - 1) / 2) * BILL_D
+      const taper = Math.max(0.5, 1 - layer * 0.045)
+      let placed = 0
+      for (let x = 0; x < usedCols && placed < n; x++)
+        for (let z = 0; z < usedRows && placed < n; z++) {
+          positions.push({
+            pos: [(x * BILL_W - cx) * taper, (layer + 0.5) * STACK_H, (z * BILL_D - cz) * taper],
+            layer,
+          })
+          placed++
         }
+      remaining -= placed
       layer++
     }
     return positions
@@ -762,7 +779,7 @@ function MoneyMountain({ salary }: { salary: number }) {
 
   useLayoutEffect(() => {
     layout.forEach((p, i) => {
-      temp.position.set(...p)
+      temp.position.set(...p.pos)
       temp.updateMatrix()
       meshRef.current!.setMatrixAt(i, temp.matrix)
     })
@@ -953,7 +970,7 @@ API实测(今起) │           │           │ 提交 11.19 19:00
   （`/docs/report-skeleton.md`），每周填一节，M5 只做定稿不做初稿
 - **迭代存档从今天开始**：格式规范见 `/docs/iterations/README.md`——
   每次生成必存 prompt+参数+版本，只截成功图拼不出"迭代对比"
-- **进度状态（10.26 二次更新）**：✅ 报名/组队/选题全部完成（进度条 01–03 绿，报名+团队积分均已发放，04 作品提交已开启）｜✅ W1 核心实测完成：逛厂币路线确立、Avatar 生成+绑骨、OUS 上传链路验证｜✅ 街区版 Demo 上线（四模式 + HUD + 参数碑 + 办公室 3DGS）、报告书 PDF、Demo 视频、魔搭创空间｜✅ 10.26 合规修复：Draco 解码器自托管（原 jsDelivr 外链在弱网/国内下 `ERR_CONNECTION_CLOSED` 导致模型全部加载失败）、公开构建不再暴露受限 InteriorGS 入口、受限截图移出公开仓库、报告链接与事实口径修正、新增 `THIRD_PARTY_NOTICES.md`｜⏳ 待办：魔搭点"重新部署"、官网正式提交、小红书发布、移动端真机数据
+- **进度状态（10.26 二次更新）**：✅ 报名/组队/选题全部完成（进度条 01–03 绿，报名+团队积分均已发放，04 作品提交已开启）｜✅ W1 核心实测完成：逛厂币路线确立、Avatar 生成+绑骨、OUS 上传链路验证｜✅ 街区版 Demo 上线（四模式 + HUD + 参数碑 + 办公室 3DGS）、报告书 PDF、Demo 视频、魔搭创空间｜✅ 10.26 合规修复：Draco 解码器自托管（原 jsDelivr 外链在弱网/国内下 `ERR_CONNECTION_CLOSED` 导致模型全部加载失败）、公开构建不再暴露受限 InteriorGS 入口、受限截图移出公开仓库、报告链接与事实口径修正、新增 `THIRD_PARTY_NOTICES.md`｜⏳ 待办：官网正式提交并留存回执、小红书/X 发布、移动端真机数据（✅ 魔搭「重新部署」已于 2026-10-27 完成，构建中）
 
 | 里程碑 | 时间 | 关键交付 | 验收标准 |
 |--|--|--|--|
@@ -968,13 +985,30 @@ API实测(今起) │           │           │ 提交 11.19 19:00
 
 | 提交物 | 性质 | 状态 |
 |--|--|--|
-| **可运行 Demo 链接** | 必交 | ✅ **https://zgqy379.github.io/guangchang/**（10.26 合规修复版：Draco 自托管、真实浏览器验收通过——街区/HUD/钱山/Avatar 正常渲染、控制台零报错）；✅ **魔搭创空间：https://modelscope.cn/studios/zgqy379/guangchang3d**（新构建已上传 `Normal committed / LFS 0`，**待点"重新部署"生效**）。**部署 checklist：受限资产禁止放 `web/public/`（构建输入）；dist 内无 `*.ply`；不依赖任何第三方 CDN；部署后完整启动验收（真机/真实浏览器，curl 200 不算数）** |
+| **可运行 Demo 链接** | 必交 | ✅ **https://zgqy379.github.io/guangchang/**（10.26 合规修复版：Draco 自托管、真实浏览器验收通过——街区/HUD/钱山/Avatar 正常渲染、控制台零报错）；✅ **魔搭创空间：https://modelscope.cn/studios/zgqy379/guangchang3d**（新构建已上传 `Normal committed / LFS 0`；**2026-10-27 经 egolite(ego-browser) 自动点「重新部署→确认部署」成功，页面已转入「构建中」**）。**部署 checklist：受限资产禁止放 `web/public/`（构建输入）；dist 内无 `*.ply`；不依赖任何第三方 CDN；部署后完整启动验收（真机/真实浏览器，curl 200 不算数）** |
 | **Demo 视频** | 必交（双保险） | ✅ **https://zgqy379.github.io/guangchang/demo-video.mp4**（实测 39.9s，1280×720/25fps：标题卡→招聘街区鸟瞰（HUD/参数碑/小地图）→落地越肩→真 HR 特写→投递结算→对比篮 A/B→四区巡游→片尾卡；实机录屏含字幕，无音轨） |
 | 项目报告书（PDF/PPT 或链接） | 必交 | ✅ `docs/report.pdf` v2（3 页）：可点击链接、Aholo 能力运用表、关键资产迭代与 Aholo 产物图、主要工具与素材授权、安全与合规声明 |
 | 小红书发布链接 | 加分 | ⏳ 未发布（官方：不发则该维度 0 分，不影响资格）。计划见 `docs/content-plan.md` |
 | 项目源代码 | 加分 | ✅ github.com/zgqy379/guangchang（**已转公开**——Pages 免费额度需要；InteriorGS 受限资产与其截图均已移出公开仓库，授权清单见 `THIRD_PARTY_NOTICES.md`） |
 
 > 提交入口已开（04 作品提交）；选题信息自动带入提交表单，截止前可随时修改。
+
+### 9.4b 官方合规硬性要求（2026-10-27 从官网规则原文核对）
+
+> 来源：官网 hackathon 页内嵌《参赛规则》全文（页面为 SPA，规则文本在 `entry.js` bundle）。以下为**硬性/红线项**，逐条闭环。
+
+| 官方要求 | 性质 | 闭环状态 |
+|--|--|--|
+| 截止 **2026-11-19 19:00（UTC+8，北京）** ＝ 11-19 06:00 EST(UTC−5) | 硬性 | ⏳ 官网正式提交 |
+| 有效提交 = 官网完成提交并**获得项目编号 + 提交回执** | 硬性 | ⏳ 待办（唯一由外部系统判定、不可代码化的动作） |
+| **必须使用 Aholo Lux3D** 且参与核心创作 | **红线（不满足判无效）** | ✅ 证据链：`docs/iterations/` lux3d-avatar / lux3d-hr / lux3d-money + reality-office + spatialgen-space |
+| 必交① 项目报告书（PDF 或 PPT） | 硬性 | ✅ `docs/report.pdf` |
+| 必交② 可运行 Demo 链接 或 Demo 演示视频（二选一即可） | 硬性 | ✅ 双保险（Pages + 魔搭 + demo mp4） |
+| Demo 链接/测试账号/核心功能须可用 **不早于 2026-12-31（含当日）** | 硬性 | ⚠️ **需写入上线纪律**（此前未记录） |
+| 每队仅 1 个正式作品；队长提交；截止后材料不得实质变更；判分以截止前最后成功版本为准 | 硬性 | ✅ 单人即队长 |
+| 社交传播（未发布该项直接 0 分，不影响资格与其他维度） | 加分 | ⏳ 小红书 **#Aholo黑客松**、X **#Manycorehackathon**、魔搭作品链接→**20 小时 Notebook GPU** |
+
+> **上线纪律新增**：Demo 链接（Pages + 魔搭）须保持可用至 2026-12-31 之后；每次更新构建后必须重新部署魔搭（已由 `tools/ms-redeploy.mjs` 自动化）。
 
 ## 9.5 评审权重对照
 
@@ -1014,7 +1048,7 @@ API实测(今起) │           │           │ 提交 11.19 19:00
 
 | 虚构公司 | 人设 | 参数特征 | 演示看点 |
 |--|--|--|--|
-| 不眠星云科技 | 高薪卷王 | 年薪 60 万 / 下班 23:00 / 大小周 / 竞业铁栅栏 | 山很高，月亮挂在凌晨——钱和命的交易 |
+| 不眠星云科技 | 高薪卷王 | 年薪 50 万 / 下班 23:00 / 大小周 / 竞业铁栅栏 | 山很高，月亮挂在凌晨——钱和命的交易 |
 | 慢山文旅 | 低薪清闲 | 年薪 15 万 / 下班 18:00 / 弹性 / 远程 | 山到膝盖，永远是夕阳——"小而快乐"是合法选择 |
 | 追光新创 | 画饼大师 | base 18 万 + "价值 200 万期权" / 下班 21:00 | 薛定谔钞票云被防博弈规则压缩成一小片——**Demo 里当场演示"期权撑不起山"** |
 
@@ -1099,16 +1133,20 @@ API实测(今起) │           │           │ 提交 11.19 19:00
 
 # 附录A　人民币换算速查表
 
-> 第五套人民币 100 元：155mm × 77mm × 0.1mm，单张体积 ≈ 1.19cm³
+> 第五套人民币 100 元：155mm × 77mm × 0.1mm，单张体积 ≈ 1.19cm³。50 张一沓 = 5,000 元、沓高 5mm。
+> **两种高度别混**：「物理平叠高度」是一沓沓平叠的真实高度（与年薪线性）；「街区渲染高度」是场景
+> 里钞票山的实际视觉高度——按金字塔布局（`engine/params.ts` `layerLayout`：每层固定 3×3=9 沓，
+> 层数 = ⌈沓数/9⌉），再乘高度感知放大 `MOUNTAIN_HEIGHT_SCALE=16`（每层 5mm×16 = 0.08m）。
+> 因层数取整，**渲染高度对年薪是分段/近似的非线性关系，并非正比**（低区间差距被取整吞掉，见 7.4）。
 
-| 年薪 | 张数（百元） | 堆叠高度 | 重量 | 空间直觉 |
-|--|--|--|--|--|
-| 15 万 | 1,500 | **15 cm** | ≈1.7 kg | 小腿高度 |
-| 30 万 | 3,000 | **30 cm** | ≈3.5 kg | 膝盖高度 |
-| 50 万 | 5,000 | **50 cm** | ≈5.7 kg | 腰部以下 |
-| 100 万 | 10,000 | **1 m** | ≈11.5 kg | 一人高 |
-| 500 万 | 50,000 | 5 m | ≈57.5 kg | 一层楼 |
-| 1000 万 | 100,000 | 10 m | ≈115 kg | 顶到办公室天花板 |
+| 年薪 | 张数（百元） | 沓数 | 物理平叠高度 | 街区渲染高度（⌈沓数/9⌉ × 0.08m） | 重量 | 空间直觉 |
+|--|--|--|--|--|--|--|
+| 15 万 | 1,500 | 30 | 15 cm | ≈0.32 m（4 层） | ≈1.7 kg | 小腿高度 |
+| 30 万 | 3,000 | 60 | 30 cm | ≈0.56 m（7 层） | ≈3.5 kg | 膝盖高度 |
+| 50 万 | 5,000 | 100 | 50 cm | ≈0.96 m（12 层） | ≈5.7 kg | 腰部以下 |
+| 100 万 | 10,000 | 200 | 1 m | ≈1.84 m（23 层） | ≈11.5 kg | 一人高 |
+| 500 万 | 50,000 | 1,000 | 5 m | ≈8.96 m（112 层） | ≈57.5 kg | 一层楼 |
+| 1000 万 | 100,000 | 2,000 | 10 m | ≈17.84 m（223 层） | ≈115 kg | 顶到办公室天花板 |
 
 渲染锚点建议：钞票堆旁标注"= N 个城市人均年存款"类对比 + 等身刻度人偶
 （低区间分辨率方案，见 5.4），传播性拉满。
@@ -1118,7 +1156,7 @@ API实测(今起) │           │           │ 提交 11.19 19:00
 | 术语 | 定义 |
 |---|---|
 | 参数空间化 | 将抽象信息（薪酬、工时等）映射为 3D 空间中可感知的物理量 |
-| 钞票山 | 薪酬参数的 3D 可视化载体，高度与年薪成正比 |
+| 钞票山 | 薪酬参数的 3D 可视化载体；高度 = 金字塔层数（每层固定 3×3=9 沓）× `MOUNTAIN_HEIGHT_SCALE`，对年薪为分段非线性（非正比，见附录A / 7.4） |
 | 薛定谔钞票 | 期权/奖金的半透明悬浮可视化，可能兑现可能归零；透明度 ≤45%、缩放 0.5（5.4 防博弈规则） |
 | 加班月亮 | 工时参数的天空可视化，月亮位置对应实际下班时间 |
 | 能力空间 | 求职者 GitHub 数据生成的 3D 展示区域（地砖路+森林+画廊） |

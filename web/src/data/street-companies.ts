@@ -69,7 +69,8 @@ function seeded(seed: number) {
 }
 
 const RANGE: Record<Industry, { base: [number, number]; struct: number[]; equity: [number, number]; off: [number, number]; ratio: string[] }> = {
-  internet: { base: [260000, 800000], struct: [13, 14, 14, 15, 16], equity: [0, 1200000], off: [20, 24], ratio: ['full', 'full', '0.8', '0.8', '0.6'] },
+  // struct 取值必须 ∈ 词典 salary_structure 枚举 {12,13,14,16}（15 越界，已剔除）
+  internet: { base: [260000, 800000], struct: [13, 14, 14, 16, 16], equity: [0, 1200000], off: [20, 24], ratio: ['full', 'full', '0.8', '0.8', '0.6'] },
   finance: { base: [180000, 600000], struct: [13, 14, 14, 16], equity: [0, 800000], off: [19, 23], ratio: ['full', 'full', '0.8'] },
   manufacturing: { base: [120000, 300000], struct: [12, 12, 13, 14], equity: [0, 150000], off: [17.5, 20], ratio: ['full', 'full', 'full', '0.8'] },
   culture: { base: [100000, 280000], struct: [12, 12, 13], equity: [0, 200000], off: [18, 21], ratio: ['full', 'full', '0.8', '0.6'] },

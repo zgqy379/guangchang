@@ -1,6 +1,6 @@
 // 公司展台：钞票山 + 薛定谔钞票 + 五险切口 + 发光地砖路 + Avatar 漫游
 // A/B 对比模式（project.md 4.4，Demo P0）：对比才有叙事——左山矮但夕阳，右山高但凌晨月亮
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { Html } from '@react-three/drei'
 import * as THREE from 'three'
 import type { ThreeEvent } from '@react-three/fiber'
@@ -13,6 +13,12 @@ import {
   totalPackage,
   yuanToStacks,
 } from '../engine/params'
+import {
+  ColorBrandOrange,
+  ColorSceneBooth,
+  ColorSceneGate,
+  ColorSceneSun,
+} from '../../generated/design-tokens.output.mjs'
 import { MoneyMountain } from './MoneyMountain'
 import { SchrodingerBills } from './SchrodingerBills'
 import { GlowPath } from './GlowPath'
@@ -45,6 +51,13 @@ export function CompanyPlot({
     }
   }
 
+  // 展台描边几何：此前写在 JSX args 里 `new THREE.PlaneGeometry(6,6)` 每次渲染都新建，
+  // 造成几何/GPU 资源反复创建且旧实例泄漏。这里缓存一次，卸载时 dispose。
+  const edgePlane = useMemo(() => new THREE.PlaneGeometry(6, 6), [])
+  useEffect(() => {
+    return () => edgePlane.dispose()
+  }, [edgePlane])
+
   // 山顶数据浮标：层数与渲染同源（引擎公式），高度 = 层数 × 层高 × 感知增强
   const mountainH = useMemo(() => {
     const baseL = layerLayout(yuanToStacks(params.annualBaseSalary), 0)
@@ -56,8 +69,8 @@ export function CompanyPlot({
 
   return (
     <group position={position}>
-      {/* 展台补光：夜色下把 Avatar/山体从暗地板上托出来 */}
-      <pointLight position={[0, 4.2, 1.5]} intensity={9} distance={11} decay={2} color="#ffe2c4" />
+      {/* 展台补光：夜色下把 Avatar/山体从暗地板上托出来（ColorSceneSun 暖白） */}
+      <pointLight position={[0, 4.2, 1.5]} intensity={9} distance={11} decay={2} color={ColorSceneSun} />
       {/* 地基：每家公司一块 6×6m 的展台（漫游模式下点击=走过去） */}
       <mesh
         rotation={[-Math.PI / 2, 0, 0]}
@@ -66,12 +79,12 @@ export function CompanyPlot({
         onClick={roam ? handleGround : undefined}
       >
         <planeGeometry args={[6, 6]} />
-        <meshStandardMaterial color="#252b32" roughness={1} />
+        <meshStandardMaterial color={ColorSceneBooth} roughness={1} />
       </mesh>
       {/* 展台描边：视觉上框住舞台，避免大面积死黑（必须与地面同角度平铺） */}
       <lineSegments rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.002, 0]}>
-        <edgesGeometry args={[new THREE.PlaneGeometry(6, 6)]} />
-        <lineBasicMaterial color="#3d4650" />
+        <edgesGeometry args={[edgePlane]} />
+        <lineBasicMaterial color={ColorSceneGate} />
       </lineSegments>
       {/* key 换值 = 整组重挂载 = 生长动画重播 */}
       <group key={growthKey}>
@@ -102,7 +115,7 @@ export function CompanyPlot({
         <>
           <mesh position={[-0.5, mountainH + 0.27, -1.5]}>
             <boxGeometry args={[0.014, 0.56, 0.014]} />
-            <meshBasicMaterial color="#f0883e" />
+            <meshBasicMaterial color={ColorBrandOrange} />
           </mesh>
           <Html position={[-0.5, mountainH + 0.58, -1.5]} center distanceFactor={13}>
             <div className="peak-tag">

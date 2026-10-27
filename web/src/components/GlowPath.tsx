@@ -3,6 +3,13 @@
 import { useFrame } from '@react-three/fiber'
 import { useMemo, useRef } from 'react'
 import * as THREE from 'three'
+import {
+  ColorNeutral0,
+  ColorSceneBarOff,
+  ColorSceneBarOn,
+  ColorSceneFloor,
+  ColorStateSuccess,
+} from '../../generated/design-tokens.output.mjs'
 
 const TILE = 0.5
 const GAP = 0.06
@@ -21,11 +28,12 @@ function heatmap(n: number, seed = 7): number[] {
   })
 }
 
+// 四档热力色阶全部取自设计令牌（暗 → 亮绿），避免硬编码色漂移
 const LEVELS = [
-  { color: '#123524', emissive: '#0a1f16', intensity: 0.1 }, // 0 断档
-  { color: '#14532d', emissive: '#166534', intensity: 0.35 }, // 1 稀疏
-  { color: '#16a34a', emissive: '#22c55e', intensity: 0.9 }, // 2 密集
-  { color: '#34d399', emissive: '#34d399', intensity: 1.5 }, // 3 高亮（审美修订：降饱和，不抢山的主体）
+  { color: ColorSceneFloor, emissive: ColorNeutral0, intensity: 0.1 }, // 0 断档
+  { color: ColorSceneBarOff, emissive: ColorSceneBarOff, intensity: 0.4 }, // 1 稀疏
+  { color: ColorSceneBarOn, emissive: ColorSceneBarOn, intensity: 0.9 }, // 2 密集
+  { color: ColorStateSuccess, emissive: ColorStateSuccess, intensity: 1.5 }, // 3 高亮（降饱和，不抢山的主体）
 ]
 
 const easeOutBack = (k: number) => {
@@ -65,7 +73,8 @@ export function GlowPath({
           return (
             <mesh key={i} position={[0, 0.02, -i * STEP]} rotation={[-Math.PI / 2, 0, 0]}>
               <planeGeometry args={[TILE * 0.6, TILE * 0.6]} />
-              <meshStandardMaterial color="#1a1f24" roughness={1} />
+              {/* 断档：只剩暗色路基（ColorSceneFloor 深灰基底） */}
+              <meshStandardMaterial color={ColorSceneFloor} roughness={1} />
             </mesh>
           )
         }

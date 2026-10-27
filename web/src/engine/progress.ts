@@ -66,7 +66,9 @@ const memory = new Map<string, string>()
 function rawGet(key: string): string | null {
   if (!HAS_STORAGE) return memory.get(key) ?? null
   try {
-    return window.localStorage.getItem(key)
+    // getItem 返回 null 可能是「写失败已落 memory」的场景（rawSet 配额满/权限被拒时
+    // 只写了 memory），此时必须回退 memory，否则内存兜底读穿失效。
+    return window.localStorage.getItem(key) ?? memory.get(key) ?? null
   } catch {
     return memory.get(key) ?? null
   }

@@ -71,8 +71,10 @@ export function layerLayout(stacks: number, startLayer = 0): StackPos[] {
     const cz = ((usedRows - 1) / 2) * BILL.d
     const taper = Math.max(0.5, 1 - layer * 0.045)
     let placed = 0
+    // z 循环上限必须用 usedRows（而非满行 ROWS）：非 9 倍数层里末列行数更少，
+    // 若仍循环到 ROWS 会越过 cz 居中范围，导致该层向右/前错位。
     for (let x = 0; x < usedCols && placed < n; x++)
-      for (let z = 0; z < ROWS && placed < n; z++) {
+      for (let z = 0; z < usedRows && placed < n; z++) {
         out.push({
           pos: [
             (x * BILL.w - cx) * taper,

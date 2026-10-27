@@ -58,6 +58,12 @@ body,
   --ui-panel-accent: #f0883e;
   --ui-panel-bg: #0d1117;
   --ui-panel-border: var(--color-neutral-5);
+  /* —— 品牌金/橙 在「玻璃浮层」上的可读变体（随主题反相）——
+     品牌金 #ffd24a / 橙 #f0883e 是亮色，压在**亮玻璃**（深色主题）上仅 1.1–2.3:1，
+     必须换深色变体；深玻璃（浅色主题）上仍用品牌原色。
+     深色变体按最坏亮玻璃合成底 rgb(221,222,224) 验算：金 4.55:1 / 橙 4.78:1，均 ≥AA。 */
+  --ui-accent-gold: #6e5a00;
+  --ui-accent-orange: #9a4606;
   transition: background-color 600ms var(--ease-in, ease), color 600ms var(--ease-in, ease);
 }
 
@@ -82,16 +88,26 @@ body,
   --ui-panel-accent: #a84d08;
   --ui-panel-bg: rgba(255, 255, 255, 0.92);
   --ui-panel-border: rgba(11, 14, 26, 0.1);
+  /* 深玻璃（浅色主题）：品牌原色压在深玻璃上可读，直接用令牌 */
+  --ui-accent-gold: var(--color-brand-gold);
+  --ui-accent-orange: var(--color-brand-orange);
 }
 
-/* 主题锁定按钮 */
-.theme-lock {
-  width: 32px;
-  height: 32px;
+/* 主题锁定 / 角色切换按钮（在 header 不透明面板内）。
+   ⚠ 它们同时也是 `.mode-switch button` —— 后者的 (0,1,1) 会覆盖仅 class 的规则。
+   这里统一用 `.mode-switch .theme-lock*`（(0,2,0)）保证下面声明**真正生效**
+   （既存问题：--light / --dark 状态色原本被静默覆盖，从未显色）。
+   前景用 --ui-page-fg（随主题反相）；触控目标 ≥44px。 */
+.mode-switch .theme-lock {
+  /* 宽度自适应（「求职者」等文字标签需要），最小 44px 保证触控目标 */
+  width: auto;
+  min-width: 44px;
+  height: 44px;
+  padding: 0 12px;
   border-radius: 999px;
   border: 1px solid var(--ui-border-soft);
   background: var(--ui-surface);
-  color: var(--ui-ink-primary);
+  color: var(--ui-page-fg);
   font-size: 15px;
   line-height: 1;
   cursor: pointer;
@@ -99,11 +115,15 @@ body,
   place-items: center;
   transition: background var(--motion-fast, 120ms) ease, transform var(--motion-instant, 80ms) ease;
 }
-.theme-lock:hover { background: var(--ui-surface-hover); }
-.theme-lock:active { transform: scale(0.92); }
-.theme-lock--auto { color: var(--ui-ink-secondary); }
-.theme-lock--light { color: #d98a00; border-color: rgba(217, 138, 0, 0.4); }
-.theme-lock--dark { color: #7fa8ff; border-color: rgba(127, 168, 255, 0.4); }
+.mode-switch .theme-lock:hover { background: var(--ui-surface-hover); }
+.mode-switch .theme-lock:active { transform: scale(0.92); }
+/* 「跟随系统」/角色切换：面板内是次级文字 → 面板次级色（随主题反相） */
+.mode-switch .theme-lock--auto { color: var(--ui-panel-fg-muted); }
+.mode-switch .theme-lock--light { color: #d98a00; border-color: rgba(217, 138, 0, 0.4); }
+.mode-switch .theme-lock--dark { color: #7fa8ff; border-color: rgba(127, 168, 255, 0.4); }
+/* 浅色主题面板是**亮底**：金/蓝状态色换深变体以保证对比度（均 ≥4.5:1） */
+.app[data-theme='light'] .mode-switch .theme-lock--light { color: #8a5a00; }
+.app[data-theme='light'] .mode-switch .theme-lock--dark { color: #1f5a96; }
 
 .app {
   display: flex;
@@ -139,14 +159,20 @@ header h1 span {
 }
 .mode-switch button {
   background: var(--ui-surface);
-  color: var(--ui-ink-primary);
+  /* 在 header 不透明面板内 → 面板前景（随主题反相）。旧的 --ui-ink-primary
+     在深色主题下是深墨，压深面板 = 深字压深底，不可见 */
+  color: var(--ui-page-fg);
   border: 1px solid var(--ui-border-soft);
   padding: 6px 14px;
+  /* 触控目标 ≥44px */
+  min-height: 44px;
   cursor: pointer;
 }
 .mode-switch button.active {
   background: var(--color-brand-red-deep);
   border-color: var(--color-brand-red-deep);
+  /* 红底必须用白字：继承的面板深字压在品牌红上（浅色主题 #0b0e1a 压 #c23a2b 仅 ~3.6:1）不达 AA */
+  color: #fff;
 }
 .mode-switch button.replay {
   color: #4ade80;
@@ -164,6 +190,8 @@ header h1 span {
   border-radius: 4px;
   font-size: 12px;
   max-width: 240px;
+  /* header 触控目标 ≥44px */
+  min-height: 44px;
 }
 
 main {
@@ -296,6 +324,13 @@ main {
 .readout small {
   color: var(--ui-panel-fg-muted);
 }
+/* 浅色主题：readout 是**不透明信息块**，底色必须随之反相。
+   旧的固定 --color-neutral-3 (#161b22) 在浅色主题下 = 面板深字（--ui-page-fg #0b0e1a）
+   压深底 = 不可见。背景/前景同源反相后：白底 + 深字。 */
+.app[data-theme='light'] .readout {
+  background: var(--ui-panel-bg);
+  border-color: var(--ui-panel-border);
+}
 .cap-note {
   color: #d4a72c;
   font-size: 12px;
@@ -347,7 +382,9 @@ main {
   background: var(--ui-glass-fill);
   border: 1px solid #2a3038;
   border-radius: 6px;
-  color: var(--color-text-secondary);
+  /* 玻璃浮层（已垫实底）上的文字必须用玻璃墨色系列（随主题反相）。
+     旧的 --color-text-secondary (#8b949e) 压亮玻璃底仅 2.63:1 */
+  color: var(--ui-ink-secondary);
   padding: 3px 8px;
   font-size: 10px;
   line-height: 1.5;
@@ -382,7 +419,8 @@ main {
   position: absolute;
   bottom: 12px;
   left: 12px;
-  color: var(--color-text-secondary);
+  /* 玻璃浮层（已垫实底）→ 玻璃墨色系列 */
+  color: var(--ui-ink-secondary);
   font-size: 12px;
   background: var(--ui-glass-fill);
   border-radius: 4px;
@@ -410,6 +448,8 @@ main {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--ui-glass-border);
+  /* 2px 边框（原单独一条 .lot-card 规则已合并至此，避免同选择器重复定义） */
+  border-width: 2px;
   border-radius: 10px;
   padding: 10px 14px;
   color: var(--ui-ink-primary);
@@ -432,7 +472,8 @@ main {
   margin-bottom: 3px;
 }
 .lot-card-line b {
-  color: var(--color-brand-orange);
+  /* 名片卡已垫实底：亮玻璃（深色主题）上品牌橙仅 2.28:1 → 用随主题反相的强调橙 */
+  color: var(--ui-accent-orange);
 }
 /* 名片数值三宫格：核心数值独立成块（v4 玻璃孪生 · 数值不与氛围混排） */
 .lot-card-stats {
@@ -524,7 +565,8 @@ main {
   border-radius: 999px;
   border: 1px solid var(--color-brand-gold);
   background: var(--ui-glass-fill-strong);
-  color: var(--color-brand-gold);
+  /* 亮玻璃（深色主题）上品牌金仅 1.13:1 → 用随主题反相的强调金 */
+  color: var(--ui-accent-gold);
   font-family: inherit;
   font-size: var(--font-size-md);
   font-weight: 700;
@@ -581,7 +623,8 @@ main {
   background: var(--ui-glass-fill);
   border: 1px solid var(--color-brand-orange);
   border-radius: 999px;
-  color: var(--color-brand-orange);
+  /* 亮玻璃（深色主题）上品牌橙仅 2.28:1 → 用随主题反相的强调橙 */
+  color: var(--ui-accent-orange);
   font-size: 13px;
   font-weight: 700;
   padding: 3px 12px;
@@ -627,7 +670,8 @@ button:disabled {
 .game-hud-level {
   font-size: var(--font-size-2xl);
   font-weight: 800;
-  color: var(--color-brand-gold);
+  /* 亮玻璃（深色主题）上品牌金仅 1.13:1 → 用随主题反相的强调金 */
+  color: var(--ui-accent-gold);
   line-height: 1.2;
 }
 .xp-pop {
@@ -741,9 +785,6 @@ button:disabled {
   margin-right: 6px;
   vertical-align: 2px;
 }
-.lot-card {
-  border-width: 2px;
-}
 .game-toast {
   position: fixed;
   top: 64px;
@@ -757,20 +798,18 @@ button:disabled {
   border: 1px solid var(--ui-glass-border);
   border-radius: 999px;
   padding: 8px 18px;
-  color: var(--color-text-primary);
+  /* 玻璃浮层文字：玻璃墨色（随主题反相）；原来的两条 .game-toast 规则已合并 */
+  color: var(--ui-ink-primary);
   font-size: 14px;
   font-weight: 600;
   white-space: nowrap;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  transition: background-color 600ms ease, color 600ms ease;
   animation: game-toast-in 220ms ease-out;
 }
 .game-toast b {
   color: var(--color-brand-gold);
   margin-left: 6px;
-}
-.game-toast {
-  color: var(--ui-ink-primary);
-  transition: background-color 600ms ease, color 600ms ease;
 }
 @keyframes game-toast-in {
   from {
@@ -844,7 +883,8 @@ button:disabled {
   position: absolute;
   top: 10px;
   left: 12px;
-  color: var(--color-text-secondary);
+  /* 玻璃浮层（已垫实底）→ 玻璃墨色系列 */
+  color: var(--ui-ink-secondary);
   font-size: 12px;
   background: var(--ui-glass-fill);
   border-radius: 4px;
@@ -866,4 +906,11 @@ footer {
   color: var(--ui-panel-fg-muted);
   background: var(--ui-panel-bg);
   font-size: 12px;
+}
+/* ===== 键盘焦点可见性 =====
+   键盘用户必须能看见当前焦点。焦点环用随主题反相的强调橙：
+   深色主题（亮玻璃底）4.78:1 / 浅色主题（深玻璃底）5.22:1，均 >3:1（非文字对比要求）。 */
+:focus-visible {
+  outline: 2px solid var(--ui-accent-orange);
+  outline-offset: 2px;
 }

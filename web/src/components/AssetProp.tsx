@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { useGLTF } from '@react-three/drei'
 import { assetUrl } from '../engine/asset'
@@ -21,6 +21,36 @@ export function AssetProp({
   const inner = useRef<THREE.Group>(null)
   const { scene } = useGLTF(url, DRACO_PATH)
 
+  // A/B 对比模式会同时挂两个 <Canvas>，而 useGLTF 是**跨 Canvas 共享的全局缓存**：
+  // 两个 <primitive object={scene}> 会把同一个 Object3D 从先挂的一方"搬"到后挂的一方，
+  // 结果一侧道具凭空消失。克隆一份独立实例解决；静态道具用 scene.clone(true) 足够。
+  // 材质一并克隆（本实例独有，卸载可安全释放）；几何仍共享缓存，**勿 dispose**。
+  const model = useMemo(() => {
+    const clone = scene.clone(true)
+    clone.traverse((o) => {
+      const mesh = o as THREE.Mesh
+      if (mesh.isMesh && mesh.material) {
+        mesh.material = Array.isArray(mesh.material)
+          ? mesh.material.map((m) => m.clone())
+          : mesh.material.clone()
+      }
+    })
+    return clone
+  }, [scene])
+
+  // 卸载释放本实例克隆出的材质（贴图/几何来自 useGLTF 缓存，由缓存统一管理，不在此 dispose）
+  useEffect(() => {
+    return () => {
+      model.traverse((o) => {
+        const mesh = o as THREE.Mesh
+        if (mesh.isMesh && mesh.material) {
+          const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
+          mats.forEach((m) => m.dispose())
+        }
+      })
+    }
+  }, [model])
+
   useLayoutEffect(() => {
     const g = inner.current
     if (!g) return
@@ -31,12 +61,12 @@ export function AssetProp({
     g.scale.setScalar(s)
     // 底部贴地
     g.position.y = -box.min.y * s
-  }, [scene, targetSize])
+  }, [model, targetSize])
 
   return (
     <group position={position}>
       <group ref={inner}>
-        <primitive object={scene} />
+        <primitive object={model} />
       </group>
     </group>
   )
