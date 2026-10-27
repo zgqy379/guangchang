@@ -51,15 +51,18 @@ window.__renderer = function () {
 `
 
 async function measure(page, label) {
+  // 采样前置前页面：Chrome 会把不可见页签的 rAF 限流到 ~1fps，
+  // 不置前就会把真实 40fps 采成 1fps（历史上"越肩 13–14fps"的记录值即此污染）。
+  await page.bringToFront().catch(() => {})
   return page.evaluate(
     async (tag) => {
       const gl = __renderer()
-      // 采样 3 轮 × 60 帧，取各轮中位帧间隔的中位数（机器噪声大，单轮不可信）
+      // 采样 5 轮 × 60 帧，取各轮中位帧间隔；限流轮次（<5fps）单独记账后剔除
       const rounds = []
       let maxCalls = -1
       let minCalls = Infinity
       let maxTris = -1
-      for (let round = 0; round < 3; round++) {
+      for (let round = 0; round < 5; round++) {
         const samples = []
         await new Promise((res) => {
           let n = 0
@@ -85,9 +88,14 @@ async function measure(page, label) {
         if (ts.length) maxTris = Math.max(maxTris, ...ts)
       }
       rounds.sort((a, b) => a - b)
-      const med = rounds[Math.floor(rounds.length / 2)] || 0
+      // 帧间隔 > 250ms（≈<4fps）判为限流轮次：Chrome 不可见页签的典型特征，不参与中位数
+      const clean = rounds.filter((d) => d > 0 && d <= 250)
+      const throttled = rounds.length - clean.length
+      const pool = clean.length ? clean : rounds
+      const med = pool[Math.floor(pool.length / 2)] || 0
       return {
         tag,
+        throttledRounds: clean.length ? throttled : rounds.length,
         drawCalls: maxCalls,
         drawCallsMin: minCalls === Infinity ? -1 : minCalls,
         triangles: maxTris,
@@ -152,10 +160,37 @@ async function shoot(page, name) {
   await page.getByRole('button', { name: /招聘街区/ }).click()
   console.log('→ 等待街区场景就绪')
   await page.waitForFunction(() => !!window.__st, null, { timeout: 60000 })
+  // 等首帧：条件等待替代固定等待。headed Chrome 的页签被遮挡/最小化时 rAF 停摆，
+  // __gl.info.render.calls 会恒为 0——此时截图是空帧、指标却是"正常数"（同源事故见 §11.3）。
+  const firstFrame = async (budget) => page.waitForFunction(() => window.__gl && window.__gl.info.render.calls > 0, null, { timeout: budget })
+  try {
+    await firstFrame(20000)
+  } catch (e) {
+    const diag = await page.evaluate(() => ({
+      visibility: document.visibilityState, hasFocus: document.hasFocus(),
+      calls: window.__gl ? window.__gl.info.render.calls : -1,
+    }))
+    console.log('  · 首帧未到（页签可能被遮挡），前置窗口后重试:', JSON.stringify(diag))
+    await page.bringToFront()
+    await firstFrame(20000)
+  }
   await page.waitForTimeout(4500) // 等 GLB / 贴图 / 阴影稳定
 
   const theme = await page.getAttribute('.app', 'data-theme')
   console.log('  主题 =', theme)
+
+  // 就绪断言（与 lessons §11.3 同源事故）：空帧 / DC=0 时指标会伪装成正常值，
+  // 必须在取数前确认画面真的在渲染，否则拒绝出数。
+  const ready = await page.evaluate(() => {
+    const gl = window.__gl
+    return { gl: !!gl, calls: gl ? gl.info.render.calls : -1, canvas: document.querySelectorAll('canvas').length }
+  })
+  if (!ready.gl || ready.calls <= 0) {
+    throw new Error(
+      `街区未真正出画面：canvas=${ready.canvas} __gl=${ready.gl} drawCalls=${ready.calls} —— 拒绝在空帧上采集指标`,
+    )
+  }
+  console.log(`  就绪 ✓ canvas=${ready.canvas} drawCalls=${ready.calls}`)
 
   // —— 1. hero（鸟瞰，未交互）——
   await shoot(page, 'hero')
@@ -321,6 +356,19 @@ async function shoot(page, name) {
       })
     mobile = { collapsed: await measureMobile() }
     await shoot(page, 'mobile-collapsed')
+    // 导航器整块挂在 follow 态上（两段式相机：首次交互后才出现）。
+    // 地面点击是合成的、不保证生效，所以这里显式把页面推进跟随态再点圆钮，
+    // 而不是假设 .gc-nav-toggle 一定存在（此前 FATAL: waiting for locator）。
+    if ((await page.locator('.gc-nav-toggle').count()) === 0) {
+      console.log('  · 未进跟随态：点 .street-cta 进入（应用设计的首个交互入口）')
+      const cta = page.locator('.street-cta')
+      if ((await cta.count()) === 0) throw new Error('移动端既无 .gc-nav-toggle 也无 .street-cta：跟随态入口丢失')
+      await cta.click()
+      await page.waitForSelector('.gc-nav-toggle', { timeout: 15000 })
+      await page.waitForTimeout(700)
+      mobile.collapsed = await measureMobile() // 重测：跟随态才是移动端真实首屏
+      await shoot(page, 'mobile-collapsed')
+    }
     await page.click('.gc-nav-toggle')
     await page.waitForTimeout(700)
     mobile.expanded = await measureMobile()

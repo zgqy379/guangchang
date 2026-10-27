@@ -382,3 +382,27 @@
 - **根因**：`forms/ParamForm.css` / `GcSlider.css` / `GcSelect.css` 用 `--ui-ink-*`（玻璃浮层专用墨色，浅色主题=浅灰）压在不透明面板上——**check-panel-ink.mjs 没扫 forms/ 目录**
 - **修法**：表单墨色改 `--ui-page-fg` / `--ui-panel-fg-muted`（随主题反相的不透明面板专用色）
 - **通用教训**：新增「不透明面板」组件时墨色只用 `--ui-page-fg` / `--ui-panel-fg-muted` / `--ui-panel-accent`；把 `forms/` 目录纳入 check-panel-ink 扫描范围
+
+## 十二、2026-10-27 深夜（双端部署与指标可信度）新增经验
+
+### 12.1 本地 preview 验 Pages 产物必须带同一个 base 令牌（T8 家族新成员）
+
+- **现象**：`dist` 是 `VITE_BASE_TOKEN=ghpages` 构建（`index.html` 引 `/guangchang/assets/*`），直接 `npx vite preview` 起服务时页面**全空白、控制台零报错**，只有一条资源 404
+- **根因**：vite 的 base 只在**构建期**烘进产物；`vite preview` 自己也要读 `VITE_BASE_TOKEN` 才把静态目录挂到 `/guangchang/` 下。不带令牌起预览 → 服务根路径，产物请求 `/guangchang/assets/*.js` 落到 SPA 回退页（返回 200 + 644B 的 index.html），模块解析失败但**没有任何红色报错**
+- **铁律**：验 Pages 变体用 `VITE_BASE_TOKEN=ghpages npx vite preview --port NNNN` 并访问 `http://127.0.0.1:NNNN/guangchang/`；`--host 127.0.0.1` 必带（默认只监听 `::1`，浏览器按 IPv4 解析直接连不上，又一个"我这边能打开"陷阱）
+- **踩坑实录**：同一轮里连撞三次（curl 200 却浏览器 404），最后一次才靠"页面内 `fetch` 同一 URL 返回 1MB 真内容 / `<script>` 加载返回 644B HTML"把嫌疑从"应用坏了"收窄到"取数姿势错了"
+
+### 12.2 不可见页签把 fps 采成 1fps——历史"越肩 13–14fps"是测量污染
+
+- **现象**：`tools/shoot-street.cjs` 记录的 polish9 指标是 hero 56.8fps / walk 14.5fps；同一构建静默复测得到 hero 83.3 / walk 45.5 / focus 44.2（白天）、hero 56.8 / walk 28.6 / focus 36.4（夜）。我另一次手测甚至拿到 **3fps**，再一轮拿到 `1fps`
+- **根因**：headed Chrome 对**不可见/失焦页签**把 rAF 限流（实测可低到 ~1fps）。管线用 rAF 中位帧间隔算 fps，页签被遮挡时采样窗口整体劣化；三轮全被遮挡时中位数直接变成 1
+- **判定证据**：`document.visibilityState === 'visible'` 与否是二分的——被遮挡时 `fpsRounds` 出现 `[1,1,1]`，置前后变成 `[41.2,41,38.3]`；同一机位三角面/draw call 完全一致，只有帧率跳变
+- **修法（已落 `shoot-street.cjs`）**：① `measure()` 前 `page.bringToFront()`；② 采样从 3 轮加到 5 轮，**剔除中位帧间隔 >250ms 的限流轮次**，并在 JSON 里记 `throttledRounds`（不可信时能看出来）；③ 进街区后先用条件等待 `__gl.info.render.calls > 0` 等首帧，再等贴图/阴影稳定——固定 `waitForTimeout(4500)` 会在空帧上取数，产出 `DC=0 / fps=120.5`（屏幕刷新率）这种**看起来正常**的假指标
+- **铁律**：任何 rAF 类指标（fps/帧间隔）都必须同时记账"页面可见性 + 限流轮次数"，否则不进报告。**"移动端 ≥45fps"这条红线目前仍未经真机证明**——桌面集显模拟 390×844 只到 41fps 量级，不等于中端手机
+
+### 12.3 gh-pages 是第二个并发写通道；移动端导航器挂在 follow 态上
+
+- **部署碰撞**：本轮 gh-pages 在 21:57（另一路）与 22:35（我，从基线 worktree 构建）之间被覆盖了两次，22:55 恢复到 `a98f2cb` 构建（`index-CiY9Bf6S.js`，与 21:57 同哈希）。**推之前必须重新 `git fetch` 并核对目标 HEAD**，不能拿会话开始时的 HEAD 快照；`gh-pages` 每次由源码整分支重建，覆盖无数据损失但有线上回退窗口
+- **管线缺陷（非应用缺陷）**：`--mobile` 腿 `page.click('.gc-nav-toggle')` 超时。取证确认 390×844 下 `.nav-stack/.gc-nav-toggle/.lot-card-dock` **不在 DOM**，但 `.street-cta`（"点击地面开始逛"）在——因为 `GameMiniMap` 挂在 `{follow && ...}`（`StreetScene.tsx:1509`，两段式相机：首次交互后才出跟随态）。判别实验四种入口（CTA / 鼠标型 pointer / 触摸型 pointer / 原生 tap）全部能把 `follow` 打开，**应用移动端行为正确**
+- **修法**：移动端腿在点圆钮前显式推进跟随态（点 `.street-cta` → `waitForSelector('.gc-nav-toggle')`），而不是假设它一定存在；两个都没有时大声失败
+- **通用教训**：验收脚本"点了但没断言"是假通过的温床（同一条腿当时还报 `名片卡 = 0`、`!! 找不到投简历按钮` 却继续跑完）
