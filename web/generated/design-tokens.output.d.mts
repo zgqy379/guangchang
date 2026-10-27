@@ -29,6 +29,7 @@ export declare const ColorSceneBooth: string
 export declare const ColorSceneRoad: string
 export declare const ColorSceneFloor: string
 export declare const ColorSceneHallFloor: string
+export declare const ColorSceneHallFloorDay: string
 export declare const ColorSceneGate: string
 export declare const ColorSceneGateDark: string
 export declare const ColorSceneLamp: string
