@@ -67,12 +67,12 @@
 
 ### P0（阻塞提交）
 
-1. **团队 ID 一致性**：`docs/report.typ` 写"必胜客的汉堡最好吃（3FO4K4VY3D07 · 单人）"，但登录账号为"构建中的黑客（3FO4FNOCX23E）"。需在"我的参赛→我的团队"确认注册团队名/ID 与报告一致，避免提交时 mismatch。
-2. **MIT LICENSE** 缺失 — 新增。
-3. **OG meta** 缺失（仅 description） — 补 og:title/description/image（小红书分享预览）。
-4. **git tag** 缺失 — 打 `v1.0-submission`。
-5. **报告太薄**（3 页）— 扩到 8–12 页，含过程截图 + 资产迭代对比（官方硬性要求）。
-6. **Demo 视频太短**（40s）— 按 `docs/demo-script.md` 的 3 分钟标准动线重录 2–3 分钟（25% 权重"视频清晰呈现趣味亮点"）。
+1. **团队 ID 一致性** ✅ 已核实：登录账号"构建中的黑客（3FO4FNOCX23E）"创建的团队名为"必胜客的汉堡最好吃"，团队编号 `3FO4K4VY3D07`，与 `docs/report.typ` 完全一致。无 mismatch。
+2. **MIT LICENSE** ✅ 已新增（仓库根 `LICENSE`，MIT，2026）；`web/package.json` 已补 `license: MIT`。
+3. **OG meta** ✅ 已补全（`web/index.html`：og:title/description/type/image/url + twitter:card/title/description）。
+4. **git tag** ✅ 已打 `v1.0-submission`（annotated tag）。
+5. **报告太薄**（3 页）— 扩到 8–12 页，含过程截图 + 资产迭代对比（官方硬性要求）。⏳ 待做
+6. **Demo 视频太短**（40s）— 按 `docs/demo-script.md` 的 3 分钟标准动线重录 2–3 分钟（25% 权重"视频清晰呈现趣味亮点"）。⏳ 待做
 
 ### P1（高分值）
 
