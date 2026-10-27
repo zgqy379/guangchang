@@ -37,7 +37,7 @@ body,
   --ui-glass-fill-strong: rgba(255, 255, 255, 0.86);
   /* 玻璃垫实底：半透明玻璃会透出 3D 场景，最亮背景下次级文字会掉到 4.48:1。
      新增玻璃浮层必须垫这层实底（background-color 必须写在 background 之后）。 */
-  --ui-glass-underlay: rgba(255, 255, 255, 0.86);
+  --ui-glass-underlay: rgba(255, 255, 255, 0.92);
   --ui-glass-border: rgba(255, 255, 255, 0.55);
   --ui-glass-highlight: rgba(255, 255, 255, 0.85);
   --ui-ink-primary: #0b0e1a;    /* 10.4:1 ✓AAA */
@@ -81,7 +81,7 @@ body,
   --ui-glass-fill: rgba(11, 14, 26, 0.72);
   --ui-glass-fill-strong: rgba(11, 14, 26, 0.86);
   /* 浅色主题：深玻璃垫实底（合成 ≈ rgb(43,47,58)，次级/弱化文字均 ≥6.9:1） */
-  --ui-glass-underlay: rgba(11, 14, 26, 0.86);
+  --ui-glass-underlay: rgba(11, 14, 26, 0.92);
   --ui-glass-border: rgba(255, 255, 255, 0.18);
   --ui-glass-highlight: rgba(255, 255, 255, 0.22);
   --ui-ink-primary: #e6edf3;    /*  8.1:1 ✓AAA */
@@ -257,6 +257,9 @@ header h1 span {
   .mode-switch .theme-lock {
     padding-left: 6px;
     padding-right: 6px;
+    /* 防逐字折行：按钮文案永远单行、不被 flex 压缩（盲审 B：移动端顶栏「求职者」竖排） */
+    white-space: nowrap;
+    flex: 0 0 auto;
     /* min-height: 44px 保持不变（触控目标硬约束） */
   }
 }

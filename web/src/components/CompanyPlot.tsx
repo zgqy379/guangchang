@@ -118,7 +118,7 @@ export function CompanyPlot({
         roam={roam}
         refs={roamRefs}
       />
-      <Html position={[0, 2.6, -2.2]} center distanceFactor={12}>
+      <Html position={[0, 2.6, -2.2]} center distanceFactor={12} zIndexRange={[10, 1]}>
         <div className="plot-label">{name}</div>
       </Html>
       {/* 山顶数据浮标：核心金额直接钉在山上 + 引线连到山尖（盲审：视线找不到主体） */}
@@ -130,7 +130,7 @@ export function CompanyPlot({
             <meshBasicMaterial color={ColorBrandOrange} />
           </mesh>
           {/* 标签 y = 山顶 + 引线顶端（杆顶上方 0.03m，与旧版间距一致），随引线长度自动升降 */}
-          <Html position={[-0.5, mountainH - 0.01 + leadLen + 0.03, -1.5]} center distanceFactor={13}>
+          <Html position={[-0.5, mountainH - 0.01 + leadLen + 0.03, -1.5]} center distanceFactor={13} zIndexRange={[10, 1]}>
             <div className="peak-tag">
               ¥{Math.round(totalPackage(params) / 10000)}万 · {params.salaryStructure}薪
             </div>

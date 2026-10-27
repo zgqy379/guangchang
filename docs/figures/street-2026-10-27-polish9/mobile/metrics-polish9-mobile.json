@@ -6,17 +6,17 @@
   "metrics": [
     {
       "tag": "hero(鸟瞰)",
-      "drawCalls": 330,
-      "drawCallsMin": 328,
-      "triangles": 1544672,
-      "fps": 101,
+      "drawCalls": 324,
+      "drawCallsMin": 324,
+      "triangles": 1544582,
+      "fps": 99,
       "fpsRounds": [
-        103.1,
-        101,
-        99
+        109.9,
+        99,
+        78.1
       ],
       "memory": {
-        "geometries": 316,
+        "geometries": 312,
         "textures": 47,
         "programs": 45
       },
@@ -25,18 +25,18 @@
     },
     {
       "tag": "walk(越肩)",
-      "drawCalls": 188,
-      "drawCallsMin": 100,
-      "triangles": 8833750,
-      "fps": 42.7,
+      "drawCalls": 161,
+      "drawCallsMin": 156,
+      "triangles": 7907671,
+      "fps": 69,
       "fpsRounds": [
-        42.9,
-        42.7,
-        42
+        73.5,
+        69,
+        66.7
       ],
       "memory": {
-        "geometries": 443,
-        "textures": 115,
+        "geometries": 370,
+        "textures": 100,
         "programs": 64
       },
       "webgl2": true,
@@ -44,17 +44,17 @@
     },
     {
       "tag": "focus(特写)",
-      "drawCalls": 181,
-      "drawCallsMin": 181,
-      "triangles": 7815731,
-      "fps": 48.3,
+      "drawCalls": 180,
+      "drawCallsMin": 180,
+      "triangles": 7815729,
+      "fps": 63.7,
       "fpsRounds": [
-        50,
-        48.3,
-        45
+        64.9,
+        63.7,
+        56.8
       ],
       "memory": {
-        "geometries": 446,
+        "geometries": 447,
         "textures": 115,
         "programs": 64
       },
@@ -63,17 +63,17 @@
     },
     {
       "tag": "deliver(投递)",
-      "drawCalls": 183,
-      "drawCallsMin": 183,
-      "triangles": 7815845,
-      "fps": 44.4,
+      "drawCalls": 182,
+      "drawCallsMin": 182,
+      "triangles": 7815843,
+      "fps": 56.5,
       "fpsRounds": [
-        45,
-        44.4,
-        41.7
+        60.6,
+        56.5,
+        45.7
       ],
       "memory": {
-        "geometries": 447,
+        "geometries": 448,
         "textures": 116,
         "programs": 79
       },
@@ -86,7 +86,7 @@
       {
         "sel": ".game-hud",
         "x": 183,
-        "y": 113,
+        "y": 105,
         "w": 197,
         "h": 126
       },
@@ -175,7 +175,7 @@
       },
       "hud": {
         "x": 183,
-        "y": 113,
+        "y": 105,
         "w": 197,
         "h": 126
       },
@@ -185,7 +185,7 @@
       },
       "toggleVsHud": {
         "ox": 94,
-        "oy": -135
+        "oy": -143
       },
       "panelVsCard": {
         "ox": -16,
@@ -218,7 +218,7 @@
       },
       "hud": {
         "x": 183,
-        "y": 113,
+        "y": 105,
         "w": 197,
         "h": 126
       },
@@ -228,7 +228,7 @@
       },
       "toggleVsHud": {
         "ox": 94,
-        "oy": -135
+        "oy": -143
       },
       "panelVsCard": {
         "ox": 358,

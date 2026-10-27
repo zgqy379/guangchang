@@ -106,9 +106,9 @@ export function CandidateBooth({
         </mesh>
       </group>
 
-      {/* 6. 入口铭牌（求职者期望薪资 / 学历 / 证书排序）。
-          ⚠ 必须用 drei <Html>：裸 <div> 在 Canvas 内会被 R3F 当 THREE intrinsic 校验直接抛错（T13） */}
-      <Html position={[0, 1.95, 0]} center distanceFactor={10} style={{ pointerEvents: 'none' }}>
+      {/* ⚠ 必须用 drei <Html>：裸 <div> 在 Canvas 内会被 R3F 当 THREE intrinsic 校验直接抛错（T13）。
+          zIndex 必须压到 1：drei Html 默认 zIndex=16777271，会穿透 z-index 14 的导航面板（盲审 R2 短板②） */}
+      <Html position={[0, 1.95, 0]} center distanceFactor={10} zIndexRange={[10, 1]} style={{ pointerEvents: 'none' }}>
         <div
           style={{
             color: night ? '#0b0e1a' : '#e8eef4',

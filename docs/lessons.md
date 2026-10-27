@@ -343,3 +343,42 @@
 - **通用教训**：**新增组件时，先查全局样式表有没有同名元素选择器**（`header` / `footer` / `nav` / `p` / `span` 这类最危险）
 
 
+
+---
+
+## 十一、2026-10-27 视觉冲刺（polish9）新增经验
+
+### 11.1 R3F 两颗潜伏雷：Canvas 内裸 `<div>` 与 data-* 属性（T13）
+
+- **现象**：街区场景挂载即崩（`R3F: Div is not part of the THREE namespace` + `TypeError: Cannot read properties of undefined (reading 'work')`），ErrorBoundary 兜底成错误页
+- **根因 1**：`CandidateBooth` 把裸 `<div style=...>` 直接写在 `<group>` 里——R3F 把 JSX 元素名当 THREE namespace 校验，DOM 元素必须走 drei `<Html>`
+- **根因 2**：`WorkOrbit` 给 `<group>` 加了 `data-work-id` ——R3F 把 dashed key 当 pierce 路径 `['data','work','id']` 解析，`instance.data` 为 undefined 即崩
+- **铁律**：Canvas 内只能渲染 THREE/drei 元素；DOM 用 `<Html>` 包；R3F 元素**永远不加 data-*/aria-* 属性**（标识用 React key 或实例字段）
+- **事故面**：这两个雷随 4c774d9（01:46 候选人集成）进库，街区自那时起**从未成功渲染过**（typecheck 绿 ≠ 场景能渲染），直到 10-27 下午才被截图管线撞破
+
+### 11.2 `material.vertexColors=true` + 无 color 顶点属性 = 纯黑（黑棚顶，M6b 起潜伏）
+
+- **现象**：64 栋办公楼顶盖（cap）与棚顶在昼/夜景全是纯黑
+- **根因**：`<meshStandardMaterial vertexColors />` 但 `BoxGeometry` 没有 `color` 顶点属性 → USE_COLOR 打开后 vColor 乘上未绑定 attribute（默认 0,0,0）→ 全黑；instanceColor 染色**不需要** vertexColors
+- **定位法（红帽实验）**：运行时 `page.evaluate` 把嫌疑材质 `vertexColors=false` + `color=#ff0000`，截图看变不变红——三分钟内把「阴影/曝光/贴图/光照」四假设全部排除
+- **修法**：删 vertexColors、保留 setColorAt（instanceColor 单独生效）；探针确认 instanceColor 实值一直是亮蓝（0.36,0.67,0.98）
+- **通用教训**：给 InstancedMesh 上 instanceColor 时**不要顺手开 vertexColors**；看到"输入全对但渲染纯黑"先查 vertex/instance color 通道
+
+### 11.3 「最新截图」与「最新代码」脱节五波（验收纪律）
+
+- **事实**：`docs/figures/street-2026-10-27/` 的正式截图实际摄于 **10-26 20:08**（mtime 实测），而 M6b（23:19）/M6c（23:43）/湿反射（00:13）/0:35 批次/词典/候选人/画廊（01:03–01:56）五波提交全部发生在它之后——黑棚顶在这五波里**潜伏了两轮盲审周期**
+- **铁律**：凡触碰街区渲染的提交，当轮必须重跑 `tools/shoot-street.cjs` 全套四图（它只要 90 秒），`git log` 里最近一次figures 时间戳早于最近一次渲染代码时间戳 = 视觉验收失效
+- **连带坑**：`npm run build` 里 `tsc --noEmit && vite build`——tsc 失败时 **vite 不执行、dist 保持旧版**，截图管线照常出图（对着旧 bundle）；构建失败后必须看到新的 `✓ built` 再拍
+
+### 11.4 egolite 边界复测结论（§7.3 的「相机修复后重试」兑现）
+
+- **复测**：2026-10-27 用 `ego-browser nodejs` 跑 `tools/accept-street.mjs`：首屏 canvas=0 ✓ → 进街区 canvas=1、**draw calls 665**、零错误文本、截图完整非黑帧
+- **结论**：§7.3 的「渲染不了」成立于 2136 draw call 时代；M6a/b/c 实例化（2136→611）之后 egolite 已能渲染街区。**诊断/验收通道回归 egolite 为主**；headed Chrome（playwright）管线保留用于 fps/draw call 实测与盲审截图（与历史基线同管线）
+- **注意**：CLI 弹 onboarding ≠ 要重装——用桌面已初始化的实例（先开 ego lite 浏览器再跑 CLI）
+
+### 11.5 玻璃墨色误用的扫描盲区（check-panel-ink 补课）
+
+- **现象**：第二轮盲审两位评审同时点名「单人模式浅色主题滑杆标签近白压白底几乎不可读」
+- **根因**：`forms/ParamForm.css` / `GcSlider.css` / `GcSelect.css` 用 `--ui-ink-*`（玻璃浮层专用墨色，浅色主题=浅灰）压在不透明面板上——**check-panel-ink.mjs 没扫 forms/ 目录**
+- **修法**：表单墨色改 `--ui-page-fg` / `--ui-panel-fg-muted`（随主题反相的不透明面板专用色）
+- **通用教训**：新增「不透明面板」组件时墨色只用 `--ui-page-fg` / `--ui-panel-fg-muted` / `--ui-panel-accent`；把 `forms/` 目录纳入 check-panel-ink 扫描范围

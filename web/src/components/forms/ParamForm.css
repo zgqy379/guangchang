@@ -5,7 +5,9 @@
   gap: 12px;
   font-size: 13px;
   font-family: 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
-  color: var(--ui-ink-primary);
+  /* 本表单挂在不透明面板（.controls）上：用页面前景而非玻璃墨色 ——
+     --ui-ink-* 在浅色主题下是浅灰，压白底近不可读（盲审 B 短板 #2） */
+  color: var(--ui-page-fg);
 }
 
 .gc-param-field {
@@ -36,7 +38,8 @@
   border-radius: 12px;
   background: var(--ui-glass-underlay);
   border: 1px solid var(--ui-glass-border);
-  color: var(--ui-ink-secondary);
+  /* 不透明面板内 → 面板次级色（随主题反相），非玻璃墨色 */
+  color: var(--ui-panel-fg-muted);
   font-size: 11px;
   font-weight: 600;
   cursor: pointer;
