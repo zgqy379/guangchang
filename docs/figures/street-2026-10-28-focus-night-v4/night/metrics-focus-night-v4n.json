@@ -1,0 +1,171 @@
+{
+  "label": "focus-night-v4n",
+  "url": "http://localhost:4173/?hour=21",
+  "theme": "dark",
+  "viewport": "1280x720",
+  "metrics": [
+    {
+      "tag": "hero(鸟瞰)",
+      "throttledRounds": 0,
+      "drawCalls": 685,
+      "drawCallsMin": 685,
+      "triangles": 1549440,
+      "fps": 104.2,
+      "fpsRounds": [
+        112.4,
+        108.7,
+        104.2,
+        102,
+        94.3
+      ],
+      "memory": {
+        "geometries": 628,
+        "textures": 97,
+        "programs": 79
+      },
+      "webgl2": true,
+      "renderer": "ANGLE (AMD, AMD Radeon(TM) Graphics (0x00001681) Direct3D11 vs_5_0 ps_5_0, D3D11)"
+    },
+    {
+      "tag": "walk(越肩)",
+      "throttledRounds": 0,
+      "drawCalls": 316,
+      "drawCallsMin": 173,
+      "triangles": 8621982,
+      "fps": 56.8,
+      "fpsRounds": [
+        57.5,
+        57.1,
+        56.8,
+        46.5,
+        45.7
+      ],
+      "memory": {
+        "geometries": 720,
+        "textures": 160,
+        "programs": 166
+      },
+      "webgl2": true,
+      "renderer": "ANGLE (AMD, AMD Radeon(TM) Graphics (0x00001681) Direct3D11 vs_5_0 ps_5_0, D3D11)"
+    },
+    {
+      "tag": "focus(特写)",
+      "throttledRounds": 0,
+      "drawCalls": 313,
+      "drawCallsMin": 313,
+      "triangles": 7829253,
+      "fps": 52.6,
+      "fpsRounds": [
+        52.9,
+        52.6,
+        52.6,
+        51.8,
+        51.3
+      ],
+      "memory": {
+        "geometries": 720,
+        "textures": 160,
+        "programs": 166
+      },
+      "webgl2": true,
+      "renderer": "ANGLE (AMD, AMD Radeon(TM) Graphics (0x00001681) Direct3D11 vs_5_0 ps_5_0, D3D11)"
+    },
+    {
+      "tag": "deliver(投递)",
+      "throttledRounds": 0,
+      "drawCalls": 316,
+      "drawCallsMin": 315,
+      "triangles": 8103831,
+      "fps": 49.3,
+      "fpsRounds": [
+        51.5,
+        51.5,
+        49.3,
+        46.9,
+        46.9
+      ],
+      "memory": {
+        "geometries": 721,
+        "textures": 161,
+        "programs": 181
+      },
+      "webgl2": true,
+      "renderer": "ANGLE (AMD, AMD Radeon(TM) Graphics (0x00001681) Direct3D11 vs_5_0 ps_5_0, D3D11)"
+    }
+  ],
+  "layout": {
+    "boxes": [
+      {
+        "sel": ".game-hud",
+        "x": 1006,
+        "y": 76,
+        "w": 264,
+        "h": 136
+      },
+      {
+        "sel": ".gc-nav",
+        "x": 1020,
+        "y": 233,
+        "w": 248,
+        "h": 445
+      },
+      {
+        "sel": ".lot-card-dock",
+        "x": 16,
+        "y": 508,
+        "w": 340,
+        "h": 168
+      },
+      {
+        "sel": ".nav-stack",
+        "x": 1020,
+        "y": 233,
+        "w": 248,
+        "h": 445
+      }
+    ],
+    "overlaps": [],
+    "clipped": [],
+    "small": [],
+    "navParts": [
+      {
+        "cls": "gc-nav-head",
+        "h": 42,
+        "visible": true
+      },
+      {
+        "cls": {},
+        "h": 132,
+        "visible": true
+      },
+      {
+        "cls": "gc-nav-section",
+        "h": 20,
+        "visible": true
+      },
+      {
+        "cls": "gc-nav-list",
+        "h": 72,
+        "visible": true
+      },
+      {
+        "cls": "gc-nav-section",
+        "h": 20,
+        "visible": true
+      },
+      {
+        "cls": "gc-nav-districts",
+        "h": 108,
+        "visible": true
+      }
+    ],
+    "navHeight": 445,
+    "navBottom": 678,
+    "viewportH": 720,
+    "navOverflowsViewport": false,
+    "hOverflow": false
+  },
+  "mobile": null,
+  "consoleErrors": [],
+  "out": "E:\\guangchang\\docs\\figures\\street-2026-10-28-focus-night-v4\\night"
+}

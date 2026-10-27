@@ -85,6 +85,42 @@ function bFloorsFor(industry: string) {
   return Math.max(3, Math.round(bHeight / 1.3))
 }
 
+// 岗位海报贴图（决策纸④ · v2 背板版）：横幅灰阶线稿（标题带/职责行/薪资 chip）——
+// instanceColor 行业色染色后成为「公司背板」。basic 材质自发光，夜间读作发光屏。
+// 挂在摊位后玻璃墙（HR 身后）——特写帧里天然成为展位背景（展会摊位语汇），
+// 同时填掉 R11 点名的「左 1/3 灰死墙」。模块级单例。
+let POSTER_TEX: THREE.CanvasTexture | null = null
+export function posterTexture() {
+  if (POSTER_TEX) return POSTER_TEX
+  const c = document.createElement('canvas')
+  c.width = 512
+  c.height = 256
+  const ctx = c.getContext('2d')!
+  // 深底屏幕风：instanceColor 行业色 × 深底 = 深色发光屏；白线=可读文字。
+  // （浅底贴图被身后玻璃 0.42 透明混合洗白，v1-v4 四轮不可见的根因）
+  ctx.fillStyle = '#141b24'
+  ctx.fillRect(0, 0, 512, 256)
+  // 顶部标题带（染色后呈行业色亮带）
+  ctx.fillStyle = '#e6edf3'
+  ctx.fillRect(28, 26, 200, 16)
+  ctx.fillStyle = 'rgba(230,237,243,0.55)'
+  ctx.fillRect(28, 52, 120, 8)
+  // 职责行
+  for (let i = 0; i < 4; i++) {
+    ctx.fillStyle = 'rgba(230,237,243,0.45)'
+    ctx.fillRect(28, 84 + i * 30, 380 - (i % 2) * 90, 10)
+  }
+  // 薪资 chip（右下亮块）
+  ctx.fillStyle = '#e6edf3'
+  ctx.fillRect(340, 176, 140, 48)
+  ctx.fillStyle = '#141b24'
+  ctx.fillRect(358, 194, 104, 12)
+  const t = new THREE.CanvasTexture(c)
+  t.colorSpace = THREE.SRGBColorSpace
+  POSTER_TEX = t
+  return t
+}
+
 export function OfficeFacadeInstanced({
   placements,
   theme,
@@ -115,9 +151,11 @@ export function OfficeFacadeInstanced({
 
   const capRef = useRef<THREE.InstancedMesh>(null)
   const ridgeRef = useRef<THREE.InstancedMesh>(null)
+  const nightRidgeRef = useRef<THREE.InstancedMesh>(null)
   const skylightRef = useRef<THREE.InstancedMesh>(null)
   const glassRef = useRef<THREE.InstancedMesh>(null)
   const ledRef = useRef<THREE.InstancedMesh>(null)
+  const posterRef = useRef<THREE.InstancedMesh>(null)
 
   const countRef = useRef(0)
 
@@ -180,7 +218,7 @@ export function OfficeFacadeInstanced({
         capMesh.setMatrixAt(li, roofMatrixFor(pl, 0, bHeight + 0.1, 0, 1, 1, 1))
         const industryColor = new THREE.Color(INDUSTRIES[pl.lot.industry].color)
         const headColor = envNight
-          ? industryColor.clone().lerp(new THREE.Color(ThemeLightGlassHead), 0.34)
+          ? industryColor.clone().lerp(new THREE.Color(ThemeLightGlassHead), 0.26)
           : industryColor.clone().offsetHSL(0, -0.08, -0.1)
         roofColors.push(headColor)
         capMesh.setColorAt(li, headColor)
@@ -191,6 +229,7 @@ export function OfficeFacadeInstanced({
       // 让近半画面的屋顶从「纯色平涂」变成有微表面的面。矩阵始终写入（防夜间实例堆原点），
       // 夜间由 visible=false 隐藏（夜间屋顶近黑，母题无意义）。
       const ridgeMesh = ridgeRef.current
+      const nightRidgeMesh = nightRidgeRef.current
       const skyMesh = skylightRef.current
       if (ridgeMesh && skyMesh) {
         placements.forEach((pl, li) => {
@@ -200,6 +239,12 @@ export function OfficeFacadeInstanced({
           const ridgeY = bHeight + 0.31 + 0.07
           ridgeMesh.setMatrixAt(li, roofMatrixFor(pl, 0, ridgeY, 0, 6.3, 0.14, 0.42))
           ridgeMesh.setColorAt(li, roof.clone().offsetHSL(0, -0.04, 0.07))
+          // 夜间屋脊微光（决策纸③）：basic 材质 + 行业色压暗 = 建筑描边层，
+          // 夜鸟瞰四区色相可辨（R10 空间评审）+ 暗部有内容（R10 视觉评审）
+          if (nightRidgeMesh) {
+            nightRidgeMesh.setMatrixAt(li, roofMatrixFor(pl, 0, ridgeY, 0, 6.3, 0.14, 0.42))
+            nightRidgeMesh.setColorAt(li, new THREE.Color(INDUSTRIES[pl.lot.industry].color).offsetHSL(0, 0.08, -0.22))
+          }
           ;[-1.7, 1.7].forEach((lx, k) => {
             const idx = li * 2 + k
             skyMesh.setMatrixAt(idx, roofMatrixFor(pl, lx, bHeight + 0.31 + 0.09, (k === 0 ? -1 : 1) * 0.9, 1.2, 0.2, 1.5))
@@ -210,6 +255,30 @@ export function OfficeFacadeInstanced({
         if (ridgeMesh.instanceColor) ridgeMesh.instanceColor.needsUpdate = true
         skyMesh.instanceMatrix.needsUpdate = true
         if (skyMesh.instanceColor) skyMesh.instanceColor.needsUpdate = true
+        if (nightRidgeMesh) {
+          nightRidgeMesh.instanceMatrix.needsUpdate = true
+          if (nightRidgeMesh.instanceColor) nightRidgeMesh.instanceColor.needsUpdate = true
+        }
+      }
+
+      // 公司背板（决策纸④ v2）：摊位后玻璃墙整面横幅（HR 身后），行业色染色；
+      // basic 自发光——白天是背板、夜间是发光屏。特写帧填掉左 1/3 灰死墙 +
+      // 「这家人做什么的」的视觉答案（R11 双评审 #1）
+      const posterMesh = posterRef.current
+      if (posterMesh) {
+        const tex = posterTexture()
+        const mat = posterMesh.material as THREE.MeshBasicMaterial
+        if (mat.map !== tex) mat.map = tex
+        mat.needsUpdate = true
+        placements.forEach((pl, li) => {
+          const industryColor = new THREE.Color(INDUSTRIES[pl.lot.industry].color)
+          // 深底贴图 × 行业色提亮 = 发光屏（玻璃混合洗白 42% 后仍可读）
+          const tint = industryColor.clone().lerp(new THREE.Color('#f2f5f8'), 0.55)
+          posterMesh.setMatrixAt(li, instanceMatrixFor(pl, 0.3, 1.42, 2.72, 3.4, 1.7, 1))
+          posterMesh.setColorAt(li, tint)
+        })
+        posterMesh.instanceMatrix.needsUpdate = true
+        if (posterMesh.instanceColor) posterMesh.instanceColor.needsUpdate = true
       }
     }
 
@@ -274,6 +343,12 @@ export function OfficeFacadeInstanced({
         <boxGeometry args={[1, 1, 1]} />
         <meshStandardMaterial roughness={0.55} />
       </instancedMesh>
+      {/* 夜间屋脊微光：basic 材质 + 行业色 instanceColor（1 DC，仅夜间）。
+          basic 的输出=色×instanceColor，不受光照——正好做「LED 描边」语汇 */}
+      <instancedMesh ref={nightRidgeRef} args={[undefined, undefined, count]} visible={night}>
+        <boxGeometry args={[1, 1, 1]} />
+        <meshBasicMaterial />
+      </instancedMesh>
       <instancedMesh ref={skylightRef} args={[undefined, undefined, count * 2]} visible={!night}>
         <boxGeometry args={[1, 1, 1]} />
         <meshStandardMaterial roughness={0.3} metalness={0.15} />
@@ -285,7 +360,7 @@ export function OfficeFacadeInstanced({
         <planeGeometry args={[5.8, 2.1]} />
         <meshBasicMaterial
           transparent
-          opacity={night ? 1 : 0.3}
+          opacity={night ? 1 : 0.42}
           color={night ? '#ffffff' : '#c2d3e0'}
           toneMapped
         />
@@ -296,6 +371,11 @@ export function OfficeFacadeInstanced({
       <instancedMesh ref={ledRef} args={[undefined, undefined, count]}>
         <boxGeometry args={[2.9, 0.42, 0.1]} />
         <meshStandardMaterial emissiveIntensity={0.85} />
+      </instancedMesh>
+      {/* 公司背板：摊位后玻璃墙 1 面/摊（1 DC，64 实例）。basic 自发光=夜间发光屏 */}
+      <instancedMesh ref={posterRef} args={[undefined, undefined, count]}>
+        <planeGeometry args={[1, 1]} />
+        <meshBasicMaterial toneMapped={false} />
       </instancedMesh>
     </group>
   )

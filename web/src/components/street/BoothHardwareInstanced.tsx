@@ -26,7 +26,7 @@ import { INDUSTRIES } from '../../data/street-companies'
 import type { Industry } from '../../data/street-companies'
 import type { ThemeName } from '../../engine/theme'
 import { ColorStateSuccess } from '../../../generated/design-tokens.output.mjs'
-import { applyLotJitter } from './OfficeFacadeInstanced'
+import { applyLotJitter, posterTexture } from './OfficeFacadeInstanced'
 import { shadowTexture } from './HRStand'
 
 const tempObject = new THREE.Object3D()
@@ -107,6 +107,7 @@ export function BoothHardwareInstanced({
   const carpetRef = useRef<THREE.InstancedMesh>(null)
   const flagPoleRef = useRef<THREE.InstancedMesh>(null)
   const flagRef = useRef<THREE.InstancedMesh>(null)
+  const screenRef = useRef<THREE.InstancedMesh>(null)
 
   const roofRefs = {
     internet: useRef<THREE.InstancedMesh>(null),
@@ -257,6 +258,21 @@ export function BoothHardwareInstanced({
       m.instanceColor!.needsUpdate = true
     })
 
+    // screen（决策纸④b · R12 评审处方「柜台补屏幕」）：摊位台前沿立式业务屏，
+    // 深底屏幕贴图 × 行业色染色——特写帧里「这家人做什么的」的视觉答案。1 DC。
+    setMat(screenRef, (m) => {
+      const tex = posterTexture()
+      const mat = m.material as THREE.MeshBasicMaterial
+      if (mat.map !== tex) mat.map = tex
+      mat.needsUpdate = true
+      placements.forEach((pl, i) => {
+        m.setMatrixAt(i, instanceMatrixFor(pl, 0.72, 0.86, 0.78, 0.78, 0.52, 1, -0.06))
+        m.setColorAt(i, tempColor.set(INDUSTRIES[pl.lot.industry].color).lerp(new THREE.Color('#f2f5f8'), 0.45))
+      })
+      m.instanceMatrix.needsUpdate = true
+      if (m.instanceColor) m.instanceColor.needsUpdate = true
+    })
+
     // roof 按行业分组
     industryList.forEach((ind) => {
       const mesh = roofRefs[ind].current
@@ -352,6 +368,11 @@ export function BoothHardwareInstanced({
       <instancedMesh ref={flagRef} args={[undefined, undefined, count]}>
         <planeGeometry args={[0.52, 1.5]} />
         <meshStandardMaterial vertexColors side={THREE.DoubleSide} roughness={0.85} />
+      </instancedMesh>
+      {/* screen：柜台立式业务屏（1 DC）。basic 自发光=夜间亮屏。染色×深底贴图 */}
+      <instancedMesh ref={screenRef} args={[undefined, undefined, count]}>
+        <planeGeometry args={[1, 1]} />
+        <meshBasicMaterial toneMapped={false} />
       </instancedMesh>
       {/* roof 按行业分组 */}
       {industryList.map((ind) => {

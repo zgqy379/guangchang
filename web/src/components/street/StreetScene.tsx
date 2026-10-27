@@ -150,6 +150,21 @@ function Roads({ theme }: { theme: ThemeName }) {
           depthWrite={false}
         />
       </mesh>
+      {/* 夜间转盘辉光（决策纸③）：白天地标的环岛在夜鸟瞰里曾是「渲染缺失的黑洞」
+          （R9 双评审共同点名）——加一层暖色微光盘使其成为夜间光枢。1 draw call */}
+      {night && (
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.135, 0]}>
+          <circleGeometry args={[2.9, 32]} />
+          <meshBasicMaterial
+            map={reflectTexture()}
+            color={ColorSceneLamp}
+            transparent
+            opacity={0.3}
+            blending={THREE.AdditiveBlending}
+            depthWrite={false}
+          />
+        </mesh>
+      )}
       {/* 夜间湿反射带：沿十字路口道路方向延伸的拉长反射，模拟被路灯照亮的湿地面
           —— 夜间光层次的关键，电影感的主要来源。使用 InstancedMesh，64 盏路灯对应 64 个反射带，
           仅 2 个 draw call（X 轴 / Z 轴各 1 个）。 */}
@@ -220,7 +235,7 @@ function WetReflectionBand({ axis, sign }: { axis: 0 | 1; sign: 1 | -1 }) {
       <meshBasicMaterial
         color={ColorBrandGold}
         transparent
-        opacity={0.18}
+        opacity={0.24}
         depthWrite={false}
         blending={THREE.AdditiveBlending}
       />
@@ -382,7 +397,13 @@ function ParamSteles({ theme }: { theme: ThemeName }) {
     <group>
       <instancedMesh ref={body} args={[undefined, undefined, data.length]} castShadow receiveShadow>
         <boxGeometry args={[1, 1, 1]} />
-        <meshStandardMaterial color={night ? ColorSceneGateDark : ThemeLightGlassHead} roughness={night ? 0.85 : 0.5} />
+        {/* 碑体微自发光（决策纸③）：它是「碑高=总包」的数据要素，玻璃厅阴影里不应读成未贴面的黑洞 */}
+        <meshStandardMaterial
+          color={night ? ColorSceneGateDark : ThemeLightGlassHead}
+          emissive={night ? '#1c2531' : '#4a545f'}
+          emissiveIntensity={night ? 0.7 : 0.4}
+          roughness={night ? 0.85 : 0.5}
+        />
       </instancedMesh>
       <instancedMesh ref={band} args={[undefined, undefined, data.length]}>
         <boxGeometry args={[1, 1, 1]} />
@@ -475,6 +496,63 @@ function RoadLanes() {
       <planeGeometry args={[1.7, 0.13]} />
       <meshBasicMaterial color={ColorTextPrimary} transparent opacity={0.24} depthWrite={false} />
     </instancedMesh>
+  )
+}
+
+// 行道树（决策纸④ v2 · R12 评审处方「沿街人摊树三件套」）：路缘线 across=±5.6
+// （马路 5.2 与灯带 6.4 之间，与摊位带 7.4/建筑 8.4+ 零冲突），每臂每侧 5 株、
+// 与灯位错拍（灯 7+i*4.2，树 9.1+i*8.4），共 40 株。低模干+冠 2 个 draw call。
+function StreetTrees() {
+  const trunkRef = useRef<THREE.InstancedMesh>(null)
+  const crownRef = useRef<THREE.InstancedMesh>(null)
+  const positions = useMemo(() => {
+    const arr: [number, number][] = []
+    for (const axis of [0, 1]) {
+      for (const sign of [1, -1]) {
+        for (const side of [1, -1]) {
+          for (let i = 0; i < 5; i++) {
+            const along = 9.1 + i * 8.4
+            const across = side * 5.6
+            arr.push(axis === 0 ? [sign * along, across] : [across, sign * along])
+          }
+        }
+      }
+    }
+    return arr
+  }, [])
+  useLayoutEffect(() => {
+    const tr = trunkRef.current
+    const cr = crownRef.current
+    if (!tr || !cr) return
+    const o = new THREE.Object3D()
+    const col = new THREE.Color()
+    positions.forEach(([x, z], i) => {
+      o.position.set(x, 0.75, z)
+      o.rotation.set(0, i * 1.3, 0)
+      o.updateMatrix()
+      tr.setMatrixAt(i, o.matrix)
+      o.position.set(x, 2.05, z)
+      o.rotation.set(0, i * 0.7, 0)
+      o.scale.setScalar(0.9 + ((i * 37) % 5) * 0.08)
+      o.updateMatrix()
+      cr.setMatrixAt(i, o.matrix)
+      cr.setColorAt(i, col.set('#5da272').offsetHSL(((i % 5) - 2) * 0.014, 0, ((i % 3) - 1) * 0.045))
+    })
+    tr.instanceMatrix.needsUpdate = true
+    cr.instanceMatrix.needsUpdate = true
+    if (cr.instanceColor) cr.instanceColor.needsUpdate = true
+  }, [positions])
+  return (
+    <>
+      <instancedMesh ref={trunkRef} args={[undefined, undefined, positions.length]} castShadow>
+        <cylinderGeometry args={[0.09, 0.13, 1.5, 6]} />
+        <meshStandardMaterial color="#7a6248" roughness={0.9} />
+      </instancedMesh>
+      <instancedMesh ref={crownRef} args={[undefined, undefined, positions.length]} castShadow>
+        <icosahedronGeometry args={[1.05, 0]} />
+        <meshStandardMaterial roughness={0.85} />
+      </instancedMesh>
+    </>
   )
 }
 
@@ -683,7 +761,7 @@ function StreetLamps({ theme }: { theme: ThemeName }) {
           <pointsMaterial
             map={lampGlowTexture()}
             color={ColorSceneLamp}
-            size={1.4}
+            size={1.7}
             sizeAttenuation
             transparent
             opacity={1.0}
@@ -1034,15 +1112,37 @@ function NearSampler({
 }
 
 // ---------- 就近光环：把屏幕名片锁回世界里的那个摊位 ----------
+// 摊位名牌贴图缓存：聚焦时才挂载（1 DC），贴图按 lotId 缓存（64 家上限）
+const STALL_PLATE_TEX = new Map<string, THREE.CanvasTexture>()
+function stallPlateTexture(lot: Lot) {
+  const hit = STALL_PLATE_TEX.get(lot.id)
+  if (hit) return hit
+  const tex = labelTexture(`${String(lot.lotNo).padStart(2, '0')} · ${lot.name}`, INDUSTRIES[lot.industry].color)
+  STALL_PLATE_TEX.set(lot.id, tex)
+  return tex
+}
+
 function NearRing({ lot }: { lot: Lot }) {
   const pl = placed.find((p) => p.lot.id === lot.id)
   const ring = useRef<THREE.Mesh>(null)
   const outer = useRef<THREE.Mesh>(null)
+  const plate = useRef<THREE.Mesh>(null)
   const focusTarget = useMemo(() => new THREE.Object3D(), [])
   useFrame((state, dt) => {
     const t = state.clock.elapsedTime
     if (ring.current) ring.current.scale.setScalar(1 + Math.sin(t * 3) * 0.05)
     if (outer.current) outer.current.rotation.z += dt * 0.25
+    // 名牌动态看板：放在「摊位中心 → 相机」连线 2.3m 处并面向相机——
+    // 固定朝向的牌面在 3/4 特写方位会被玻璃/角度吞掉，看板化后任意方位可读。
+    // ④b：抬高让出摊位主体（R12），④c 回落 1.72 避开作品廊浮字带
+    if (plate.current && pl) {
+      const cam = state.camera.position
+      const dx = cam.x - pl.position[0]
+      const dz = cam.z - pl.position[2]
+      const len = Math.hypot(dx, dz) || 1
+      plate.current.position.set((dx / len) * 2.3, 1.72, (dz / len) * 2.3)
+      plate.current.lookAt(cam.x, 1.72, cam.z)
+    }
   })
   if (!pl) return null
   return (
@@ -1083,6 +1183,13 @@ function NearRing({ lot }: { lot: Lot }) {
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.155, 0]}>
         <circleGeometry args={[0.4, 24]} />
         <meshBasicMaterial color="#000000" transparent opacity={0.42} depthWrite={false} />
+      </mesh>
+      {/* 摊位名牌（决策纸③b）：悬挂招牌在 3/4 特写方位永远侧对相机——
+          「这是谁家」在场景内不可辨（R11 空间评审）。聚焦时挂动态看板名牌，
+          任意方位可读；贴图按 lot 缓存，仅聚焦摊位 1 draw call。④b 缩幅 1.45 */}
+      <mesh ref={plate}>
+        <planeGeometry args={[1.45, 0.27]} />
+        <meshBasicMaterial map={stallPlateTexture(lot)} toneMapped={false} side={THREE.DoubleSide} />
       </mesh>
     </group>
   )
@@ -1177,10 +1284,11 @@ function NavPillar({
   })
   return (
     <group>
-      {/* 中央四区图腾：五米灯柱 + 四区色棱线 + 顶部金色地标 */}
+      {/* 中央四区图腾：五米灯柱 + 四区色棱线 + 顶部金色地标。
+          夜间柱身自发光提档（决策纸③）：白天地标夜间不再熄火成暗柱（R9 空间评审） */}
       <mesh position={[0, 2.5, 0]} castShadow receiveShadow>
         <cylinderGeometry args={[0.42, 0.62, 5, 8]} />
-        <meshStandardMaterial color={night ? ColorSceneGateDark : ThemeLightGlassHead} roughness={night ? 0.7 : 0.3} metalness={night ? 0 : 0.15} emissive={night ? "#1a2230" : ThemeLightSkyTop} emissiveIntensity={night ? 0.5 : 0.3} />
+        <meshStandardMaterial color={night ? ColorSceneGateDark : ThemeLightGlassHead} roughness={night ? 0.7 : 0.3} metalness={night ? 0 : 0.15} emissive={night ? '#2c3d55' : ThemeLightSkyTop} emissiveIntensity={night ? 1.1 : 0.3} />
       </mesh>
       {(Object.keys(INDUSTRIES) as (keyof typeof INDUSTRIES)[]).map((ind, i) => {
         const angle = (i * Math.PI) / 2 + Math.PI / 4
@@ -1429,6 +1537,7 @@ export function StreetScene({
       <Roads theme={theme} />
       <BuildingGrounding night={theme === 'dark'} />
       <RoadLanes />
+      <StreetTrees />
       <DistrictRoadSigns night={theme === 'dark'} />
       <DistantSkyline theme={theme} />
       <StreetLamps theme={theme} />
@@ -1534,7 +1643,19 @@ export function StreetScene({
         />
       </mesh>
       <Html position={[0, 3.5, 20]} center>
-        <div style={{ color: '#16C0B6', fontWeight: 600, fontSize: 14, whiteSpace: 'nowrap' }}>
+        {/* 深色药丸衬底（决策纸③）：青字压橙顶/白梁 = R8 事故两轮复审再点名 */}
+        <div
+          style={{
+            color: '#5ee6dc',
+            fontWeight: 600,
+            fontSize: 14,
+            whiteSpace: 'nowrap',
+            background: 'rgba(8, 12, 20, 0.62)',
+            padding: '4px 12px',
+            borderRadius: 999,
+            border: '1px solid rgba(94, 230, 220, 0.35)',
+          }}
+        >
           作品廊 · 求职者独立空间
         </div>
       </Html>
