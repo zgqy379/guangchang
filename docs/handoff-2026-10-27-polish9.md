@@ -3,6 +3,17 @@
 > 写给下一个 AI agent 的全面接手提示词。本文档 = 状态快照 + 操作手册 + 待办清单 + 可粘贴提示词正文。
 > 权威序：`AGENTS.md`（操作契约）> `project.md` > `docs/lessons.md` > 本文。本文过期不作数，以 git log 与 design-audit 为准。
 
+## 零、交付物更新（2026-10-28 00:45，接手先读）
+
+应用代码仍是 R7/R8（未重新构建）；提交物已补齐：
+
+- **Demo 视频**：`docs/video/demo-video.mp4`，2 分 09 秒，1600×900，中文旁白 + 真实操作幕字幕（m02–m05）。工程源 `docs/video/demo-v2/`（narration / config / overlay / VTT）。已单独更新到 gh-pages（`7085316`），线上 `https://zgqy379.github.io/guangchang/demo-video.mp4`。
+- **报告书**：`docs/report.pdf` v3，9 页；新增当前街区/单厂视觉、Aholo 资产迭代、八轮盲审过程、工程还债、评审映射与附录；源 `docs/report.typ`。
+- **合规**：MIT `LICENSE`、`web/index.html` OG 元标签、`web/public/og-image.png`（1200×630）；`docs/submission-checklist.md` 已入库。
+- **源码**：`main` 与 `feat/debt-reduction-week1` 已推送；当前 HEAD 以 git log 为准。
+- **未完成**：① 魔搭应用仍是 R7/R8，但其 `demo-video.mp4` 可能仍是旧 40s——若以魔搭为主链接，需重新上传 dist（同时更新视频）并重部署；② 官网正式提交（0/2 必交项）；③ 小红书 #Aholo黑客松；④ 移动端真机帧率。
+- **并发提醒**：`web/src/App.tsx`、`WorkdaySky.tsx`、`TwinEnvironment.tsx`、`web/src/engine/time.ts`、`tools/shoot-street.cjs` 有另一个会话的未提交改动（昼夜光照轮次）。不要直接构建/部署当前工作区，先确认该轮次已提交或收尾。
+
 ## 一、我是谁、刚做完什么（30 秒版）
 
 我是 polish9 视觉冲刺 agent。用户目标「把皮补到 9 分」——即把盲审视觉分从 6.5–7.0 推向 9。我跑了 **八轮独立盲审**（每轮 2 名未接触实现的临时评审、只看截图）、实施约 20 项修复、修复 3 起根因级事故，最终 **视觉稳定在 7.0 平台（空间 7.25–7.5），未达 9 也未稳定过 7 门禁**。主理人已拍板 **(a) 按「功能/视觉修复版」口径立即部署**——gh-pages 与魔搭均已部署并验收通过。剩余四项美术清单（见 §五）需要设计决策级美术轮次，是本轮未完成、交给你继续的工作。

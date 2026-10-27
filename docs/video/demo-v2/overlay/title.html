@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>逛厂 · 片头</title>
+<style>
+  :root { --delta: 0s; --bg: #070b13; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1600px; height: 900px; overflow: hidden; background: var(--bg); color: #f6f8fc; font-family: "Microsoft YaHei", "Noto Sans SC", sans-serif; }
+  .stage { position: relative; width: 100%; height: 100%; overflow: hidden; }
+  .bg { position: absolute; inset: 0; background: url('../../../figures/street-2026-10-27-polish9/night/hero.png') center/cover no-repeat; transform: scale(1.03); animation: kb 10s linear forwards; }
+  @keyframes kb { to { transform: scale(1.1); } }
+  .scrim { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(5,8,14,.9) 0%, rgba(5,8,14,.6) 46%, rgba(5,8,14,.12) 78%), linear-gradient(0deg, rgba(5,8,14,.92), transparent 46%); }
+  .redbar { position: absolute; left: 0; top: 0; bottom: 0; width: 10px; background: #c23a2b; }
+  .top { position: absolute; top: 54px; left: 78px; }
+  .badge { font-size: 19px; letter-spacing: 4px; color: #ffd24a; border: 1px solid rgba(255,210,74,.42); border-radius: 999px; padding: 10px 22px; background: rgba(255,210,74,.08); }
+  .bottom { position: absolute; left: 78px; bottom: 118px; max-width: 940px; }
+  .kicker { font-size: 25px; letter-spacing: 6px; color: #c7d2e2; }
+  .title { font-size: 84px; font-weight: 800; letter-spacing: 4px; color: #fff; text-shadow: 0 10px 34px rgba(0,0,0,.55); line-height: 1.12; }
+  .sub { font-size: 23px; letter-spacing: 2px; color: #aebbd0; margin-top: 18px; }
+  .url { position: absolute; right: 78px; bottom: 56px; font-size: 19px; color: #8fa0b8; letter-spacing: 1px; }
+  .anim { opacity: 0; transform: translateY(18px); }
+  body.playing .anim { animation: rise .9s cubic-bezier(.2,.7,.2,1) forwards; animation-delay: calc(var(--d,0s) - var(--delta)); }
+  @keyframes rise { to { opacity: 1; transform: none; } }
+  #veil { position: fixed; inset: 0; background: var(--bg); z-index: 99; pointer-events: none; opacity: 1; transition: opacity 1s ease 1s; }
+  body.playing #veil { opacity: 0; }
+  .dv-cursor { display: none !important; }
+</style>
+</head>
+<body>
+  <div class="stage">
+    <div class="bg"></div>
+    <div class="scrim"></div>
+    <div class="redbar"></div>
+    <div class="top"><span class="badge anim" style="--d:.3s">群核 Aholo 全球 3D AI 黑客松 · 2026</span></div>
+    <div class="bottom">
+      <div class="kicker anim" style="--d:.8s">参数空间化 3D 求职招聘街区</div>
+      <div class="title anim" style="--d:1.3s">把画的饼，砌成真的山</div>
+      <div class="sub anim" style="--d:2.2s">逛厂 GuǎngChǎng · 2 分钟实机演示</div>
+    </div>
+    <div class="url anim" style="--d:3.2s">zgqy379.github.io/guangchang</div>
+  </div>
+  <div id="veil"></div>
+</body>
+</html>

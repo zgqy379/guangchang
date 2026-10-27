@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>逛厂 · 过程与诚实</title>
+<style>
+  :root { --delta: 0s; --bg: #080d16; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1600px; height: 900px; overflow: hidden; background: var(--bg); color: #f6f8fc; font-family: "Microsoft YaHei", "Noto Sans SC", sans-serif; }
+  .stage { position: relative; width: 100%; height: 100%; padding: 56px 84px 48px; display: flex; flex-direction: column; }
+  .head { display: flex; align-items: flex-end; justify-content: space-between; }
+  h1 { font-size: 50px; letter-spacing: 2px; font-weight: 800; }
+  .lead { font-size: 21px; color: #9fb0c8; letter-spacing: 2px; }
+  .duo { display: flex; gap: 26px; margin-top: 28px; }
+  .shot { flex: 1; border-radius: 16px; overflow: hidden; border: 1px solid rgba(143,163,200,.24); background: #05070c; }
+  .shot img { width: 100%; height: 360px; object-fit: cover; display: block; }
+  .cap { padding: 12px 18px; font-size: 18px; color: #aebbd0; letter-spacing: 1px; background: rgba(17,27,45,.85); }
+  .cap b { color: #ffd24a; }
+  .stats { display: flex; gap: 22px; margin-top: 22px; }
+  .stat { flex: 1; padding: 16px 20px; border-radius: 14px; background: rgba(17,27,45,.72); border: 1px solid rgba(143,163,200,.18); }
+  .stat b { display: block; font-size: 32px; color: #fff; }
+  .stat span { font-size: 17px; color: #9fb0c8; letter-spacing: 1px; }
+  .quote { margin-top: 22px; padding: 18px 24px; border-left: 4px solid #c23a2b; background: rgba(194,58,43,.08); font-size: 24px; letter-spacing: 1px; color: #f6f8fc; }
+  .quote b { color: #ffd24a; }
+  .anim { opacity: 0; transform: translateY(18px); }
+  body.playing .anim { animation: rise .9s cubic-bezier(.2,.7,.2,1) forwards; animation-delay: calc(var(--d,0s) - var(--delta)); }
+  @keyframes rise { to { opacity: 1; transform: none; } }
+  #veil { position: fixed; inset: 0; background: var(--bg); z-index: 99; pointer-events: none; opacity: 1; transition: opacity 1s ease 1s; }
+  body.playing #veil { opacity: 0; }
+  .dv-cursor { display: none !important; }
+</style>
+</head>
+<body>
+  <div class="stage">
+    <div class="head">
+      <h1 class="anim" style="--d:.3s">八轮盲审 · 三起根因事故</h1>
+      <div class="lead anim" style="--d:.9s">agent 是生成器，也是评审、探针与记录者</div>
+    </div>
+    <div class="duo">
+      <div class="shot anim" style="--d:1.2s">
+        <img src="../../../design/reviews/veil-A-allhidden.png" alt="隐藏全部透明层">
+        <div class="cap"><b>隐藏全部透明层</b> · 白幕消失，锁定透明网格</div>
+      </div>
+      <div class="shot anim" style="--d:1.8s">
+        <img src="../../../design/reviews/veil-B-even.png" alt="只隐藏偶数层">
+        <div class="cap"><b>只隐藏偶数层</b> · 白幕仍在，继续二分</div>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat anim" style="--d:4.2s"><b>8 轮</b><span>独立盲审 · 截图送审</span></div>
+      <div class="stat anim" style="--d:4.6s"><b>10+</b><span>名临时评审 · 不看实现</span></div>
+      <div class="stat anim" style="--d:5.0s"><b>20+</b><span>项修复 · 含 3 起根因事故</span></div>
+    </div>
+    <div class="quote anim" style="--d:12.2s">最难的一课是诚实：生成链路是预置资产加回放，<b>被加速的是等待，不是结果。</b></div>
+  </div>
+  <div id="veil"></div>
+</body>
+</html>

@@ -112,7 +112,15 @@ async function measure(page, label) {
 
 async function shoot(page, name) {
   const file = path.join(OUT, `${name}.png`)
-  await page.screenshot({ path: file })
+  // 截图同样会被"单帧迟迟不到"卡死（本机并发负载高时实测 TimeoutError 报废整轮）：
+  // 置前重试一次并放宽超时——慢帧可以接受，静默拿空帧不行，整轮无声报废更不行。
+  try {
+    await page.screenshot({ path: file, timeout: 60000 })
+  } catch (e) {
+    console.log(`  · 截图超时（${name}），置前重试:`, String(e).slice(0, 70))
+    await page.bringToFront().catch(() => {})
+    await page.screenshot({ path: file, timeout: 120000 })
+  }
   console.log('  ✓', path.relative(process.cwd(), file))
   return file
 }

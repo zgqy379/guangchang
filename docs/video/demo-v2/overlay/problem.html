@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>逛厂 · 问题</title>
+<style>
+  :root { --delta: 0s; --bg: #0b1220; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1600px; height: 900px; overflow: hidden; background: var(--bg); color: #f6f8fc; font-family: "Microsoft YaHei", "Noto Sans SC", sans-serif; }
+  .stage { position: relative; width: 100%; height: 100%; padding: 62px 88px 54px; display: flex; flex-direction: column; }
+  .head { display: flex; align-items: flex-end; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,.12); padding-bottom: 22px; }
+  h1 { font-size: 52px; letter-spacing: 2px; font-weight: 800; }
+  .lead { font-size: 21px; color: #9fb0c8; letter-spacing: 2px; }
+  .cards { display: flex; gap: 30px; margin-top: 34px; flex: 1; }
+  .card { flex: 1; border-radius: 18px; overflow: hidden; background: rgba(18,29,48,.72); border: 1px solid rgba(143,163,200,.22); display: flex; flex-direction: column; }
+  .shot { height: 430px; background-size: cover; background-position: center; }
+  .shot.low { background-image: url('../../../figures/single-2026-10-27/single-low-polish9.png'); }
+  .shot.high { background-image: url('../../../figures/single-2026-10-27/single-high-polish9.png'); }
+  .meta { padding: 20px 24px; display: flex; align-items: center; justify-content: space-between; }
+  .meta b { font-size: 27px; letter-spacing: 1px; }
+  .meta span { font-size: 19px; color: #ffd24a; letter-spacing: 1px; }
+  .note { font-size: 18px; color: #9fb0c8; padding: 0 24px 20px; }
+  .foot { margin-top: 26px; display: flex; align-items: center; justify-content: space-between; font-size: 19px; color: #9fb0c8; letter-spacing: 2px; }
+  .foot b { color: #f6f8fc; }
+  .anim { opacity: 0; transform: translateY(18px); }
+  body.playing .anim { animation: rise .9s cubic-bezier(.2,.7,.2,1) forwards; animation-delay: calc(var(--d,0s) - var(--delta)); }
+  @keyframes rise { to { opacity: 1; transform: none; } }
+  #veil { position: fixed; inset: 0; background: var(--bg); z-index: 99; pointer-events: none; opacity: 1; transition: opacity 1s ease 1s; }
+  body.playing #veil { opacity: 0; }
+  .dv-cursor { display: none !important; }
+</style>
+</head>
+<body>
+  <div class="stage">
+    <div class="head">
+      <h1 class="anim" style="--d:.3s">Offer 是文字，空间是本能的</h1>
+      <div class="lead anim" style="--d:.9s">同一个相机，只改薪资参数</div>
+    </div>
+    <div class="cards">
+      <div class="card anim" style="--d:1.2s">
+        <div class="shot low"></div>
+        <div class="meta"><b>15 万 · 慢山文旅</b><span>山只到脚边</span></div>
+        <div class="note">下班 18:00 · 全额缴纳 · 12 薪</div>
+      </div>
+      <div class="card anim" style="--d:1.8s">
+        <div class="shot high"></div>
+        <div class="meta"><b>100 万 · 自定义</b><span>山到齐腰</span></div>
+        <div class="note">下班 23:00 · 期权封顶 · 16 薪</div>
+      </div>
+    </div>
+    <div class="foot anim" style="--d:3.2s">
+      <span>年薪 / 五险 / 下班时间，能不能一眼看懂？</span>
+      <b>逛厂：把它们砌成可以走进去的地形</b>
+    </div>
+  </div>
+  <div id="veil"></div>
+</body>
+</html>

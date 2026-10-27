@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>逛厂 · Aholo 内容管线</title>
+<style>
+  :root { --delta: 0s; --bg: #0a101c; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1600px; height: 900px; overflow: hidden; background: var(--bg); color: #f6f8fc; font-family: "Microsoft YaHei", "Noto Sans SC", sans-serif; }
+  .stage { position: relative; width: 100%; height: 100%; padding: 58px 84px 50px; display: flex; flex-direction: column; }
+  .head { display: flex; align-items: flex-end; justify-content: space-between; }
+  h1 { font-size: 50px; letter-spacing: 2px; font-weight: 800; }
+  .lead { font-size: 21px; color: #9fb0c8; letter-spacing: 2px; }
+  .cards { display: flex; gap: 26px; margin-top: 36px; flex: 1; }
+  .card { flex: 1; border-radius: 18px; overflow: hidden; background: rgba(17,27,45,.8); border: 1px solid rgba(143,163,200,.22); display: flex; flex-direction: column; }
+  .thumb { height: 470px; background-size: cover; background-position: center; }
+  .thumb.a { background-image: url('../assets/avatar-v3.png'); background-color: #0d1420; }
+  .thumb.b { background-image: url('../assets/money.png'); background-color: #0d1420; }
+  .thumb.c { background-image: url('../assets/office-3dgs.png'); background-color: #05070c; }
+  .meta { padding: 18px 22px; display: flex; align-items: center; justify-content: space-between; }
+  .meta b { font-size: 24px; letter-spacing: 1px; }
+  .meta span { font-size: 17px; color: #ffd24a; letter-spacing: 1px; }
+  .note { font-size: 17px; color: #9fb0c8; padding: 0 22px 18px; line-height: 1.5; }
+  .foot { margin-top: 24px; padding-top: 18px; border-top: 1px solid rgba(255,255,255,.12); display: flex; justify-content: space-between; font-size: 19px; color: #9fb0c8; letter-spacing: 1px; }
+  .foot b { color: #f6f8fc; }
+  .anim { opacity: 0; transform: translateY(18px); }
+  body.playing .anim { animation: rise .9s cubic-bezier(.2,.7,.2,1) forwards; animation-delay: calc(var(--d,0s) - var(--delta)); }
+  @keyframes rise { to { opacity: 1; transform: none; } }
+  #veil { position: fixed; inset: 0; background: var(--bg); z-index: 99; pointer-events: none; opacity: 1; transition: opacity 1s ease 1s; }
+  body.playing #veil { opacity: 0; }
+  .dv-cursor { display: none !important; }
+</style>
+</head>
+<body>
+  <div class="stage">
+    <div class="head">
+      <h1 class="anim" style="--d:.3s">Aholo 内容管线</h1>
+      <div class="lead anim" style="--d:.9s">角色 / 钞票 / 空间，全部预生成</div>
+    </div>
+    <div class="cards">
+      <div class="card anim" style="--d:1.2s">
+        <div class="thumb a"></div>
+        <div class="meta"><b>Lux3D 角色</b><span>文生 3D · 绑骨</span></div>
+        <div class="note">HR ×9 上线，玩家形象三版锚定；52 骨共用 idle。</div>
+      </div>
+      <div class="card anim" style="--d:1.9s">
+        <div class="thumb b"></div>
+        <div class="meta"><b>Lux3D 逛厂币</b><span>文生 3D · 合规转向</span></div>
+        <div class="note">真钞 prompt 被审核拦截后，虚构币成为主路径。</div>
+      </div>
+      <div class="card anim" style="--d:2.6s">
+        <div class="thumb c"></div>
+        <div class="meta"><b>SpatialGen 空间</b><span>World · Aholo Viewer</span></div>
+        <div class="note">四套行业办公室，SPZ 4–5MB，浏览器内 3DGS 漫游。</div>
+      </div>
+    </div>
+    <div class="foot anim" style="--d:8.2s">
+      <span>素材预生成 · 滑杆实时驱动 · Key 不进前端</span>
+      <b>Lux3D · SpatialGen · Aholo Viewer</b>
+    </div>
+  </div>
+  <div id="veil"></div>
+</body>
+</html>
