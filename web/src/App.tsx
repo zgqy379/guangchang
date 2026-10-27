@@ -135,7 +135,7 @@ function Scene({
         {/* 大地板：让展台坐在"地面"上而非悬空，地砖路可延伸向远方（色入令牌 scene.hallFloor） */}
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.02, 0]}>
           <planeGeometry args={[90, 90]} />
-          <meshStandardMaterial color={ColorSceneHallFloor} roughness={1} />
+          <meshStandardMaterial color={ColorSceneHallFloor} roughness={0.9} />
         </mesh>
         <CompanyPlot
           position={[0, 0, 0]}

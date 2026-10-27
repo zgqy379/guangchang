@@ -233,7 +233,7 @@
     /* 展开态是模态浮层，必须盖住 HUD（z-index 15）：
        .nav-stack 自己带 z-index → 形成层叠上下文，面板内部的 z-index 只在栈内比较，
        所以要把整个栈抬到 15 以上（桌面不抬，桌面两者不重叠）。 */
-    z-index: 16;
+    z-index: 60;
     right: 8px;
     /* 圆钮落在右侧边缘、垂直居中：避开顶部 HUD 与底部名片卡（§8.4 铁律 2 垂直分区）。
        ⚠️ 这里**不能用 transform: translateY(-50%)** —— 带 transform 的祖先会成为

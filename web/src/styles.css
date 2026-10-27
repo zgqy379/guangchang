@@ -253,6 +253,11 @@ header h1 span {
   .mode-switch::-webkit-scrollbar {
     display: none; /* WebKit 隐藏滚动条 */
   }
+  .mode-switch {
+    /* ≤480px 改两行 nowrap：单行滚动会把尾部红色 CTA 裁出首屏（盲审 R3 短板②） */
+    flex-wrap: wrap;
+    max-width: 100%;
+  }
   .mode-switch button,
   .mode-switch .theme-lock {
     padding-left: 6px;
