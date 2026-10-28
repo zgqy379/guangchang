@@ -38,3 +38,27 @@ const FROZEN_DATE: Date | null = (() => {
 export function sceneNow(): Date {
   return FROZEN_DATE ?? new Date()
 }
+
+/**
+ * 昼间「上午斜阳」默认日照（决策纸⑦ · 风格锦标赛 R13-R15 三池证据）：
+ * 亮色主题的环境时刻钳到 15.6（暖金低阳）——正午顶光被三个独立评审池判为
+ * 「无影灯/白模」最弱档。优先级：now 入参 > ?hour= 冻结 > 金光钳制 > 真实时钟。
+ * 夜主题不钳（真实月位是夜景配方的一部分）。
+ */
+export function displayNow(theme: 'light' | 'dark', now?: Date): Date {
+  if (now) return now
+  if (FROZEN_DATE) return FROZEN_DATE
+  if (theme === 'light') {
+    const d = new Date()
+    d.setHours(15, 36, 0, 0)
+    return d
+  }
+  return new Date()
+}
+
+/** 与 displayNow 配套的环境小时（供 duskT/label 等分支使用） */
+export function displayHour(theme: 'light' | 'dark', now?: Date): number {
+  if (now) return now.getHours() + now.getMinutes() / 60
+  if (FROZEN_HOUR !== null) return FROZEN_HOUR
+  return theme === 'light' ? 15.6 : new Date().getHours() + new Date().getMinutes() / 60
+}

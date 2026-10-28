@@ -18,7 +18,7 @@ import { useEffect, useMemo } from 'react'
 import * as THREE from 'three'
 import { useThree } from '@react-three/fiber'
 import { skyFromEnv, skyGradientTexture } from '../WorkdaySky'
-import { sceneNow } from '../../engine/time'
+import { displayHour, displayNow } from '../../engine/time'
 import type { ThemeName } from '../../engine/theme'
 import {
   ThemeDarkHemiGround,
@@ -30,19 +30,19 @@ import {
 } from '../../../generated/design-tokens.output.mjs'
 
 export function TwinEnvironment({
-  envHour,
+  envHour: _envHourIgnored,
   theme,
   now,
 }: {
-  envHour: number
+  envHour?: number
   theme: ThemeName
   now?: Date
 }) {
   const gl = useThree((s) => s.gl)
   const scene = useThree((s) => s.scene)
-  // ?hour= 冻结（截图确定性）优先，否则真实时钟——统一走 engine/time.ts
-  const date = useMemo(() => now ?? sceneNow(), [now])
-  const sky = useMemo(() => skyFromEnv(envHour, theme, date), [envHour, theme, date])
+  // 显示时刻（决策纸⑦）：?hour= 冻结 > 昼间金光钳制 > 真实时钟
+  const date = useMemo(() => displayNow(theme, now), [theme, now])
+  const sky = useMemo(() => skyFromEnv(displayHour(theme, now), theme, date), [theme, now, date])
   const night = theme === 'dark'
 
   // 曝光：浅色场景压低曝光换对比（否则白玻璃 + 白地面全糊在一档）

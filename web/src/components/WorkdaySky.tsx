@@ -13,7 +13,7 @@ import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 import { Stars } from '@react-three/drei'
 import { sunPosition, moonPosition, isBelowHorizon } from '../engine/sunPosition'
-import { sceneNow } from '../engine/time'
+import { displayHour, displayNow } from '../engine/time'
 import type { ThemeName } from '../engine/theme'
 import {
   ThemeLightSkyTop,
@@ -365,7 +365,7 @@ function CloudBand() {
 }
 
 export function WorkdaySky({
-  envHour,
+  envHour: _envHourIgnored,
   theme,
   fogNear = 18,
   fogFar = 60,
@@ -377,11 +377,12 @@ export function WorkdaySky({
   fogFar?: number
   now?: Date
 }) {
-  // ?hour= 冻结（截图确定性）优先，否则真实时钟——统一走 engine/time.ts
-  const date = useMemo(() => now ?? sceneNow(), [now])
+  // 显示时刻（决策纸⑦）：?hour= 冻结 > 昼间金光钳制 > 真实时钟——统一走 engine/time.ts
+  const date = useMemo(() => displayNow(theme, now), [theme, now])
+  const envHourEff = useMemo(() => displayHour(theme, now), [theme, now])
   const sky = useMemo(
-    () => skyFromEnv(envHour, theme, date),
-    [envHour, theme, date]
+    () => skyFromEnv(envHourEff, theme, date),
+    [envHourEff, theme, date]
   )
   const topColor = sky.topColor
   const horizonColor = sky.horizonColor

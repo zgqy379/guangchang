@@ -70,9 +70,9 @@
   --game-xp-per-level: 50;
   --game-xp-rarity-s-salary: 800000;
   --game-xp-rarity-a-salary: 400000;
-  --theme-light-sky-top: #b7d0e8;
-  --theme-light-sky-mid: #dce9f4;
-  --theme-light-sky-horizon: #f4f8fb;
+  --theme-light-sky-top: #6d97c4;
+  --theme-light-sky-mid: #a9c6e0;
+  --theme-light-sky-horizon: #cfdde9;
   --theme-light-sun: #ffe9c6;
   --theme-light-sky-warm-mid: #f3d6b4;
   --theme-light-sky-warm-hor: #fadcb0;
@@ -82,11 +82,11 @@
   --theme-light-hemi-ground-dusk: #c9b092;
   --theme-light-hemi-sky: #bcd9f0;
   --theme-light-hemi-ground: #a89e90;
-  --theme-light-fog: #dce9f4;
-  --theme-light-ground: #b2bcc7;
-  --theme-light-road: #7e8996;
-  --theme-light-glass-body: #cfe3f2;
-  --theme-light-glass-head: #f2f7fb;
+  --theme-light-fog: #c3d5e2;
+  --theme-light-ground: #a5b0bc;
+  --theme-light-road: #6f7d8a;
+  --theme-light-glass-body: #c9dfee;
+  --theme-light-glass-head: #eaf1f7;
   --theme-light-wire: #6b9ec4;
   --theme-light-data-edge: #0b0e1a;
   --theme-light-rim: #a9d4f2;
@@ -151,7 +151,7 @@
   --twin-shadow-extent: 48;
   --twin-shadow-normal-bias: 0.035;
   --twin-shadow-bias: -0.0004;
-  --twin-grid-opacity-day: 0.46;
+  --twin-grid-opacity-day: 0.6;
   --twin-grid-opacity-night: 0.22;
   --twin-reflect-opacity-day: 0.09;
   --twin-reflect-opacity-night: 0.14;

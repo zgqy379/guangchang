@@ -1,0 +1,171 @@
+{
+  "label": "toon-night",
+  "url": "http://localhost:4173/?hour=21",
+  "theme": "dark",
+  "viewport": "1280x720",
+  "metrics": [
+    {
+      "tag": "hero(鸟瞰)",
+      "throttledRounds": 0,
+      "drawCalls": 704,
+      "drawCallsMin": 704,
+      "triangles": 2650496,
+      "fps": 53.5,
+      "fpsRounds": [
+        58.1,
+        56.2,
+        53.5,
+        51.8,
+        42
+      ],
+      "memory": {
+        "geometries": 642,
+        "textures": 102,
+        "programs": 83
+      },
+      "webgl2": true,
+      "renderer": "ANGLE (AMD, AMD Radeon(TM) Graphics (0x00001681) Direct3D11 vs_5_0 ps_5_0, D3D11)"
+    },
+    {
+      "tag": "walk(越肩)",
+      "throttledRounds": 0,
+      "drawCalls": 332,
+      "drawCallsMin": 188,
+      "triangles": 8903980,
+      "fps": 25.4,
+      "fpsRounds": [
+        27.1,
+        26.7,
+        25.4,
+        22.7,
+        21.1
+      ],
+      "memory": {
+        "geometries": 734,
+        "textures": 165,
+        "programs": 202
+      },
+      "webgl2": true,
+      "renderer": "ANGLE (AMD, AMD Radeon(TM) Graphics (0x00001681) Direct3D11 vs_5_0 ps_5_0, D3D11)"
+    },
+    {
+      "tag": "focus(特写)",
+      "throttledRounds": 0,
+      "drawCalls": 332,
+      "drawCallsMin": 330,
+      "triangles": 8386017,
+      "fps": 23.7,
+      "fpsRounds": [
+        25.2,
+        24.1,
+        23.7,
+        22.3,
+        22.1
+      ],
+      "memory": {
+        "geometries": 734,
+        "textures": 165,
+        "programs": 202
+      },
+      "webgl2": true,
+      "renderer": "ANGLE (AMD, AMD Radeon(TM) Graphics (0x00001681) Direct3D11 vs_5_0 ps_5_0, D3D11)"
+    },
+    {
+      "tag": "deliver(投递)",
+      "throttledRounds": 0,
+      "drawCalls": 334,
+      "drawCallsMin": 332,
+      "triangles": 8386131,
+      "fps": 21.3,
+      "fpsRounds": [
+        25.4,
+        23.6,
+        21.3,
+        18.7,
+        18.7
+      ],
+      "memory": {
+        "geometries": 735,
+        "textures": 166,
+        "programs": 205
+      },
+      "webgl2": true,
+      "renderer": "ANGLE (AMD, AMD Radeon(TM) Graphics (0x00001681) Direct3D11 vs_5_0 ps_5_0, D3D11)"
+    }
+  ],
+  "layout": {
+    "boxes": [
+      {
+        "sel": ".game-hud",
+        "x": 1006,
+        "y": 76,
+        "w": 264,
+        "h": 136
+      },
+      {
+        "sel": ".gc-nav",
+        "x": 1020,
+        "y": 233,
+        "w": 248,
+        "h": 445
+      },
+      {
+        "sel": ".lot-card-dock",
+        "x": 16,
+        "y": 508,
+        "w": 340,
+        "h": 168
+      },
+      {
+        "sel": ".nav-stack",
+        "x": 1020,
+        "y": 233,
+        "w": 248,
+        "h": 445
+      }
+    ],
+    "overlaps": [],
+    "clipped": [],
+    "small": [],
+    "navParts": [
+      {
+        "cls": "gc-nav-head",
+        "h": 42,
+        "visible": true
+      },
+      {
+        "cls": {},
+        "h": 132,
+        "visible": true
+      },
+      {
+        "cls": "gc-nav-section",
+        "h": 20,
+        "visible": true
+      },
+      {
+        "cls": "gc-nav-list",
+        "h": 72,
+        "visible": true
+      },
+      {
+        "cls": "gc-nav-section",
+        "h": 20,
+        "visible": true
+      },
+      {
+        "cls": "gc-nav-districts",
+        "h": 108,
+        "visible": true
+      }
+    ],
+    "navHeight": 445,
+    "navBottom": 678,
+    "viewportH": 720,
+    "navOverflowsViewport": false,
+    "hOverflow": false
+  },
+  "mobile": null,
+  "consoleErrors": [],
+  "out": "E:\\guangchang\\docs\\figures\\style-tournament\\toon-night"
+}
