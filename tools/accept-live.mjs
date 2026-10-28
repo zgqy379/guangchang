@@ -5,7 +5,7 @@ const page = task.page('p1')
 const URL = 'https://zgqy379.github.io/guangchang/?v=' + Date.now() + '&debug=1' // 击穿 Pages 缓存；?debug=1 挂诊断钩子（engine/debug 门控，线上默认不暴露）
 console.log('→ goto', URL)
 await page.goto(URL, { waitUntil: 'load', timeout: 60000 })
-await page.waitForSelector('.gc-role-gate, .mode-switch', { timeout: 45000 })
+await page.waitForSelector('.gc-glass-gate, .gc-role-gate, .mode-switch', { timeout: 45000 })
 
 const rootInfo = await page.evaluate(() => {
   const r = document.getElementById('root')
@@ -16,9 +16,15 @@ console.log('=== 首屏验收 ===')
 console.log('DOM root children:', rootInfo ? rootInfo.children : 'null')
 console.log('首屏 canvas 数:', canvas0, '(期望 0 —— 角色门不挂 3D)')
 
-const gate = await page.evaluate(() => !!document.querySelector('.gc-role-gate'))
+const gate = await page.evaluate(() => !!document.querySelector('.gc-glass-gate, .gc-role-gate'))
 if (gate) {
   await page.evaluate(() => {
+    // 新版 RoleGateGlass（gc-glass-gate）：主 CTA「进入街区」直入求职者动线；
+    // 旧版 RoleGate（gc-role-gate）：求职者卡片
+    const enter = [...document.querySelectorAll('button, a, [role="button"]')].find(
+      (e) => (e.textContent || '').includes('进入街区'),
+    )
+    if (enter) { enter.click(); return }
     const c = document.querySelector('.gc-role-card--candidate') || document.querySelector('.gc-role-card')
     if (c) c.click()
   })
