@@ -1,4 +1,4 @@
-// 逛厂项目报告书 v3.1（提交版 · 2026-10-28；v3.1 = 对抗审查后的事实口径修订：盲审轮数/DC 实测/replay 接线状态）
+// 逛厂项目报告书 v3.2（提交版 · 2026-10-28；v3.2 = 角色门盲审重做：街景主视觉 + 唯一主 CTA + 次级身份入口；首屏 0.36MB）
 #set page(paper: "a4", margin: (x: 2.0cm, y: 2.2cm), numbering: "1 / 1")
 #set text(font: ("Microsoft YaHei", "Noto Sans SC", "SimHei"), size: 10pt, lang: "zh", region: "cn")
 #set heading(numbering: "1.1")
@@ -9,7 +9,7 @@
 #align(center)[
   #image("figures/og-image.png", width: 100%)
   #v(0.55em)
-  #text(size: 10pt, fill: rgb("#666"))[参数空间化 3D 求职招聘街区 · 项目报告书 v3.1]
+  #text(size: 10pt, fill: rgb("#666"))[参数空间化 3D 求职招聘街区 · 项目报告书 v3.2]
   #v(0.1em)
   #text(size: 9pt, fill: rgb("#888"))[群核科技 Aholo 全球 3D AI 黑客松 · 2026-10-28 · 必胜客的汉堡最好吃（3FO4K4VY3D07 · 单人队）]
 ]
@@ -75,7 +75,7 @@ v1 是参数可视化单场景；v2 按用户洞察升级为*可逛的招聘会�
 - *工时天空的街区级叙事*：把下班时间拖到 23:00，整条街只剩互联网区的窗还亮着——加班不再是数字，是街景
 - *作品廊*：独立 Canvas 场景，求职者的作品环绕展位；从街区内路牌进入（“我的”页入口随双角色流程接入），与街区共用同一套资产与令牌
 
-*第一屏不是 3D*：角色门是一道纯 SVG 的双龛选择——求职者 / HR 分别代入视角进入街区；默认焦点是“直接逛招聘街区”。它把首屏的 3D 资产请求归零（0 个 GLB / 0 个 canvas / 0.31MB），也让第一次点击就有明确的身份代入。（形象装配与照片贴入路径的组件已就绪，随双角色流程接入公开导航）进入后，四种模式共享同一套数据与 HUD：逛一家看参数如何长成山，A/B 把两家 offer 并排，办公室漫游进入 SpatialGen 的空间，招聘街区则是 64 家公司的可逛广场。
+*第一屏不是 3D*：角色门用一帧街景实拍做产品证据（静态 WebP，不挂 Canvas / 不拉 GLB），唯一主 CTA 是「直接逛招聘街区」；求职者 / HR 两条身份入口降级为次级行。首屏仍零 WebGL、零 3D 引擎，总传输约 0.36MB。（形象装配与照片贴入路径的组件已就绪，随双角色流程接入公开导航）进入后，四种模式共享同一套数据与 HUD：逛一家看参数如何长成山，A/B 把两家 offer 并排，办公室漫游进入 SpatialGen 的空间，招聘街区则是 64 家公司的可逛广场。
 
 *街区里的反馈是空间因果，不是弹窗*：HR 不是一张卡片，而是一个可走近、可投递、可对比的 3D 角色；投递后，简历袋飞向钱山、绿标落在摊位上方、XP 在 HUD 里结算——每一次点击都能在场景里找到它的落点。
 
@@ -83,10 +83,10 @@ v1 是参数可视化单场景；v2 按用户洞察升级为*可逛的招聘会�
   grid(
     columns: 2,
     gutter: 5pt,
-    image("figures/street-2026-10-27/rolegate-street.png", width: 100%),
-    image("figures/street-2026-10-27-polish9/mobile/mobile-expanded.png", width: 52%),
+    image("figures/rolegate-2026-10-28/gate-desktop.png", width: 100%),
+    image("figures/rolegate-2026-10-28/gate-mobile.png", width: 38%),
   ),
-  caption: [第一屏角色门：求职者 / HR 双龛，纯 SVG、零 3D 资产、零 WebGL 上下文（首屏 canvas=0）/ 390px 移动端：顶栏两行、导航器折叠为圆钮、CTA 不被裁切。],
+  caption: [第一屏角色门（2026-10-28 重做）：街景实拍静帧 + 唯一主 CTA「直接逛招聘街区」+ 两条次级身份入口；仍零 WebGL、零 GLB，移动端首屏可见主 CTA 与两条身份入口。],
 ) <fig-gate>
 
 #figure(
@@ -242,14 +242,14 @@ SpatialGen / World 以纯文案生成四套行业办公室，经 Aholo Viewer �
 
 #figure(
   image("figures/engineering-gains.png", width: 100%),
-  caption: [工程还债：首屏 3D 资产请求从 3 个 GLB / 8.49MB 降到 0 个 / 0.31MB；街区 draw calls 从 2136 降到 687。首屏靠“角色门不挂 Canvas”真正归零，而不是只删 preload。],
+  caption: [工程还债：首屏 3D 资产请求从 3 个 GLB / 8.49MB 降到 0 个 / 0.31MB（另加 52KB 街景静帧，总传输约 0.36MB）；街区 draw calls 从 2136 降到 687。首屏靠“角色门不挂 Canvas”真正归零，而不是只删 preload。],
 ) <fig-gains>
 
 - *首屏*：0 个 GLB、0 个 canvas；entry 1,017.04kB（gzip 288.42kB，2026-10-28 构建），OfficeViewer 1.95MB 按需加载；远低于 5MB 红线
 - *街区*：64 摊 + 四区 + 4 套办公门面，687 draw calls（2026-10-28 实测；≤200 为产品期红线，已列入下一阶段 InstancedMesh / 材质图集 / LOD）；可见页签复测白天 hero 83 / 越肩 45 / 特写 44 fps（桌面集显；此前引用的“越肩 13.5fps”已判定为后台页签限流造成的测量污染，见 lessons §12.2）——移动端真机数据待补，这是已知差距，不藏
 - *稳定性*：顶层 + 办公室 + 街区三层 ErrorBoundary；Draco 解码器自托管（4 个文件，无第三方 CDN）；对比篮与街区进度持久化；移动端 390px 顶栏两行、CTA 不裁切
 - *安全与合规*：API Key 仅存 `.env`（gitignored），前端零 Key 引用；受限授权资产（InteriorGS、`*.ply`）及其截图/渲染图不进公开仓库与公开部署；公开站使用虚构公司与虚构“逛厂币”；Draco 自托管；第三方素材清单见 `THIRD_PARTY_NOTICES.md`
-- *构建*：674 modules，`tsc --noEmit` + Vite；prebuild 自动跑设计令牌、对比度、面板墨色三道门禁；源码公开（MIT）。线上双端为视觉冻结基线（R14），仓库源码含其后的办公室取景修复，随下一轮盲审部署同步
+- *构建*：674 modules，`tsc --noEmit` + Vite；prebuild 自动跑设计令牌、对比度、面板墨色三道门禁；源码公开（MIT）。线上 Pages 已更新到 R14 + 角色门重做（`index-dVCBXs9L.js`）；魔搭最近一次为 `index-DUpMgR-n.js`，视频/角色门待同步
 
 = 评审映射与提交物
 
@@ -262,7 +262,7 @@ SpatialGen / World 以纯文案生成四套行业办公室，经 Aholo Viewer �
   [30%], [群核技术栈应用], [Lux3D 角色/钞票全链路、SpatialGen 四办公室、Aholo Viewer 3DGS、API/MCP 批量生产；资产迭代全程存档],
   [25%], [作品有趣程度], [四模式可玩闭环；投递五重同帧反馈；滑杆实时长山；对比篮→A/B；2–3 分钟实机视频],
   [20%], [创新性], [“数据即景观”签名；词典即引擎；防博弈几何；诚实降级三通道],
-  [20%], [完成度], [双端在线；首屏 0.31MB；ErrorBoundary；移动端 390；源码公开；报告/视频/素材授权齐备],
+  [20%], [完成度], [双端在线；首屏 0.36MB（含街景静帧）；ErrorBoundary；移动端 390；源码公开；报告/视频/素材授权齐备],
   [5%], [传播], [小红书 \#Aholo黑客松（提交前发布）],
 )
 
@@ -272,9 +272,9 @@ SpatialGen / World 以纯文案生成四套行业办公室，经 Aholo Viewer �
   align: horizon,
   fill: (x, y) => if y == 0 { rgb("#f5f6f8") },
   table.header([*提交物*], [*状态 / 链接*]),
-  [在线 Demo], [GitHub Pages + 魔搭创空间，双端同源构建（基路径不同、bundle 哈希各异：Pages `index-DBFYuFqn.js` / 魔搭 `index-DUpMgR-n.js`）],
+  [在线 Demo], [GitHub Pages + 魔搭创空间，双端同源构建（基路径不同、bundle 哈希各异：Pages `index-dVCBXs9L.js` / 魔搭 `index-DUpMgR-n.js`）],
   [Demo 视频], [2–3 分钟实机录屏 + 旁白/字幕，随本报告同目录/链接],
-  [项目报告书], [本 PDF（v3.1，2026-10-28）],
+  [项目报告书], [本 PDF（v3.2，2026-10-28）],
   [源代码], [#link("https://github.com/zgqy379/guangchang")[github.com/zgqy379/guangchang]（MIT）],
   [第三方声明], [`THIRD_PARTY_NOTICES.md`：Aholo 能力/受限素材/Mixamo/Pexels/Draco/开源依赖/字体],
   [团队], [必胜客的汉堡最好吃（3FO4K4VY3D07 · 单人队）],
