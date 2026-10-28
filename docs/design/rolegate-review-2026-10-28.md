@@ -24,5 +24,6 @@
 - 组件：`web/src/components/role/RoleGate.tsx` + `role-gate.css`
 - 首屏资产：`web/public/assets/rolegate/street-night.webp`（52KB，静态街景，不挂 Canvas / 不拉 GLB）
 - 部署：Pages `index-dVCBXs9L.js`
-- 报告：`docs/report.pdf` v3.2（角色门图 + 首屏总传输 0.36MB）
-- 余项：视频 m02 仍是旧角色门 5 秒；报告街区图仍是 10-27 polish9；下一轮统一刷新到 R14 实机。
+- 报告：`docs/report.pdf` v3.3（角色门图 + R14 街区图；首屏总传输 0.36MB）
+- 已刷新（2026-10-28 16:2x）：视频 m02 → 新角色门 + R14 街区鸟瞰（旁白同步改为“一帧街区实拍，两条身份入口，一个主按钮”）；报告图 3/4/5 → `street-2026-10-28-life-v2`（R14）。
+- 仍余：视频 m03–m05 仍是 R7/R8 实机录制；报告单厂图仍是 10-27；魔搭端视频与角色门待同步。

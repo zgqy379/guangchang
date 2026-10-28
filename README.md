@@ -7,7 +7,7 @@
 **▶ Demo 视频：<https://zgqy379.github.io/guangchang/demo-video.mp4>**（2 分 09 秒实机录屏 + 旁白/操作字幕：角色门 → 招聘街区 → 投递 → 对比 → 夜街 → 单人 → Aholo 技术栈）
 
 - **唯一权威文档**：[`project.md`](./project.md)（v1.4.1）——决策与历史以它为准；**最新审查与执行状态见 [`docs/adversarial-review-2026-10-28.md`](./docs/adversarial-review-2026-10-28.md)**
-- **项目报告书**：[`docs/report.pdf`](./docs/report.pdf)（v3.1，10 页；源稿 `report.typ`）
+- **项目报告书**：[`docs/report.pdf`](./docs/report.pdf)（v3.3，9 页；源稿 `report.typ`）
 - **提交清单**：[`docs/submission-checklist.md`](./docs/submission-checklist.md)（必交项 / 加分项 / 评审规则 / 进度）
 - **Demo 视频工程**：[`docs/video/demo-v2/`](./docs/video/demo-v2/)（分幕旁白、overlay、VTT 与素材）
 - **第三方素材授权**：[`THIRD_PARTY_NOTICES.md`](./THIRD_PARTY_NOTICES.md)
@@ -48,6 +48,6 @@ Draco 解码器与全部资产自托管，不依赖第三方 CDN（见 `THIRD_PA
 ## 当前进度与下一步
 
 参赛状态：**报名 / 组队 / 提交选题均已完成**（团队 3FO4K4VY3D07，单人队），作品提交入口已开。
-交付物：**双端在线 Demo**（GitHub Pages / 魔搭，同源构建——基路径不同 bundle 哈希各异）、**2:09 Demo 视频**（旁白 + 操作字幕）、**10 页报告书 v3.1**、**公开源码（MIT）**、OG 分享图与第三方声明，均已就绪。
+交付物：**双端在线 Demo**（GitHub Pages / 魔搭，同源构建——基路径不同 bundle 哈希各异）、**2:09 Demo 视频**（旁白 + 操作字幕）、**9 页报告书 v3.3**、**公开源码（MIT）**、OG 分享图与第三方声明，均已就绪。
 待办：**官网正式提交作品**（截止 2026-11-19 19:00；必交项 = Demo 视频/可运行链接 + 报告书 PDF）、小红书发布（#Aholo黑客松，5% 传播分）、移动端真机帧率。
 最新状态以 [`docs/adversarial-review-2026-10-28.md`](./docs/adversarial-review-2026-10-28.md) 与 [`project.md`](./project.md) v1.4.1 为准。

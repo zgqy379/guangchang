@@ -1,4 +1,4 @@
-// 逛厂项目报告书 v3.2（提交版 · 2026-10-28；v3.2 = 角色门盲审重做：街景主视觉 + 唯一主 CTA + 次级身份入口；首屏 0.36MB）
+// 逛厂项目报告书 v3.3（提交版 · 2026-10-28；v3.3 = 街区图统一到 R14 实机（life-v2），视频 m02 同步新角色门）
 #set page(paper: "a4", margin: (x: 2.0cm, y: 2.2cm), numbering: "1 / 1")
 #set text(font: ("Microsoft YaHei", "Noto Sans SC", "SimHei"), size: 10pt, lang: "zh", region: "cn")
 #set heading(numbering: "1.1")
@@ -9,7 +9,7 @@
 #align(center)[
   #image("figures/og-image.png", width: 100%)
   #v(0.55em)
-  #text(size: 10pt, fill: rgb("#666"))[参数空间化 3D 求职招聘街区 · 项目报告书 v3.2]
+  #text(size: 10pt, fill: rgb("#666"))[参数空间化 3D 求职招聘街区 · 项目报告书 v3.3]
   #v(0.1em)
   #text(size: 9pt, fill: rgb("#888"))[群核科技 Aholo 全球 3D AI 黑客松 · 2026-10-28 · 必胜客的汉堡最好吃（3FO4K4VY3D07 · 单人队）]
 ]
@@ -93,22 +93,22 @@ v1 是参数可视化单场景；v2 按用户洞察升级为*可逛的招聘会�
   grid(
     columns: 2,
     gutter: 5pt,
-    image("figures/street-2026-10-27-polish9/hero.png", width: 100%),
-    image("figures/street-2026-10-27-polish9/walk.png", width: 100%),
-    image("figures/street-2026-10-27-polish9/focus.png", width: 100%),
-    image("figures/street-2026-10-27-polish9/deliver.png", width: 100%),
+    image("figures/street-2026-10-28-life-v2/hero.png", width: 100%),
+    image("figures/street-2026-10-28-life-v2/walk.png", width: 100%),
+    image("figures/street-2026-10-28-life-v2/focus.png", width: 100%),
+    image("figures/street-2026-10-28-life-v2/deliver.png", width: 100%),
   ),
-  caption: [招聘街区实拍（2026-10-27 polish9）：鸟瞰四区与中央光柱 / 越肩漫游与游戏 HUD / 走近摊位的真 HR·钱堆·参数碑 / 投递结算（toast + XP + 世界内“已投递”绿标）],
+  caption: [招聘街区实拍（2026-10-28 R14 视觉冻结版）：鸟瞰四区与中央光柱 / 越肩漫游与游戏 HUD（路缘树列、8 名 NPC）/ 走近摊位的真 HR·钱堆·参数碑·柜台业务屏 / 投递结算（toast + XP + 世界内“已投递”绿标）],
 ) <fig-street>
 
 #figure(
   grid(
     columns: 2,
     gutter: 5pt,
-    image("figures/street-2026-10-27-polish9/night/hero.png", width: 100%),
-    image("figures/street-2026-10-27-polish9/night/walk.png", width: 100%),
+    image("figures/street-2026-10-28-life-v2/night/hero.png", width: 100%),
+    image("figures/street-2026-10-28-life-v2/night/walk.png", width: 100%),
   ),
-  caption: [夜间同一街区的两套光照：四区色带 + 路灯光池 + 中央光枢 / 入口霓虹门楼与地面投光字。颜色即导航，不必读字。],
+  caption: [夜间同一街区（2026-10-28 R14）：四区色带 + 沿街发光边 + 路灯光池 + 中央光枢 / 入口霓虹门楼、地面投光字与 NPC 脚光环。颜色即导航，不必读字。],
 ) <fig-night>
 
 = 数据即景观：把 offer 读成地形
@@ -135,8 +135,8 @@ v1 是参数可视化单场景；v2 按用户洞察升级为*可逛的招聘会�
 *词典即引擎*：64 个摊位的参数全部由 `dictionary/*.json` 的 JSON Schema 驱动，HR 面板、3D 渲染、名片浮板同源；改词典即改产品，加词条零前端代码。求职者侧使用同一套词典绑定（`candidateDictionary`），为后续“双向反画饼”留出接口。
 
 #figure(
-  image("figures/street-2026-10-27-polish9/focus.png", width: 92%),
-  caption: [特写同框：真 HR + 身后钱堆 + 参数碑（碑高=总包 / 灯条=五险 / 顶灯=下班）+ 左下名片三数值。一个画面同时回答“给多少钱、交多少金、几点下班”。],
+  image("figures/street-2026-10-28-life-v2/focus.png", width: 92%),
+  caption: [特写同框（2026-10-28 R14）：真 HR + 身后钱堆 + 参数碑（碑高=总包 / 灯条=五险 / 顶灯=下班）+ 柜台业务屏 + 左下名片三数值。一个画面同时回答“给多少钱、交多少金、几点下班”。],
 ) <fig-focus>
 
 = Aholo 技术栈：唯一的内容生产引擎
@@ -274,7 +274,7 @@ SpatialGen / World 以纯文案生成四套行业办公室，经 Aholo Viewer �
   table.header([*提交物*], [*状态 / 链接*]),
   [在线 Demo], [GitHub Pages + 魔搭创空间，双端同源构建（基路径不同、bundle 哈希各异：Pages `index-dVCBXs9L.js` / 魔搭 `index-DUpMgR-n.js`）],
   [Demo 视频], [2–3 分钟实机录屏 + 旁白/字幕，随本报告同目录/链接],
-  [项目报告书], [本 PDF（v3.2，2026-10-28）],
+  [项目报告书], [本 PDF（v3.3，2026-10-28）],
   [源代码], [#link("https://github.com/zgqy379/guangchang")[github.com/zgqy379/guangchang]（MIT）],
   [第三方声明], [`THIRD_PARTY_NOTICES.md`：Aholo 能力/受限素材/Mixamo/Pexels/Draco/开源依赖/字体],
   [团队], [必胜客的汉堡最好吃（3FO4K4VY3D07 · 单人队）],
