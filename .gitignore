@@ -45,3 +45,9 @@ docs/video/frames_timed/
 docs/video/frames_cap_v8/
 
 tmp-design-review/
+# 会话临时物（截屏/探测缓存，不进公开仓库）
+.playwright-mcp/
+.tmp-*.json
+# 风格研究全图样张（87MB 留本地不进库——全图可由 tools/shoot-* 复现；
+# 提纯结论已收编 docs/design/research/proofs-contact-sheets/）
+docs/design/proofs/
