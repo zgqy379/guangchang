@@ -48,8 +48,10 @@ import { assetUrl } from './engine/asset'
 import { ColorSceneHallFloor, ColorSceneHallFloorDay } from '../generated/design-tokens.output.mjs'
 import { ErrorBoundary, SceneErrorBoundary } from './state/ErrorBoundary'
 import { RoleGate, type Role } from './components/role/RoleGate'
+import { RoleGateGlass } from './components/role/RoleGateGlass'
 import { loadRole, saveRole, loadBasket, saveBasket } from './engine/progress'
 import './components/role/role-gate.css'
+import './components/role/role-gate-glass.css'
 import {
   systemHour,
   resolveTheme,
@@ -167,6 +169,9 @@ function Scene({
     </Canvas>
   )
 }
+
+const GLASS_GATE_PREVIEW =
+  typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('gate') === 'glass'
 
 export default function App() {
   const [mode, setMode] = useState<'single' | 'compare' | 'office' | 'street' | 'gallery'>('single')
@@ -299,14 +304,22 @@ export default function App() {
       {/* 顶层错误边界：任何未捕获错误都降级为可读页，而不是整站白屏（T8 同构风险） */}
       <ErrorBoundary>
       {/* 首屏角色门禁：纯 SVG，零 3D 资产、零 WebGL 上下文 */}
-      {roleGate && (
-        <RoleGate
-          onPick={enterAsRole}
-          onEnterStreet={enterStreetDirectly}
-          remembered={rememberedRole}
-          onDismissRemembered={() => setRememberedRole(null)}
-        />
-      )}
+      {roleGate &&
+        (GLASS_GATE_PREVIEW ? (
+          <RoleGateGlass
+            onPick={enterAsRole}
+            onEnterStreet={enterStreetDirectly}
+            remembered={rememberedRole}
+            onDismissRemembered={() => setRememberedRole(null)}
+          />
+        ) : (
+          <RoleGate
+            onPick={enterAsRole}
+            onEnterStreet={enterStreetDirectly}
+            remembered={rememberedRole}
+            onDismissRemembered={() => setRememberedRole(null)}
+          />
+        ))}
       {!roleGate && (
       <>
       <header>
