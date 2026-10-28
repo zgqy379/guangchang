@@ -101,6 +101,9 @@ export function skyFromEnv(
 
   if (night) {
     // —— 夜间：深靛天幕 + 星空 + 月亮 ——
+    // （2026-10-29 蓝调批次①尝试 sky/fog/light 五件套，盲审 R16 视觉 6.75 未过 7 线，
+    //   按纪律撤下冻结；配方与令牌组保留（theme.nightBluehour / twin.bluehour*），批次②
+    //   釉面材质横扫后合并重审。证据：docs/design/reviews/ r16-bluehour-night.md）
     const moon = moonPosition(now)
     return {
       bg: ThemeDarkSkyMid,

@@ -41,7 +41,9 @@ Typst（报告排版）— Apache-2.0
 ## 字体
 
 报告 PDF 使用 Microsoft YaHei / Noto Sans SC 排版（PDF 内嵌子集，仅供阅读）。
-Web 端使用系统字体栈（PingFang SC / Microsoft YaHei / system-ui），不加载外部字体。
+Web 端主体使用系统字体栈（PingFang SC / Microsoft YaHei / system-ui）；
+首屏角色门（玻璃版）加载两个子集字体：IBM Plex Mono 400/500 与 Noto Serif SC 700
+（woff2 子集共约 58KB），均为 SIL Open Font License 1.1 授权，仅作界面展示使用。
 
 ## 内容声明
 

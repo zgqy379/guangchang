@@ -108,6 +108,15 @@
   --theme-dark-rim: #4a9eff;
   --theme-dark-shaft: #8fa8ff;
   --theme-dark-reflect: #1b2536;
+  --theme-night-bluehour-sky-top: #0a1322;
+  --theme-night-bluehour-sky-mid: #354260;
+  --theme-night-bluehour-sky-horizon: #a2766e;
+  --theme-night-bluehour-sky-band: #e9a06c;
+  --theme-night-bluehour-fog: #1b2a3d;
+  --theme-night-bluehour-key-light: #a6c3e6;
+  --theme-night-bluehour-fill-light: #ffa870;
+  --theme-night-bluehour-hemi-sky: #6b88b8;
+  --theme-night-bluehour-hemi-ground: #11161f;
   --twin-emissive-day: 1.2;
   --twin-emissive-night: 2;
   --twin-opacity-day: 0.62;
@@ -118,6 +127,9 @@
   --twin-rim-strength-night: 1.05;
   --twin-env-intensity-day: 0.62;
   --twin-env-intensity-night: 0.5;
+  --twin-bluehour-key-intensity: 1.9;
+  --twin-bluehour-fill-intensity: 0.8;
+  --twin-bluehour-hemi-intensity: 0.6;
   --twin-sun-intensity-day: 1.5;
   --twin-sun-intensity-dusk: 0.85;
   --twin-hemi-intensity-day: 0.36;

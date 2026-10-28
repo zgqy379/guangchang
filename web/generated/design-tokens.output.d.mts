@@ -103,6 +103,15 @@ export declare const ThemeDarkDataEdge: string
 export declare const ThemeDarkRim: string
 export declare const ThemeDarkShaft: string
 export declare const ThemeDarkReflect: string
+export declare const ThemeNightBluehourSkyTop: string
+export declare const ThemeNightBluehourSkyMid: string
+export declare const ThemeNightBluehourSkyHorizon: string
+export declare const ThemeNightBluehourSkyBand: string
+export declare const ThemeNightBluehourFog: string
+export declare const ThemeNightBluehourKeyLight: string
+export declare const ThemeNightBluehourFillLight: string
+export declare const ThemeNightBluehourHemiSky: string
+export declare const ThemeNightBluehourHemiGround: string
 export declare const TwinEmissiveDay: number
 export declare const TwinEmissiveNight: number
 export declare const TwinOpacityDay: number
@@ -113,6 +122,9 @@ export declare const TwinRimStrengthDay: number
 export declare const TwinRimStrengthNight: number
 export declare const TwinEnvIntensityDay: number
 export declare const TwinEnvIntensityNight: number
+export declare const TwinBluehourKeyIntensity: number
+export declare const TwinBluehourFillIntensity: number
+export declare const TwinBluehourHemiIntensity: number
 export declare const TwinSunIntensityDay: number
 export declare const TwinSunIntensityDusk: number
 export declare const TwinHemiIntensityDay: number

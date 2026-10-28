@@ -1,4 +1,4 @@
-// 逛厂项目报告书 v3.3（提交版 · 2026-10-28；v3.3 = 街区图统一到 R14 实机（life-v2），视频 m02 同步新角色门）
+// 逛厂项目报告书 v3.4（提交版 · 2026-10-29；v3.4 = 玻璃门过 R15 盲审转正（首图换玻璃门）+ 首屏体积口径 0.44MB）
 #set page(paper: "a4", margin: (x: 2.0cm, y: 2.2cm), numbering: "1 / 1")
 #set text(font: ("Microsoft YaHei", "Noto Sans SC", "SimHei"), size: 10pt, lang: "zh", region: "cn")
 #set heading(numbering: "1.1")
@@ -9,7 +9,7 @@
 #align(center)[
   #image("figures/og-image.png", width: 100%)
   #v(0.55em)
-  #text(size: 10pt, fill: rgb("#666"))[参数空间化 3D 求职招聘街区 · 项目报告书 v3.3]
+  #text(size: 10pt, fill: rgb("#666"))[参数空间化 3D 求职招聘街区 · 项目报告书 v3.4]
   #v(0.1em)
   #text(size: 9pt, fill: rgb("#888"))[群核科技 Aholo 全球 3D AI 黑客松 · 2026-10-28 · 必胜客的汉堡最好吃（3FO4K4VY3D07 · 单人队）]
 ]
@@ -75,7 +75,7 @@ v1 是参数可视化单场景；v2 按用户洞察升级为*可逛的招聘会�
 - *工时天空的街区级叙事*：把下班时间拖到 23:00，整条街只剩互联网区的窗还亮着——加班不再是数字，是街景
 - *作品廊*：独立 Canvas 场景，求职者的作品环绕展位；从街区内路牌进入（“我的”页入口随双角色流程接入），与街区共用同一套资产与令牌
 
-*第一屏不是 3D*：角色门用一帧街景实拍做产品证据（静态 WebP，不挂 Canvas / 不拉 GLB），唯一主 CTA 是「直接逛招聘街区」；求职者 / HR 两条身份入口降级为次级行。首屏仍零 WebGL、零 3D 引擎，总传输约 0.36MB。（形象装配与照片贴入路径的组件已就绪，随双角色流程接入公开导航）进入后，四种模式共享同一套数据与 HUD：逛一家看参数如何长成山，A/B 把两家 offer 并排，办公室漫游进入 SpatialGen 的空间，招聘街区则是 64 家公司的可逛广场。
+*第一屏不是 3D*：角色门用一帧 R14 街区实拍做产品证据（静态 WebP，不挂 Canvas / 不拉 GLB），玻璃面板控制台承载衬线排版大标题「把 offer 读成地形」，唯一主 CTA 是「进入街区」；求职者 / HR 两条身份入口降级为次级行。首屏仍零 WebGL、零 3D 引擎，总传输约 0.44MB（含 79KB 街景静帧与 58KB 子集字体）。（形象装配与照片贴入路径的组件已就绪，随双角色流程接入公开导航）进入后，四种模式共享同一套数据与 HUD：逛一家看参数如何长成山，A/B 把两家 offer 并排，办公室漫游进入 SpatialGen 的空间，招聘街区则是 64 家公司的可逛广场。
 
 *街区里的反馈是空间因果，不是弹窗*：HR 不是一张卡片，而是一个可走近、可投递、可对比的 3D 角色；投递后，简历袋飞向钱山、绿标落在摊位上方、XP 在 HUD 里结算——每一次点击都能在场景里找到它的落点。
 
@@ -83,10 +83,10 @@ v1 是参数可视化单场景；v2 按用户洞察升级为*可逛的招聘会�
   grid(
     columns: 2,
     gutter: 5pt,
-    image("figures/rolegate-2026-10-28/gate-desktop.png", width: 100%),
-    image("figures/rolegate-2026-10-28/gate-mobile.png", width: 38%),
+    image("figures/rolegate-2026-10-29/glass-gate-1600x900.png", width: 100%),
+    image("figures/rolegate-2026-10-29/glass-gate-390x844.png", width: 38%),
   ),
-  caption: [第一屏角色门（2026-10-28 重做）：街景实拍静帧 + 唯一主 CTA「直接逛招聘街区」+ 两条次级身份入口；仍零 WebGL、零 GLB，移动端首屏可见主 CTA 与两条身份入口。],
+  caption: [第一屏角色门（2026-10-29 玻璃门转正版，盲审 R15 视觉 7.75 / 空间 7.0）：R14 街区实拍主视觉 + 玻璃控制台 + 衬线排版 + 唯一主 CTA；仍零 WebGL、零 GLB，移动端首屏可见主 CTA 与两条身份入口。],
 ) <fig-gate>
 
 #figure(
@@ -242,7 +242,7 @@ SpatialGen / World 以纯文案生成四套行业办公室，经 Aholo Viewer �
 
 #figure(
   image("figures/engineering-gains.png", width: 100%),
-  caption: [工程还债：首屏 3D 资产请求从 3 个 GLB / 8.49MB 降到 0 个 / 0.31MB（另加 52KB 街景静帧，总传输约 0.36MB）；街区 draw calls 从 2136 降到 687。首屏靠“角色门不挂 Canvas”真正归零，而不是只删 preload。],
+  caption: [工程还债：首屏 3D 资产请求从 3 个 GLB / 8.49MB 降到 0 个 / 0.31MB（另加 79KB 街景静帧与 58KB 子集字体，总传输约 0.44MB）；街区 draw calls 从 2136 降到 687。首屏靠“角色门不挂 Canvas”真正归零，而不是只删 preload。],
 ) <fig-gains>
 
 - *首屏*：0 个 GLB、0 个 canvas；entry 1,017.04kB（gzip 288.42kB，2026-10-28 构建），OfficeViewer 1.95MB 按需加载；远低于 5MB 红线
@@ -274,7 +274,7 @@ SpatialGen / World 以纯文案生成四套行业办公室，经 Aholo Viewer �
   table.header([*提交物*], [*状态 / 链接*]),
   [在线 Demo], [GitHub Pages + 魔搭创空间，双端同源构建（基路径不同、bundle 哈希各异：Pages `index-dVCBXs9L.js` / 魔搭 `index-DUpMgR-n.js`）],
   [Demo 视频], [2–3 分钟实机录屏 + 旁白/字幕，随本报告同目录/链接],
-  [项目报告书], [本 PDF（v3.3，2026-10-28）],
+  [项目报告书], [本 PDF（v3.4，2026-10-29）],
   [源代码], [#link("https://github.com/zgqy379/guangchang")[github.com/zgqy379/guangchang]（MIT）],
   [第三方声明], [`THIRD_PARTY_NOTICES.md`：Aholo 能力/受限素材/Mixamo/Pexels/Draco/开源依赖/字体],
   [团队], [必胜客的汉堡最好吃（3FO4K4VY3D07 · 单人队）],

@@ -141,15 +141,20 @@ async function shoot(page, name) {
 
   console.log('→ goto', URL)
   await page.goto(URL, { waitUntil: 'load', timeout: 60000 })
-  await page.waitForSelector('.mode-switch, .gc-role-gate', { timeout: 30000 })
+  await page.waitForSelector('.mode-switch, .gc-role-gate, .gc-glass-gate', { timeout: 30000 })
 
-  // 角色选择门（2026-10-27 由轨道B 引入）：先选「求职者」，再进街区
-  const gate = await page.locator('.gc-role-gate').count()
-  if (gate) {
-    console.log('→ 检测到角色门，选择「求职者」')
+  // 角色选择门（2026-10-27 由轨道B 引入）：先选「求职者」，再进街区。
+  // 2026-10-29 起默认门为玻璃门（.gc-glass-gate），?gate=classic 才出现旧街景门
+  const classicGate = await page.locator('.gc-role-gate').count()
+  const glassGate = await page.locator('.gc-glass-gate').count()
+  if (classicGate) {
+    console.log('→ 检测到街景门（classic），选择「求职者」')
     const card = page.locator('.gc-role-card--candidate').first()
     if (await card.count()) await card.click()
     else await page.locator('.gc-role-card').first().click()
+  } else if (glassGate) {
+    console.log('→ 检测到玻璃门，点主 CTA 直接进街区')
+    await page.locator('.gg-cta').first().click()
   }
   await page.waitForSelector('.mode-switch', { timeout: 30000 })
 

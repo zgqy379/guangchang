@@ -103,6 +103,12 @@
 - **不许动清单**：asset.ts · 主题三件套 · 街区布局常量（T10 穿模修复值）· MoneyMountain/SchrodingerBills · AvatarActor 漫游逻辑 · RoamCamera/WorkdaySky/NPC · OfficeViewer 取景算法 · tokens.config.mjs 的 transform · 双端部署配置。
 - 详细分期（21 天 + 3 天缓冲，八期 P0–P7）与最短路径见 `docs/design/role-flow-engineering-v1.md` §7 与 `role-flow-master-v1.md` §7。
 
+## v1.4.3 变更记录（2026-10-29 · 玻璃门转正）
+
+- **玻璃门转正为主门**：独立盲审 R15（视觉 7.75 / 空间 7.0，PASS，评审原文 `docs/design/reviews/r15-glass-gate.md`）——液态玻璃控制台 + R14 蓝调街景 webp 主视觉 + 「把 offer 读成地形」衬线排版；`?gate=classic` 保留旧街景门对照。新增 IBM Plex Mono / Noto Serif SC 子集字体（OFL，已录 THIRD_PARTY_NOTICES）；首屏总传输约 0.44MB，仍零 WebGL / 零 GLB。
+- **蓝调时刻夜景批次①未过线撤下**：盲审 R16 视觉 6.75 < 7.0（失分位=遗留工艺：黑顶/贴片辉光/特写发闷，与 R9–R14 汇合结论一致；walk 单帧 7.5 证明方向成立），按纪律冻结——WorkdaySky 恢复深靛夜景；配方与令牌组保留（`theme.nightBluehour` + `twin.bluehour*`，未接线），**批次②=釉面材质横扫后合并重审**（修复清单见 `docs/design/reviews/r16-bluehour-night.md`）。
+- 魔搭端 demo-video.mp4 已同步 m02 重剪版并重部署；`shoot-street.cjs` / `accept-live.mjs` 已适配双门选择器（`.gc-glass-gate` / `.gg-cta`）；报告 v3.4 首图换玻璃门、首屏口径 0.44MB。
+
 ## v1.4.2 变更记录（2026-10-28 · R14 一致性修复）
 
 **触发**：主理人要求把两处视觉不一致统一到 R14 实机——视频 m02 与报告街区图。

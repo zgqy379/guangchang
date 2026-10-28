@@ -170,8 +170,10 @@ function Scene({
   )
 }
 
-const GLASS_GATE_PREVIEW =
-  typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('gate') === 'glass'
+// 角色门选型：玻璃门为主门（2026-10-29 主理人裁决转正，盲审通过后部署上线）。
+// ?gate=classic 保留旧街景门（RoleGate）作对照/回退。
+const USE_CLASSIC_GATE =
+  typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('gate') === 'classic'
 
 export default function App() {
   const [mode, setMode] = useState<'single' | 'compare' | 'office' | 'street' | 'gallery'>('single')
@@ -303,17 +305,17 @@ export default function App() {
     <div className="app" data-theme={theme}>
       {/* 顶层错误边界：任何未捕获错误都降级为可读页，而不是整站白屏（T8 同构风险） */}
       <ErrorBoundary>
-      {/* 首屏角色门禁：纯 SVG，零 3D 资产、零 WebGL 上下文 */}
+      {/* 首屏角色门禁：零 3D 资产、零 WebGL 上下文（玻璃门=webp+DOM，旧门=SVG） */}
       {roleGate &&
-        (GLASS_GATE_PREVIEW ? (
-          <RoleGateGlass
+        (USE_CLASSIC_GATE ? (
+          <RoleGate
             onPick={enterAsRole}
             onEnterStreet={enterStreetDirectly}
             remembered={rememberedRole}
             onDismissRemembered={() => setRememberedRole(null)}
           />
         ) : (
-          <RoleGate
+          <RoleGateGlass
             onPick={enterAsRole}
             onEnterStreet={enterStreetDirectly}
             remembered={rememberedRole}
