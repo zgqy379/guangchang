@@ -13,10 +13,10 @@ import {
   ColorSceneBillRed,
   ColorSceneFloor,
   ColorSceneGate,
+  ColorSceneTankDay,
   ColorSceneWindow,
   ColorStateInfo,
   ColorStateSuccess,
-  ThemeLightGlassBody,
   TwinContactOpacityDay,
 } from '../../../generated/design-tokens.output.mjs'
 import type { ThemeName } from '../../engine/theme'
@@ -544,19 +544,25 @@ export function HRStand({ lot, onEnterOffice, delivered = false, theme = 'dark' 
               )}
               {lot.industry === 'finance' && (
                 <mesh position={[0, h + 1.2, 0]}>
+                  {/* 金融尖顶：白天原用近白玻璃色 ThemeLightGlassBody + metalness 0.5 →
+                      浅色天幕下读作一排「白尖牙」，与水塔同属近白结构件问题。
+                      改用结构件深灰蓝 ColorSceneGate（与夜间同色，昼夜统一读作金属塔尖）。 */}
                   <coneGeometry args={[1.1, 2.4, 4]} />
-                  <meshStandardMaterial color={envNight ? ColorSceneGate : ThemeLightGlassBody} metalness={0.5} roughness={0.35} />
+                  <meshStandardMaterial color={ColorSceneGate} metalness={0.5} roughness={0.35} />
                 </mesh>
               )}
               {lot.industry === 'manufacturing' && (
                 <group position={[2.1, h + 0.9, 0.9]}>
+                  {/* 智造楼顶工业储罐：白天原用 ThemeLightGlassBody（近白玻璃色），64 栋在水塔
+                      造型（圆柱罐体+球顶盖）下读作一排「白色药瓶」，是鸟瞰白模感最强单点。
+                      改专用场景令牌 scene.tankDay（工业镀锌灰）→ 回到结构件读法。 */}
                   <mesh position={[0, 0.5, 0]}>
                     <cylinderGeometry args={[0.55, 0.62, 1.8, 10]} />
-                    <meshStandardMaterial color={envNight ? ColorSceneGate : ThemeLightGlassBody} roughness={0.85} />
+                    <meshStandardMaterial color={envNight ? ColorSceneGate : ColorSceneTankDay} roughness={0.85} />
                   </mesh>
                   <mesh position={[0, 1.5, 0]}>
                     <sphereGeometry args={[0.55, 12, 10]} />
-                    <meshStandardMaterial color={envNight ? ColorSceneGate : ThemeLightGlassBody} roughness={0.85} />
+                    <meshStandardMaterial color={envNight ? ColorSceneGate : ColorSceneTankDay} roughness={0.85} />
                   </mesh>
                 </group>
               )}

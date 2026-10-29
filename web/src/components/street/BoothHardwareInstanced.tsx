@@ -25,7 +25,7 @@ import type { LotPlacement } from '../../data/street-companies'
 import { INDUSTRIES } from '../../data/street-companies'
 import type { Industry } from '../../data/street-companies'
 import type { ThemeName } from '../../engine/theme'
-import { ColorStateSuccess } from '../../../generated/design-tokens.output.mjs'
+import { ColorSceneBoothMetalDay, ColorStateSuccess } from '../../../generated/design-tokens.output.mjs'
 import { applyLotJitter, posterTexture } from './OfficeFacadeInstanced'
 import { shadowTexture } from './HRStand'
 
@@ -339,10 +339,11 @@ export function BoothHardwareInstanced({
         {/* 夜间 0.1→0.2（决策纸⑤：摊位夜光提档，R12「摊位与街道生活不可见」） */}
         <meshBasicMaterial vertexColors transparent opacity={night ? 0.2 : 0.16} side={THREE.DoubleSide} depthWrite={false} />
       </instancedMesh>
-      {/* pole */}
+      {/* pole：摊位雨棚立柱。原色 #cdd8e2 近白，64 根在鸟瞰里读作一排「白色药瓶」，
+          白模感最强的单点；改中灰金属（scene.boothMetalDay）后立柱回到结构件读法。 */}
       <instancedMesh ref={poleRef} args={[undefined, undefined, count]}>
         <boxGeometry args={[0.14, 1.86, 0.42]} />
-        <meshStandardMaterial color={night ? '#1b232c' : '#cdd8e2'} />
+        <meshStandardMaterial color={night ? '#1b232c' : ColorSceneBoothMetalDay} />
       </instancedMesh>
       {/* sign */}
       <instancedMesh ref={signRef} args={[undefined, undefined, count]}>

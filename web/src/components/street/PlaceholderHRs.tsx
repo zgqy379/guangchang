@@ -165,7 +165,10 @@ export function PlaceholderHRs({
         receiveShadow
       >
         <capsuleGeometry args={[0.055, 0.42, 4, 8]} />
-        <meshStandardMaterial vertexColors roughness={0.8} />
+        {/* ⚠ 勿加 vertexColors：CapsuleGeometry 无 color 顶点属性，USE_COLOR 会把 vColor
+            乘成 0 → 64 个远景人形全是纯黑剪影（本仓库 T14「纯黑棚顶」同一根因）。
+            行业色由 instanceColor 单独生效即可。 */}
+        <meshStandardMaterial roughness={0.8} />
       </instancedMesh>
       <instancedMesh ref={headRef} args={[undefined, undefined, totalSingleInstances]}>
         <sphereGeometry args={[0.185, 16, 14]} />
@@ -173,15 +176,15 @@ export function PlaceholderHRs({
       </instancedMesh>
       <instancedMesh ref={hairRef} args={[undefined, undefined, totalSingleInstances]}>
         <sphereGeometry args={[0.19, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2]} />
-        <meshStandardMaterial vertexColors roughness={0.9} />
+        <meshStandardMaterial roughness={0.9} />
       </instancedMesh>
       <instancedMesh ref={badgeRef} args={[undefined, undefined, totalSingleInstances]}>
         <boxGeometry args={[0.055, 0.012, 0.01]} />
-        <meshStandardMaterial vertexColors emissiveIntensity={0.4} />
+        <meshStandardMaterial emissiveIntensity={0.4} />
       </instancedMesh>
       <instancedMesh ref={topRef} args={[undefined, undefined, totalSingleInstances]}>
         <sphereGeometry args={[0.1, 12, 10]} />
-        <meshBasicMaterial vertexColors />
+        <meshBasicMaterial />
       </instancedMesh>
     </group>
   )
