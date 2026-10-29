@@ -26,6 +26,6 @@ api.upload_folder(
     repo_id="zgqy379/guangchang3d",
     repo_type="studio",
     folder_path="E:/guangchang/web/dist",
-    commit_message="奖项冲刺循环①-⑥：正午时间缝+屋顶母题+夜脊微光/沿街发光边+特写动态名牌/柜台业务屏+路缘树列+8NPC（R9-R14 六轮盲审）",
+    commit_message="R18 终版：批次②视觉（青瓷树冠/立面釉面/路灯光锥）+ 参数碑街面可读（碑高 0.8-3.2m + 金冠 + 亮珠顶灯）+ 屋顶降噪（智造收分烟囱/尖顶中灰/天窗浅灰）+ 近白结构件清账；过 R18 双盲审门禁（视觉 7.7 / 空间 7.3）",
 )
 print("upload done")

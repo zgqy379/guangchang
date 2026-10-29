@@ -4,7 +4,12 @@ const task = await taskSpace('gc-accept-live-' + Date.now())
 const page = task.page('p1')
 const URL = 'https://zgqy379.github.io/guangchang/?v=' + Date.now() + '&debug=1' // 击穿 Pages 缓存；?debug=1 挂诊断钩子（engine/debug 门控，线上默认不暴露）
 console.log('→ goto', URL)
-await page.goto(URL, { waitUntil: 'load', timeout: 60000 })
+try {
+  await page.goto(URL, { waitUntil: 'load', timeout: 60000 })
+} catch (e) {
+  // ego 的 goto 有 15s 硬超时；线上包大，超时不等于没加载，继续等选择器即可
+  console.error('goto timeout (继续等待就绪):', String(e).slice(0, 80))
+}
 await page.waitForSelector('.gc-glass-gate, .gc-role-gate, .mode-switch', { timeout: 45000 })
 
 const rootInfo = await page.evaluate(() => {
@@ -37,6 +42,14 @@ await page.evaluate(() => {
 await page.waitForFunction(() => !!window.__st, undefined, { timeout: 60000 })
 await page.waitForTimeout(6000)
 
+// 等 renderer 真正出帧（线上包 45MB，首帧可能远晚于 __st 就绪）
+let calls = 0
+for (let i = 0; i < 20; i++) {
+  calls = await page.evaluate(() => (window.__gl?.info?.render?.calls ?? 0))
+  if (calls > 0) break
+  await page.waitForTimeout(3000)
+}
+
 const after = await page.evaluate(() => {
   const gl = window.__gl
   return {
@@ -47,8 +60,12 @@ const after = await page.evaluate(() => {
 })
 console.log('=== 街区验收 ===')
 console.log(JSON.stringify(after))
-await page.screenshot({ path: 'E:/guangchang/tmp-design-review/live-accept.png' })
-console.log('✓ 线上截图已存 tmp-design-review/live-accept.png')
+try {
+  await page.screenshot({ path: 'E:/guangchang/tmp-design-review/live-accept.png' })
+  console.log('✓ 线上截图已存 tmp-design-review/live-accept.png')
+} catch (e) {
+  console.error('screenshot failed (不影响验收):', String(e).slice(0, 80))
+}
 if (!after.canvas || after.hasErrorText || !after.drawCalls) {
   console.error('✗ 线上验收未通过')
   process.exit(1)

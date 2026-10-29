@@ -4,25 +4,27 @@
 const task = await taskSpace('ms-redeploy-ego-' + Date.now())
 const page = task.page('p1')
 
-await page.goto('https://modelscope.cn/studios/zgqy379/guangchang3d/settings', { timeout: 60000 })
-await page.waitForTimeout(6000)
-
-// 登录态检查：页面若跳登录墙则终止
-const loginWall = await page.evaluate(() => document.body.innerText.includes('登录') && !document.body.innerText.includes('重新部署'))
-if (loginWall) {
-  console.error('✗ 登录态失效（egolite 配置文件无魔搭登录态）——请先在 ego lite 里登录魔搭')
-  process.exit(1)
+try {
+  await page.goto('https://modelscope.cn/studios/zgqy379/guangchang3d/settings', { timeout: 60000 })
+} catch (e) {
+  console.error('goto timeout (继续):', String(e).slice(0, 80))
 }
-
-const clicked = await page.evaluate(() => {
-  // 「重新部署」控件非标准 button（可能是 span/div），全元素精确文本匹配取最内层
-  const els = [...document.querySelectorAll('*')].filter(
-    (e) => (e.textContent || '').trim() === '重新部署' && e.offsetParent && e.children.length === 0,
-  )
-  const el = els[els.length - 1]
-  if (el) { el.click(); return true }
-  return false
-})
+// SPA 渲染慢：轮询等待「重新部署」控件出现（含滚动触发懒加载）
+let clicked = false
+for (let i = 0; i < 12 && !clicked; i++) {
+  await page.waitForTimeout(3000)
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight)).catch(() => {})
+  clicked = await page.evaluate(() => {
+    // 「重新部署」控件非标准 button（可能是 span/div），全元素精确文本匹配取最内层
+    const els = [...document.querySelectorAll('*')].filter(
+      (e) => (e.textContent || '').trim() === '重新部署' && e.offsetParent && e.children.length === 0,
+    )
+    const el = els[els.length - 1]
+    if (el) { el.click(); return true }
+    return false
+  })
+  if (!clicked) console.error('等待「重新部署」控件…', i + 1)
+}
 console.log('redeploy clicked', clicked)
 if (!clicked) {
   console.error('✗ 找不到「重新部署」按钮（登录态失效或页面结构变更）')

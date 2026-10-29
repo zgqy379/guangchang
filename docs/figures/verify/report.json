@@ -1,0 +1,62 @@
+{
+ "bird": {
+  "drawCalls": 695,
+  "triangles": 2650402,
+  "geometries": 629,
+  "textures": 97,
+  "skinCount": 9,
+  "fps": 4,
+  "labelVisible": true,
+  "renderer": "ANGLE (AMD, AMD Radeon(TM) Graphics (0x00001681) Direct3D11 vs_5_0 ps_5_0, D3D11)"
+ },
+ "walk": {
+  "windowMs": 2600,
+  "moving": {
+   "changedBones": 11,
+   "totalBones": 52,
+   "sumDelta": 1.314
+  },
+  "idle": {
+   "changedBones": 6,
+   "totalBones": 52,
+   "sumDelta": 0.362
+  },
+  "movedDuringSampling": 0.272,
+  "playerAtWalk": {
+   "x": 8.2,
+   "z": 1.73
+  },
+  "playerAtIdle": {
+   "x": 9.05,
+   "z": 0.59
+  },
+  "playerMeshDist": 0.8
+ },
+ "nearGallery": {
+  "labelVisible": false,
+  "labelRect": {
+   "x": 0,
+   "y": 0,
+   "width": 0,
+   "height": 0,
+   "top": 0,
+   "right": 0,
+   "bottom": 0,
+   "left": 0
+  },
+  "plate": {
+   "x": 673,
+   "y": 360,
+   "w": 218,
+   "h": 41
+  },
+  "overlapPx": 0,
+  "player": {
+   "x": 9.66,
+   "z": -0.22
+  },
+  "drawCalls": 235,
+  "triangles": 8447469
+ },
+ "warns": []
+}
