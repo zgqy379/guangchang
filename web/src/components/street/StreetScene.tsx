@@ -33,6 +33,9 @@ import {
   ColorTextSecondary,
   ColorSceneBarOff,
   ColorSceneBarOn,
+  ColorSceneTreeCeladon,
+  ColorSceneTreeTrunk,
+  TwinLampConeOpacity,
   ThemeLightGround,
   ThemeLightRoad,
   ThemeLightGlassHead,
@@ -399,11 +402,13 @@ function ParamSteles({ theme }: { theme: ThemeName }) {
       <instancedMesh ref={body} args={[undefined, undefined, data.length]} castShadow receiveShadow>
         <boxGeometry args={[1, 1, 1]} />
         {/* 碑体微自发光（决策纸③）：它是「碑高=总包」的数据要素，玻璃厅阴影里不应读成未贴面的黑洞 */}
+        {/* 碑体改中灰蓝（ColorSceneGate）：近白的 ThemeLightGlassHead 在鸟瞰里读作
+            一排「白色药瓶」，不像信息载体；深色碑体 + 顶部金带 + 5 条灯条才读成计分碑 */}
         <meshStandardMaterial
-          color={night ? ColorSceneGateDark : ThemeLightGlassHead}
+          color={night ? ColorSceneGateDark : ColorSceneGate}
           emissive={night ? '#1c2531' : '#4a545f'}
           emissiveIntensity={night ? 0.7 : 0.4}
-          roughness={night ? 0.85 : 0.5}
+          roughness={night ? 0.85 : 0.62}
         />
       </instancedMesh>
       <instancedMesh ref={band} args={[undefined, undefined, data.length]}>
@@ -532,12 +537,16 @@ function StreetTrees() {
       o.rotation.set(0, i * 1.3, 0)
       o.updateMatrix()
       tr.setMatrixAt(i, o.matrix)
-      o.position.set(x, 2.05, z)
+      o.position.set(x, 1.92, z)
       o.rotation.set(0, i * 0.7, 0)
-      o.scale.setScalar(0.9 + ((i * 37) % 5) * 0.08)
+      // 树冠：青瓷色 + 缩 22% + 压扁（R16 批次② 配方）。
+      // 原 1.05 半径的球从鸟瞰读作"引擎默认球"，且在特写里压住摊位雨棚
+      // （R16 共同失分位③「摊位结构过简且被雨棚/树冠压顶发闷」）。
+      const cs = 0.9 + ((i * 37) % 5) * 0.08
+      o.scale.set(cs, cs * 0.82, cs)
       o.updateMatrix()
       cr.setMatrixAt(i, o.matrix)
-      cr.setColorAt(i, col.set('#5da272').offsetHSL(((i % 5) - 2) * 0.014, 0, ((i % 3) - 1) * 0.045))
+      cr.setColorAt(i, col.set(ColorSceneTreeCeladon).offsetHSL(((i % 5) - 2) * 0.014, 0, ((i % 3) - 1) * 0.045))
     })
     tr.instanceMatrix.needsUpdate = true
     cr.instanceMatrix.needsUpdate = true
@@ -547,11 +556,12 @@ function StreetTrees() {
     <>
       <instancedMesh ref={trunkRef} args={[undefined, undefined, positions.length]} castShadow>
         <cylinderGeometry args={[0.09, 0.13, 1.5, 6]} />
-        <meshStandardMaterial color="#7a6248" roughness={0.9} />
+        <meshStandardMaterial color={ColorSceneTreeTrunk} roughness={0.9} />
       </instancedMesh>
+      {/* 青瓷釉树冠：roughness 0.6 给一点釉面反光（不再是纯哑光绿球） */}
       <instancedMesh ref={crownRef} args={[undefined, undefined, positions.length]} castShadow>
-        <icosahedronGeometry args={[1.05, 0]} />
-        <meshStandardMaterial roughness={0.85} />
+        <icosahedronGeometry args={[0.82, 0]} />
+        <meshStandardMaterial roughness={0.6} metalness={0.08} />
       </instancedMesh>
     </>
   )
@@ -672,11 +682,33 @@ function lampGlowTexture() {
   return LAMP_GLOW_TEX
 }
 
+// 路灯光锥贴图：上亮下透（v=1 在灯头处）——给辉光一个"从灯杆射下来"的锚点，
+// 而不是一团贴在画面上的硬边光斑（R16 批次②配方：软辉光 + 灯杆锚点）
+let LAMP_CONE_TEX: THREE.CanvasTexture | null = null
+function lampConeTexture() {
+  if (LAMP_CONE_TEX) return LAMP_CONE_TEX
+  const c = document.createElement('canvas')
+  c.width = 16
+  c.height = 128
+  const ctx = c.getContext('2d')!
+  const g = ctx.createLinearGradient(0, 0, 0, 128)
+  g.addColorStop(0, 'rgba(255,214,160,0.95)')
+  g.addColorStop(0.32, 'rgba(255,190,120,0.34)')
+  g.addColorStop(1, 'rgba(255,170,90,0)')
+  ctx.fillStyle = g
+  ctx.fillRect(0, 0, 16, 128)
+  const t = new THREE.CanvasTexture(c)
+  t.colorSpace = THREE.SRGBColorSpace
+  LAMP_CONE_TEX = t
+  return t
+}
+
 function StreetLamps({ theme }: { theme: ThemeName }) {
   const night = theme === 'dark'
   const ref = useRef<THREE.InstancedMesh>(null)
   const headRef = useRef<THREE.InstancedMesh>(null)
   const poolRef = useRef<THREE.InstancedMesh>(null)
+  const coneRef = useRef<THREE.InstancedMesh>(null)
   const mats = useMemo(() => {
     const arr: [number, number, number][] = []
     for (const axis of [0, 1]) {
@@ -719,6 +751,7 @@ function StreetLamps({ theme }: { theme: ThemeName }) {
     const m = ref.current
     const h = headRef.current
     const pool = poolRef.current
+    const cone = coneRef.current
     if (!m || !h || !pool) return
     const o = new THREE.Object3D()
     mats.forEach((p, i) => {
@@ -733,10 +766,19 @@ function StreetLamps({ theme }: { theme: ThemeName }) {
       o.rotation.set(-Math.PI / 2, 0, 0)
       o.updateMatrix()
       pool.setMatrixAt(i, o.matrix)
+      // 光锥：锥尖在灯头（y=3.68），向下张开到地面 → 光有来源，不再是无锚点光斑
+      if (cone) {
+        o.position.set(p[0], 3.68 - 1.6, p[2])
+        o.rotation.set(0, i * 0.4, 0)
+        o.scale.set(1, 1, 1)
+        o.updateMatrix()
+        cone.setMatrixAt(i, o.matrix)
+      }
     })
     m.instanceMatrix.needsUpdate = true
     h.instanceMatrix.needsUpdate = true
     pool.instanceMatrix.needsUpdate = true
+    if (cone) cone.instanceMatrix.needsUpdate = true
   }, [mats])
   return (
     <>
@@ -762,14 +804,32 @@ function StreetLamps({ theme }: { theme: ThemeName }) {
           <pointsMaterial
             map={lampGlowTexture()}
             color={ColorSceneLamp}
-            size={1.7}
+            size={1.5}
             sizeAttenuation
             transparent
-            opacity={1.0}
+            opacity={0.85}
             depthWrite={false}
             blending={THREE.AdditiveBlending}
           />
         </points>
+      )}
+      {/* 路灯光锥：锥尖=灯头，向下张开到地面（1 DC，64 实例）。
+          给夜间辉光一个「从灯杆射下来」的锚点——R16 批次②处方②：
+          原灯头光晕是硬边贴片光斑、没有灯杆锚点。 */}
+      {night && (
+        <instancedMesh ref={coneRef} args={[undefined, undefined, mats.length]}>
+          <coneGeometry args={[0.95, 3.2, 14, 1, true]} />
+          <meshBasicMaterial
+            map={lampConeTexture()}
+            color={ColorSceneLamp}
+            transparent
+            opacity={TwinLampConeOpacity}
+            depthWrite={false}
+            side={THREE.DoubleSide}
+            blending={THREE.AdditiveBlending}
+            toneMapped={false}
+          />
+        </instancedMesh>
       )}
       {/* 地面暖光池（廉价假光，替代 64 个点光源；仅夜间）
           盲审 R2 短板①：夜间鸟瞰地面死黑 → 光池加大提亮（5.2m/0.95） */}
@@ -914,6 +974,76 @@ function PlayerKissLight({ positionRef }: { positionRef: React.MutableRefObject<
     if (l && positionRef.current) l.position.set(positionRef.current.x, 2.1, positionRef.current.z)
   })
   return <pointLight ref={ref} intensity={7} distance={7} decay={2} color="#ffd9a0" />
+}
+
+// 作品廊入口（v1.4 双角色体系）：求职者空间独立入口，不进顶栏，从街道路牌进入。
+//
+// R16 评审 B 点名的真 bug：世界锚定的 HTML 标签与相机无关——鸟瞰时它浮在远景
+// 屋顶上（看着像那一带的招牌），特写时它压在摊位名牌上方（空间指引自相矛盾）。
+// 修法不是挪位置，是让标签**距离感知**：走近入口才出现，且聚焦摊位时让位给
+// 摊位自己的名牌。入口立柱本体始终可见、可点，标签只是提示。
+const GALLERY_ENTRY_POS = new THREE.Vector3(0, 1.5, 20)
+const GALLERY_LABEL_RANGE = 14 // m：超过此距离不显示标签
+
+function GalleryEntry({
+  onEnter,
+  hidden,
+  night,
+}: {
+  onEnter: () => void
+  hidden: boolean
+  night: boolean
+}) {
+  const label = useRef<HTMLDivElement>(null)
+  const shown = useRef<boolean | null>(null)
+  useFrame(({ camera }) => {
+    const el = label.current
+    if (!el) return
+    const visible = !hidden && camera.position.distanceTo(GALLERY_ENTRY_POS) < GALLERY_LABEL_RANGE
+    if (shown.current === visible) return
+    shown.current = visible
+    el.style.opacity = visible ? '1' : '0'
+    el.style.visibility = visible ? 'visible' : 'hidden'
+  })
+  return (
+    <>
+      <mesh
+        position={[0, 1.5, 20]}
+        onClick={onEnter}
+        onPointerOver={() => (document.body.style.cursor = 'pointer')}
+        onPointerOut={() => (document.body.style.cursor = 'default')}
+      >
+        <cylinderGeometry args={[0.6, 3, 0.6]} />
+        <meshStandardMaterial
+          color="#16C0B6"
+          emissive="#16C0B6"
+          emissiveIntensity={night ? 1.5 : 0.5}
+          transparent
+          opacity={0.9}
+        />
+      </mesh>
+      <Html position={[0, 3.5, 20]} center>
+        {/* 深色药丸衬底（决策纸③）：青字压橙顶/白梁 = R8 事故两轮复审再点名 */}
+        <div
+          ref={label}
+          style={{
+            color: '#5ee6dc',
+            fontWeight: 600,
+            fontSize: 14,
+            whiteSpace: 'nowrap',
+            background: 'rgba(8, 12, 20, 0.62)',
+            padding: '4px 12px',
+            borderRadius: 999,
+            border: '1px solid rgba(94, 230, 220, 0.35)',
+            opacity: 0,
+            visibility: 'hidden',
+          }}
+        >
+          作品廊 · 求职者独立空间
+        </div>
+      </Html>
+    </>
+  )
 }
 
 // 16 粒加性混合点精灵，仅在 DeliveryFX 存活的 ~1.15s 内 +1 draw call，随后随组件卸载归零。
@@ -1637,38 +1767,7 @@ export function StreetScene({
         position={[0, 0, 14]}
       />
       {/* 作品廊入口（v1.4 双角色体系）：求职者空间独立入口，不进顶栏，从街道路牌进入 */}
-      <mesh
-        position={[0, 1.5, 20]}
-        onClick={onEnterGallery}
-        onPointerOver={() => (document.body.style.cursor = 'pointer')}
-        onPointerOut={() => (document.body.style.cursor = 'default')}
-      >
-        <cylinderGeometry args={[0.6, 3, 0.6]} />
-        <meshStandardMaterial
-          color="#16C0B6"
-          emissive="#16C0B6"
-          emissiveIntensity={theme === 'dark' ? 1.5 : 0.5}
-          transparent
-          opacity={0.9}
-        />
-      </mesh>
-      <Html position={[0, 3.5, 20]} center>
-        {/* 深色药丸衬底（决策纸③）：青字压橙顶/白梁 = R8 事故两轮复审再点名 */}
-        <div
-          style={{
-            color: '#5ee6dc',
-            fontWeight: 600,
-            fontSize: 14,
-            whiteSpace: 'nowrap',
-            background: 'rgba(8, 12, 20, 0.62)',
-            padding: '4px 12px',
-            borderRadius: 999,
-            border: '1px solid rgba(94, 230, 220, 0.35)',
-          }}
-        >
-          作品廊 · 求职者独立空间
-        </div>
-      </Html>
+      <GalleryEntry onEnter={() => onEnterGallery?.()} hidden={!!nearLot} night={theme === 'dark'} />
       </Canvas>
       <div className="scene-vignette" aria-hidden />
       <GameHud state={hudState} />

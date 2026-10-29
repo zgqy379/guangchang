@@ -46,6 +46,8 @@
   --color-scene-bar-on: #58e39b;
   --color-scene-bar-off: #233028;
   --color-scene-skin: #e8b98a;
+  --color-scene-tree-celadon: #6f9e8c;
+  --color-scene-tree-trunk: #6b5740;
   --color-scene-sun: #ffd4b0;
   --color-scene-moon: #e8edf5;
   --font-size-xs: 11px;
@@ -137,6 +139,9 @@
   --twin-fill-intensity-day: 0.18;
   --twin-fill-intensity-night: 0.28;
   --twin-glass-roughness-day: 0.24;
+  --twin-facade-roughness-day: 0.3;
+  --twin-facade-metalness-day: 0.16;
+  --twin-lamp-cone-opacity: 0.34;
   --twin-glass-roughness-night: 0.3;
   --twin-glass-opacity-day: 0.92;
   --twin-ground-env-intensity: 0.9;

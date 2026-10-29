@@ -20,6 +20,8 @@ import { facadeTexture, glassTexture } from './HRStand'
 import {
   ColorSceneGateDark,
   ThemeLightGlassHead,
+  TwinFacadeMetalnessDay,
+  TwinFacadeRoughnessDay,
 } from '../../../generated/design-tokens.output.mjs'
 import type { ThemeName } from '../../engine/theme'
 
@@ -342,8 +344,8 @@ export function OfficeFacadeInstanced({
           <boxGeometry args={[6.4, 1, 5.2]} />
           <meshStandardMaterial
             color={night ? ColorSceneGateDark : ThemeLightGlassHead}
-            roughness={night ? 0.85 : 0.5}
-            metalness={night ? 0 : 0.1}
+            roughness={night ? 0.85 : TwinFacadeRoughnessDay}
+            metalness={night ? 0 : TwinFacadeMetalnessDay}
           />
         </instancedMesh>
       ))}

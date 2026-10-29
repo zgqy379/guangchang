@@ -62,7 +62,14 @@ export function AvatarActor({
   const { scene: idleScene, animations: idleAnims } = useGLTF(IDLE_URL, DRACO_PATH)
   // walk 剪辑惰性回填：初始为空 → 非漫游不触发 walk.glb 请求
   const [walkAnims, setWalkAnims] = useState<THREE.AnimationClip[]>([])
-  const handleWalkAnims = useCallback((clips: THREE.AnimationClip[]) => setWalkAnims(clips), [])
+  // walk.glb 是否已回填完成。缺剪辑告警必须以「加载完毕」为前提：
+  // walk.glb 惰性加载约 1.6s，加载完成前 walkAnims 必然为空，
+  // 早于加载完成就告警＝把"还没到"误报成"没有"（假警报比没告警更坏）。
+  const [walkLoaded, setWalkLoaded] = useState(false)
+  const handleWalkAnims = useCallback((clips: THREE.AnimationClip[]) => {
+    setWalkAnims(clips)
+    setWalkLoaded(true)
+  }, [])
 
   // A/B 对比模式两个 <Canvas> 共享 useGLTF 全局缓存的同一 scene：
   // 直接把同一 Object3D 挂进两处 <primitive> 会让后者把它搬走 → 一侧 Avatar 消失。
@@ -92,15 +99,16 @@ export function AvatarActor({
   const { actions } = useAnimations(clips, root)
   const curAnim = useRef<'IDLE' | 'WALK'>('IDLE')
 
-  // 缺剪辑检测：GLB 无动画会静默停在绑定姿势（T-pose），必须显式告警而非无声
+  // 缺剪辑检测：GLB 无动画会静默停在绑定姿势（T-pose），必须显式告警而非无声。
+  // walk 侧以 walkLoaded 为门槛——惰性加载未完成不是"缺剪辑"。
   useEffect(() => {
     if (!idleAnims[0]) {
       console.warn('[AvatarActor] avatar-idle.glb 缺少动画剪辑 → 将停在绑定姿势（T-pose）')
     }
-    if (roam && !walkAnims[0]) {
+    if (roam && walkLoaded && !walkAnims[0]) {
       console.warn('[AvatarActor] avatar-walk.glb 缺少动画剪辑 → WALK 不可用')
     }
-  }, [idleAnims, walkAnims, roam])
+  }, [idleAnims, walkAnims, walkLoaded, roam])
 
   // 初始播 IDLE；clips/walk 加载导致 actions 重建后，恢复**当前**动画而非硬切回 IDLE
   useEffect(() => {

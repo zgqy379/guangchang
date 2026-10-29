@@ -41,6 +41,8 @@ export declare const ColorSceneWindowDim: string
 export declare const ColorSceneBarOn: string
 export declare const ColorSceneBarOff: string
 export declare const ColorSceneSkin: string
+export declare const ColorSceneTreeCeladon: string
+export declare const ColorSceneTreeTrunk: string
 export declare const ColorSceneSun: string
 export declare const ColorSceneMoon: string
 export declare const FontSizeXs: string
@@ -132,6 +134,9 @@ export declare const TwinHemiIntensityNight: number
 export declare const TwinFillIntensityDay: number
 export declare const TwinFillIntensityNight: number
 export declare const TwinGlassRoughnessDay: number
+export declare const TwinFacadeRoughnessDay: number
+export declare const TwinFacadeMetalnessDay: number
+export declare const TwinLampConeOpacity: number
 export declare const TwinGlassRoughnessNight: number
 export declare const TwinGlassOpacityDay: number
 export declare const TwinGroundEnvIntensity: number
