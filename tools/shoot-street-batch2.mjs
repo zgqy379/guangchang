@@ -85,6 +85,31 @@ async function canvasCenter() {
   }
 }
 
+// 等 HUD 真正可见（进度卡存在 + 非零尺寸 + 不透明）——否则截到入场动画半途的「无 HUD 帧」
+// （R18 复评点名：day-walk 缺 HUD，评审会读成漏版）
+async function waitForHud(tag) {
+  for (let i = 0; i < 20; i++) {
+    await wait(1500);
+    try {
+      const ok = await page.evaluate(() => {
+        const el = document.querySelector('.game-hud');
+        if (!el) return false;
+        const r = el.getBoundingClientRect();
+        const cs = getComputedStyle(el);
+        return r.width > 10 && r.height > 10 && Number(cs.opacity) > 0.6 && cs.visibility !== 'hidden';
+      });
+      if (ok) {
+        console.log('hud ready:', tag);
+        return true;
+      }
+    } catch {
+      /* 主线程忙 */
+    }
+  }
+  console.error('hud NOT ready:', tag);
+  return false;
+}
+
 // —— 昼间（?hour=10）：鸟瞰 + 特写 ——
 await enterStreet(10);
 await shot('day-bird');
@@ -92,7 +117,8 @@ await shot('day-bird');
 const box = await canvasCenter();
 if (box) {
   await page.mouse.click(box.x + 180, box.y + 70, { label: 'walk' });
-  await wait(7000);
+  await wait(4000);
+  await waitForHud('day-walk');
   await shot('day-walk');
 }
 
@@ -102,7 +128,8 @@ await shot('night-bird');
 const box2 = await canvasCenter();
 if (box2) {
   await page.mouse.click(box2.x + 180, box2.y + 70, { label: 'walk' });
-  await wait(7000);
+  await wait(4000);
+  await waitForHud('night-walk');
   await shot('night-walk');
 }
 
