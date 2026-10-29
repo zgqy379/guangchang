@@ -174,14 +174,9 @@ function Compass({
               />
             )
           })}
-        {/* 玩家：视锥 + 三角 */}
-        <g transform={`translate(${px} ${py}) rotate(${deg}) scale(0.84)`}>
-          <path d="M0,0 L-15,-26 A 30 30 0 0 1 15,-26 Z" fill="#ffd24a" opacity={0.12} />
-          <path d="M0,-5 L3.6,4 L0,2 L-3.6,4 Z" fill="#ffd24a" />
-        </g>
       </g>
       <circle cx={C} cy={C} r={R} fill="none" stroke="rgba(255,255,255,0.18)" strokeWidth={1} />
-      {/* 区名：安全区内（不裁切） */}
+      {/* 区名：安全区内（不裁切，保持完整可读） */}
       {!compact &&
         arms.map((a) => (
           <text
@@ -199,6 +194,14 @@ function Compass({
             {INDUSTRIES[a.ind].label.replace('区', '')}
           </text>
         ))}
+      {/* 玩家：视锥 + 三角。画在区名「之上」（仍裁在圈内）——
+          R17 双评审「小地图区名与位置箭头互压」：箭头是定位主信息，必须永远可读。 */}
+      <g clipPath="url(#gc-nav-clip)">
+        <g transform={`translate(${px} ${py}) rotate(${deg}) scale(0.84)`}>
+          <path d="M0,0 L-15,-26 A 30 30 0 0 1 15,-26 Z" fill="#ffd24a" opacity={0.12} />
+          <path d="M0,-5 L3.6,4 L0,2 L-3.6,4 Z" fill="#ffd24a" />
+        </g>
+      </g>
     </svg>
   )
 }

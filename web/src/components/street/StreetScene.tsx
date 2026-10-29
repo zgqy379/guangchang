@@ -332,7 +332,10 @@ function ParamSteles({ theme }: { theme: ThemeName }) {
     () =>
       placed.map((p) => {
         const total = totalPackage(p.lot.params)
-        const height = Math.min(2.6, 0.7 + (total / 1_000_000) * 1.7)
+        // 碑高=总包。R17 双盲审共同 #1「参数碑在人视读不出高低」→
+        // 高度区间从 0.7–2.4m 拉开到 0.8–3.2m，且顶端金带 + 顶灯做大做亮：
+        // 街面一排「带金冠亮珠的高柱」，高低差一眼可比。
+        const height = Math.min(3.2, 0.8 + (total / 1_000_000) * 2.4)
         const ratio = p.lot.params.socialInsuranceBaseRatio
         const lit = ratio === 'full' ? 5 : ratio === '0.8' ? 4 : 3
         const off = p.lot.params.offworkTime
@@ -366,23 +369,23 @@ function ParamSteles({ theme }: { theme: ThemeName }) {
       o.scale.set(0.3, height, 0.22)
       o.updateMatrix()
       b.setMatrixAt(i, o.matrix)
-      // 顶部金带
-      o.position.set(wx, height - 0.04, wz)
-      o.scale.set(0.34, 0.04, 0.26)
+      // 顶部金带（做成"金冠"：加宽加厚，街面远看也能读出碑顶在哪）
+      o.position.set(wx, height - 0.06, wz)
+      o.scale.set(0.46, 0.09, 0.34)
       o.updateMatrix()
       bd.setMatrixAt(i, o.matrix)
       // 五险灯条（碑面）
       for (let j = 0; j < 5; j++) {
         const ly = 0.3 + (j * (height - 0.55)) / 5
         o.position.set(wx + 0 * c + 0.12 * s, ly, wz - 0 * s + 0.12 * c)
-        o.scale.set(0.18, 0.06, 0.02)
+        o.scale.set(0.22, 0.09, 0.02)
         o.updateMatrix()
         br.setMatrixAt(barIndex, o.matrix)
         br.setColorAt(barIndex, col.set(j < lit ? ColorSceneBarOn : ColorSceneBarOff))
         barIndex++
       }
-      // 顶灯
-      o.position.set(wx, height + 0.12, wz)
+      // 顶灯（下班时间）：半径 0.09→0.19，街面可见的"亮珠"
+      o.position.set(wx, height + 0.16, wz)
       o.scale.set(1, 1, 1)
       o.updateMatrix()
       lp.setMatrixAt(i, o.matrix)
@@ -420,7 +423,7 @@ function ParamSteles({ theme }: { theme: ThemeName }) {
         <meshBasicMaterial />
       </instancedMesh>
       <instancedMesh ref={lamps} args={[undefined, undefined, data.length]}>
-        <sphereGeometry args={[0.09, 8, 8]} />
+        <sphereGeometry args={[0.19, 8, 8]} />
         <meshBasicMaterial />
       </instancedMesh>
     </group>

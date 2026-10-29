@@ -43,7 +43,6 @@ export declare const ColorSceneBarOff: string
 export declare const ColorSceneSkin: string
 export declare const ColorSceneTreeCeladon: string
 export declare const ColorSceneBoothMetalDay: string
-export declare const ColorSceneTankDay: string
 export declare const ColorSceneTreeTrunk: string
 export declare const ColorSceneSun: string
 export declare const ColorSceneMoon: string

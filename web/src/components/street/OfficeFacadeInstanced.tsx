@@ -18,6 +18,7 @@ import type { LotPlacement } from '../../data/street-companies'
 import { INDUSTRIES } from '../../data/street-companies'
 import { facadeTexture, glassTexture } from './HRStand'
 import {
+  ColorSceneBoothMetalDay,
   ColorSceneGateDark,
   ThemeLightGlassHead,
   TwinFacadeMetalnessDay,
@@ -252,7 +253,9 @@ export function OfficeFacadeInstanced({
           ;[-1.7, 1.7].forEach((lx, k) => {
             const idx = li * 2 + k
             skyMesh.setMatrixAt(idx, roofMatrixFor(pl, lx, bHeight + 0.31 + 0.09, (k === 0 ? -1 : 1) * 0.9, 1.2, 0.2, 1.5))
-            skyMesh.setColorAt(idx, roof.clone().offsetHSL(0, -0.05, -0.07))
+            // 天窗/设备箱：原取「屋顶色压暗一档」→ 金/橙屋顶上读成一地深褐方块（R17 视觉评审 #3「屋顶噪点」）。
+            // 改统一浅灰金属：读作屋面设备而不是屋顶上的脏色块。
+            skyMesh.setColorAt(idx, new THREE.Color(ColorSceneBoothMetalDay))
           })
         })
         ridgeMesh.instanceMatrix.needsUpdate = true

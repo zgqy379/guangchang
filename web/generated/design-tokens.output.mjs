@@ -47,7 +47,6 @@ export const ColorSceneBarOff = "#233028";
 export const ColorSceneSkin = "#e8b98a";
 export const ColorSceneTreeCeladon = "#6f9e8c";
 export const ColorSceneBoothMetalDay = "#6f7c8a";
-export const ColorSceneTankDay = "#77838e";
 export const ColorSceneTreeTrunk = "#6b5740";
 export const ColorSceneSun = "#ffd4b0";
 export const ColorSceneMoon = "#e8edf5";

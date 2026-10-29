@@ -11,9 +11,9 @@ import { assetUrl } from '../../engine/asset'
 import {
   ColorSceneBillOrange,
   ColorSceneBillRed,
+  ColorSceneBoothMetalDay,
   ColorSceneFloor,
   ColorSceneGate,
-  ColorSceneTankDay,
   ColorSceneWindow,
   ColorStateInfo,
   ColorStateSuccess,
@@ -545,26 +545,20 @@ export function HRStand({ lot, onEnterOffice, delivered = false, theme = 'dark' 
               {lot.industry === 'finance' && (
                 <mesh position={[0, h + 1.2, 0]}>
                   {/* 金融尖顶：白天原用近白玻璃色 ThemeLightGlassBody + metalness 0.5 →
-                      浅色天幕下读作一排「白尖牙」，与水塔同属近白结构件问题。
-                      改用结构件深灰蓝 ColorSceneGate（与夜间同色，昼夜统一读作金属塔尖）。 */}
+                      浅色天幕下读作一排「白尖牙」；改深色后又读作「屋顶黑树」（R17 视觉评审 #3）。
+                      最终取中灰金属（scene.boothMetalDay）：不是白、不是黑，安静地立在屋脊上。 */}
                   <coneGeometry args={[1.1, 2.4, 4]} />
-                  <meshStandardMaterial color={ColorSceneGate} metalness={0.5} roughness={0.35} />
+                  <meshStandardMaterial color={envNight ? ColorSceneGate : ColorSceneBoothMetalDay} metalness={0.5} roughness={0.35} />
                 </mesh>
               )}
               {lot.industry === 'manufacturing' && (
-                <group position={[2.1, h + 0.9, 0.9]}>
-                  {/* 智造楼顶工业储罐：白天原用 ThemeLightGlassBody（近白玻璃色），64 栋在水塔
-                      造型（圆柱罐体+球顶盖）下读作一排「白色药瓶」，是鸟瞰白模感最强单点。
-                      改专用场景令牌 scene.tankDay（工业镀锌灰）→ 回到结构件读法。 */}
-                  <mesh position={[0, 0.5, 0]}>
-                    <cylinderGeometry args={[0.55, 0.62, 1.8, 10]} />
-                    <meshStandardMaterial color={envNight ? ColorSceneGate : ColorSceneTankDay} roughness={0.85} />
-                  </mesh>
-                  <mesh position={[0, 1.5, 0]}>
-                    <sphereGeometry args={[0.55, 12, 10]} />
-                    <meshStandardMaterial color={envNight ? ColorSceneGate : ColorSceneTankDay} roughness={0.85} />
-                  </mesh>
-                </group>
+                /* 智造楼顶工业烟囱：原为圆柱罐体 + 球顶盖（近白 → 灰胶囊柱），
+                   剪影读作「白色药瓶」，落在橙屋顶上又是一排暗噪点（R17 视觉评审 #3）。
+                   改收分烟囱 + 行业橙：与屋顶同族，屋顶安静；顺带省掉球盖 mesh（16 个 draw call）。 */
+                <mesh position={[2.1, h + 1.75, 0.9]}>
+                  <cylinderGeometry args={[0.34, 0.6, 1.9, 10]} />
+                  <meshStandardMaterial color={envNight ? ColorSceneGate : INDUSTRIES.manufacturing.color} roughness={0.85} />
+                </mesh>
               )}
               {lot.industry === 'culture' && (
                 <mesh position={[0, h + 0.5, 0]} rotation={[0, Math.PI / 4, 0]}>
