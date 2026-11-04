@@ -6,7 +6,7 @@ import { useAnimations, useGLTF } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
 import { clone as skeletonClone } from 'three/examples/jsm/utils/SkeletonUtils.js'
 import type { Lot } from '../../data/street-companies'
-import { INDUSTRIES } from '../../data/street-companies'
+import { buildingHeight, INDUSTRIES } from '../../data/street-companies'
 import { assetUrl } from '../../engine/asset'
 import {
   ColorSceneBillOrange,
@@ -67,18 +67,24 @@ export const HAIRS = ['#1b1b22', '#2a1d18', '#20262f', '#3a2a22', '#151a20']
 // 办公楼立面：程序化窗格（同一楼层数 + 同一模式共享纹理，避免 64 份贴图）
 // v4 玻璃数字孪生：mode='day' 画浅色玻璃幕墙（冷白底 + 淡青玻璃 + 结构线框）
 //                mode='night' 画原夜景（深蓝底 + 暖色亮窗）
+//
+// R19 去重复（R17-A 短板①「同一张重复窗格的淡蓝玻璃幕墙」）：
+// 每个「楼层数×昼夜」键烘一张 3 合 1 横排图集（1536×512），三个变体——
+// 白天变体=窗洞宽高/高光位置/列向明暗带不同；夜间变体=点灯随机序列不同（确定性种子）。
+// 实例经 uvOffset 选帧（见 instancedUv.ts），0 额外 draw call。
 const FACADE_TEX = new Map<string, THREE.CanvasTexture>()
 
-export function facadeTexture(floors: number, mode: 'day' | 'night' = 'night') {
-  const key = `${floors}:${mode}`
-  const cached = FACADE_TEX.get(key)
-  if (cached) return cached
-  const c = document.createElement('canvas')
-  c.width = 512
-  c.height = 512
-  const ctx = c.getContext('2d')!
-  const day = mode === 'day'
+function facadeRand(seed: number) {
+  let s = seed >>> 0
+  return () => {
+    s = (s * 1664525 + 1013904223) >>> 0
+    return s / 0xffffffff
+  }
+}
 
+// 在 ox 偏移处绘制一个 512×512 的立面变体
+function paintFacadePanel(ctx: CanvasRenderingContext2D, floors: number, day: boolean, variant: number, ox: number) {
+  const rand = facadeRand(floors * 31 + variant * 7 + (day ? 1 : 500))
   const bg = ctx.createLinearGradient(0, 0, 0, 512)
   if (day) {
     // 白天：冷白玻璃底（⑥：底色微提亮，与加深的窗格拉开对比——白盒楼远读出窗格节奏）
@@ -89,49 +95,60 @@ export function facadeTexture(floors: number, mode: 'day' | 'night' = 'night') {
     bg.addColorStop(1, '#131c28')
   }
   ctx.fillStyle = bg
-  ctx.fillRect(0, 0, 512, 512)
+  ctx.fillRect(ox, 0, 512, 512)
 
   const cols = 6
   const fh = 512 / floors
   const cw = 512 / cols
+  // 变体参数：窗洞占宽/占高、高光条位置（批次②：变体 2 窗宽 0.56→0.60 降噪）
+  const winW = variant === 0 ? 0.66 : variant === 1 ? 0.74 : 0.6
+  const winH = variant === 0 ? 0.48 : variant === 1 ? 0.42 : 0.54
+  const winX = (1 - winW) / 2
+  const winY = variant === 0 ? 0.24 : variant === 1 ? 0.3 : 0.2
+  const litP = variant === 0 ? 0.64 : variant === 1 ? 0.55 : 0.72
   for (let f = 0; f < floors; f++) {
     if (day) {
       // 楼层分隔：深色结构线（线框感）
       ctx.fillStyle = '#6f8ba1'
-      ctx.fillRect(0, f * fh, 512, 2)
+      ctx.fillRect(ox, f * fh, 512, 2)
       ctx.fillStyle = 'rgba(255,255,255,0.55)'
-      ctx.fillRect(0, f * fh + 2, 512, 1)
+      ctx.fillRect(ox, f * fh + 2, 512, 1)
     } else {
       ctx.fillStyle = '#090e14'
-      ctx.fillRect(0, f * fh, 512, 2)
+      ctx.fillRect(ox, f * fh, 512, 2)
       ctx.fillStyle = '#2b3745'
-      ctx.fillRect(0, f * fh + 2, 512, 1)
+      ctx.fillRect(ox, f * fh + 2, 512, 1)
     }
     for (let col = 0; col < cols; col++) {
-      const x = col * cw + cw * 0.17
-      const y = f * fh + fh * 0.24
-      const w = cw * 0.66
-      const h = fh * 0.48
+      const x = ox + col * cw + cw * winX
+      const y = f * fh + fh * winY
+      const w = cw * winW
+      const h = fh * winH
       if (day) {
         // 白天：加深两档的玻璃块（⑥：远距离窗格对比）+ 深窗框
-        ctx.fillStyle = '#5e82a0'
+        // 批次②再加深一档（R19 盲审「昼间幕墙低对比灰闷」）：色标 -8%、窗框 -8%
+        ctx.fillStyle = '#547695'
         ctx.fillRect(x - 2, y - 2, w + 4, h + 4)
         const glass = ctx.createLinearGradient(x, y, x, y + h)
-        glass.addColorStop(0, '#a9c9e2')
-        glass.addColorStop(0.55, '#7ba6c8')
-        glass.addColorStop(1, '#6d94b4')
+        // 变体 2：列向明暗带（奇偶列差一档），打破「一面均质墙」；批次② lift 12→6 降噪
+        const lift = variant === 2 && col % 2 === 1 ? 6 : 0
+        glass.addColorStop(0, `rgb(${157 + lift},${191 + lift},${218 + lift})`)
+        glass.addColorStop(0.55, `rgb(${111 + lift},${156 + lift},${194 + lift})`)
+        glass.addColorStop(1, `rgb(${98 + lift},${137 + lift},${171 + lift})`)
         ctx.fillStyle = glass
         ctx.fillRect(x, y, w, h)
-        // 斜向高光条：玻璃反光的标识
+        // 斜向高光条：玻璃反光的标识（位置随变体挪移）
         ctx.fillStyle = 'rgba(255,255,255,0.4)'
-        ctx.fillRect(x + w * 0.08, y + h * 0.06, w * 0.16, h * 0.88)
+        const hx = variant === 0 ? 0.08 : variant === 1 ? 0.68 : 0.3
+        ctx.fillRect(x + w * hx, y + h * 0.06, w * 0.16, h * 0.88)
+        if (variant === 2) ctx.fillRect(x + w * 0.6, y + h * 0.06, w * 0.08, h * 0.88)
       } else {
         ctx.fillStyle = '#080c11'
         ctx.fillRect(x - 2, y - 2, w + 4, h + 4)
-        const lit = Math.random() < 0.64
+        const lit = rand() < litP
         if (lit) {
-          const warm = Math.random() < 0.6
-          const bright = Math.random() < 0.3 // 两档窗色：少量全亮锚点窗拉开层次（夜景 v2）
+          const warm = rand() < (variant === 1 ? 0.45 : 0.6)
+          const bright = rand() < 0.3 // 两档窗色：少量全亮锚点窗拉开层次（夜景 v2）
           const glass = ctx.createLinearGradient(x, y, x, y + h)
           if (bright) {
             glass.addColorStop(0, warm ? '#ffe9b8' : '#d8ecf8')
@@ -145,7 +162,7 @@ export function facadeTexture(floors: number, mode: 'day' | 'night' = 'night') {
           ctx.fillStyle = 'rgba(255,255,255,0.16)'
           ctx.fillRect(x + w * 0.1, y + h * 0.08, w * 0.14, h * 0.84)
         } else {
-          ctx.fillStyle = Math.random() < 0.5 ? '#16222e' : '#1d2c3b'
+          ctx.fillStyle = rand() < 0.5 ? '#16222e' : '#1d2c3b'
           ctx.fillRect(x, y, w, h)
         }
       }
@@ -154,14 +171,26 @@ export function facadeTexture(floors: number, mode: 'day' | 'night' = 'night') {
   for (let col = 1; col < cols; col++) {
     // 竖梃：白天为深色结构柱，夜间为暗色
     ctx.fillStyle = day ? 'rgba(70,98,124,0.8)' : 'rgba(6,10,14,0.6)'
-    ctx.fillRect(col * cw - 2, 0, 4, 512)
+    ctx.fillRect(ox + col * cw - 2, 0, 4, 512)
   }
   // 底部环境光遮蔽（AO）：贴图烘焙，不花任何 draw call 就让体块"落地"
   const ao = ctx.createLinearGradient(0, 512, 0, 512 * 0.62)
   ao.addColorStop(0, day ? 'rgba(18,32,48,0.55)' : 'rgba(0,0,0,0.55)')
   ao.addColorStop(1, 'rgba(0,0,0,0)')
   ctx.fillStyle = ao
-  ctx.fillRect(0, 512 * 0.62, 512, 512 * 0.38)
+  ctx.fillRect(ox, 512 * 0.62, 512, 512 * 0.38)
+}
+
+/** 3 合 1 横排图集：实例 uvOffset.x ∈ {0, 1/3, 2/3} 选变体 */
+export function facadeAtlasTexture(floors: number, mode: 'day' | 'night' = 'night') {
+  const key = `${floors}:${mode}:atlas`
+  const cached = FACADE_TEX.get(key)
+  if (cached) return cached
+  const c = document.createElement('canvas')
+  c.width = 1536
+  c.height = 512
+  const ctx = c.getContext('2d')!
+  for (let v = 0; v < 3; v++) paintFacadePanel(ctx, floors, mode === 'day', v, v * 512)
   const tex = new THREE.CanvasTexture(c)
   tex.anisotropy = 4
   FACADE_TEX.set(key, tex)
@@ -450,9 +479,8 @@ export function HRStand({ lot, onEnterOffice, delivered = false, theme = 'dark' 
   // 参数时间语义：这家公司几点下班（与环境主题无关）
   const envNight = theme === 'dark'
 
-  // 建筑高度：互联网平顶 / 金融尖顶 / 智造矮厂棚 / 文创坡顶
-  const bHeight =
-    lot.industry === 'internet' ? 8 : lot.industry === 'finance' ? 11.5 : lot.industry === 'manufacturing' ? 4.6 : 4.2
+  // 建筑高度：行业基准 × 总包归一化浮动（R19 数据化体量，与 OfficeFacadeInstanced 同一来源）
+  const bHeight = buildingHeight(lot)
   // 门面主体（body/cap/glass/led）已移至 OfficeFacadeInstanced（M6b InstancedMesh 池），此处不再渲染
 
   // 就近 LOD：NEAR 内挂真形象，FAR 外卸载（滞回防抖）；GLB 按需加载（Suspense 回退占位）

@@ -12,11 +12,12 @@
 //   5. door  门
 //
 // 楼层灯带、屋顶（条件渲染，数量少）保持在 HRStand 中作为独立 mesh。
-import { useLayoutEffect, useRef } from 'react'
+import { useLayoutEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import type { LotPlacement } from '../../data/street-companies'
-import { INDUSTRIES } from '../../data/street-companies'
-import { facadeTexture, glassTexture } from './HRStand'
+import { buildingHeight, INDUSTRIES } from '../../data/street-companies'
+import { facadeAtlasTexture, glassTexture } from './HRStand'
+import { atlasOnBeforeCompile, makeUvOffsetArray } from './instancedUv'
 import {
   ColorSceneBoothMetalDay,
   ColorSceneGateDark,
@@ -163,6 +164,9 @@ export function OfficeFacadeInstanced({
 
   const countRef = useRef(0)
 
+  // 幕墙图集 uvOffset 数组（4 个楼层组 × 64 实例 × vec2），值在下方 useLayoutEffect 写入
+  const bodyUvArrays = useMemo(() => floorKeys.map(() => makeUvOffsetArray(count)), [])
+
   // ---------- 初始化 count ----------
   // useLayoutEffect：useEffect 首帧不跑会留下 64 实例未就位/叠原点窗口（同 BoothHardwareInstanced 注释）
   useLayoutEffect(() => {
@@ -191,23 +195,31 @@ export function OfficeFacadeInstanced({
       if (!indices) return
       const mesh = bodyRefs[bi].current
       if (!mesh) return
-      const tex = facadeTexture(f, night ? 'night' : 'day')
+      const tex = facadeAtlasTexture(f, night ? 'night' : 'day')
       const mat = mesh.material as THREE.MeshStandardMaterial
-      if (mat.map !== tex) mat.map = tex
+      if (mat.map !== tex) {
+        mat.map = tex
+        // 夜场补光（R17-B「立面零受光」）：emissiveMap 复用同一张夜幕墙贴图——
+        // 贴图里的亮窗洞发白光、墙面保持暗，不动全局光（R18 夜景已过线，不冒险）
+        mat.emissiveMap = night ? tex : null
+      }
       mat.needsUpdate = true
+      // 幕墙去重复（R17-A）：图集 3 变体，按 lotNo 选帧（相邻摊连号 → 相邻楼必不同款）
+      const uvAttr = mesh.geometry.getAttribute('uvOffset') as THREE.InstancedBufferAttribute | undefined
 
       indices.forEach((ii) => {
         const pl = placements[ii]
-        const bHeight =
-          pl.lot.industry === 'internet' ? 8 : pl.lot.industry === 'finance' ? 11.5 : pl.lot.industry === 'manufacturing' ? 4.6 : 4.2
+        const bHeight = buildingHeight(pl.lot)
         mesh.setMatrixAt(ii, instanceMatrixFor(pl, 0, bHeight / 2, 0, 1, bHeight, 1))
         // 个体识别：楼体明度微扰（±3.5%），16 栋同层楼不再完全同亮度（instanceColor 通道，T14 教训已避）
         const seed = parseInt(pl.lot.id.slice(-2), 10) || 0
         tempCol.set('#ffffff').offsetHSL(0, 0, ((seed % 5) - 2) * 0.035)
         mesh.setColorAt(ii, tempCol)
+        if (uvAttr) uvAttr.setXY(ii, (pl.lot.lotNo % 3) / 3, 0)
       })
       mesh.instanceMatrix.needsUpdate = true
       if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true
+      if (uvAttr) uvAttr.needsUpdate = true
     })
 
     // cap：实体头顶，per-instance 颜色（行业色）
@@ -218,8 +230,7 @@ export function OfficeFacadeInstanced({
     if (capMesh) {
       const roofColors: THREE.Color[] = []
       placements.forEach((pl, li) => {
-        const bHeight =
-          pl.lot.industry === 'internet' ? 8 : pl.lot.industry === 'finance' ? 11.5 : pl.lot.industry === 'manufacturing' ? 4.6 : 4.2
+        const bHeight = buildingHeight(pl.lot)
         capMesh.setMatrixAt(li, roofMatrixFor(pl, 0, bHeight + 0.1, 0, 1, 1, 1))
         const industryColor = new THREE.Color(INDUSTRIES[pl.lot.industry].color)
         const headColor = envNight
@@ -238,8 +249,7 @@ export function OfficeFacadeInstanced({
       const skyMesh = skylightRef.current
       if (ridgeMesh && skyMesh) {
         placements.forEach((pl, li) => {
-          const bHeight =
-            pl.lot.industry === 'internet' ? 8 : pl.lot.industry === 'finance' ? 11.5 : pl.lot.industry === 'manufacturing' ? 4.6 : 4.2
+          const bHeight = buildingHeight(pl.lot)
           const roof = roofColors[li]
           const ridgeY = bHeight + 0.31 + 0.07
           ridgeMesh.setMatrixAt(li, roofMatrixFor(pl, 0, ridgeY, 0, 6.3, 0.14, 0.42))
@@ -344,11 +354,17 @@ export function OfficeFacadeInstanced({
           castShadow
           receiveShadow
         >
-          <boxGeometry args={[6.4, 1, 5.2]} />
+          <boxGeometry args={[6.4, 1, 5.2]}>
+            {/* 幕墙三变体图集选帧（R19 去重复）：值在 effect 中按 lotNo%3 写入 */}
+            <instancedBufferAttribute attach="attributes-uvOffset" args={[bodyUvArrays[bi], 2]} />
+          </boxGeometry>
           <meshStandardMaterial
             color={night ? ColorSceneGateDark : ThemeLightGlassHead}
             roughness={night ? 0.85 : TwinFacadeRoughnessDay}
             metalness={night ? 0 : TwinFacadeMetalnessDay}
+            emissive={night ? '#ffffff' : '#000000'}
+            emissiveIntensity={night ? 0.42 : 0}
+            onBeforeCompile={atlasOnBeforeCompile(1 / 3, 1)}
           />
         </instancedMesh>
       ))}

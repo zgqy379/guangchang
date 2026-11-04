@@ -12,6 +12,7 @@ import { HRStand, preloadHRModels } from './HRStand'
 import { PlaceholderHRs } from './PlaceholderHRs'
 import { OfficeFacadeInstanced } from './OfficeFacadeInstanced'
 import { BoothHardwareInstanced } from './BoothHardwareInstanced'
+import { atlasOnBeforeCompile, makeUvOffsetArray } from './instancedUv'
 import { CandidateBooth } from '../candidate/CandidateBooth'
 import { BoothPoles, MoneyStacks } from './BoothProps'
 import { LotBeacons, LotNumberDecals } from './LotMarkers'
@@ -321,13 +322,59 @@ function BuildingGrounding({ night }: { night: boolean }) {
   )
 }
 
-// 参数碑：碑高=总包、5 灯条=五险、顶灯=下班时间（4 个 InstancedMesh）
+// 参数碑数字面图集（R19 · R17-B 短板①「碑身无数字面」残差）：
+// 64 格 8×8 图集，每格「总包 86万 + 21:30 下班」——碑高（总包）/灯条（五险）/顶灯（下班色）
+// 之外，把三个数里最硬的两个直接写在碑身下段，隔街可读。1 个 InstancedMesh = 1 draw call。
+let STELE_NUM_ATLAS: THREE.CanvasTexture | null = null
+function steleNumberAtlas(): THREE.CanvasTexture {
+  if (STELE_NUM_ATLAS) return STELE_NUM_ATLAS
+  const TILE_W = 256
+  const TILE_H = 128
+  const c = document.createElement('canvas')
+  c.width = TILE_W * 8
+  c.height = TILE_H * 8
+  const ctx = c.getContext('2d')!
+  placed.forEach((p, i) => {
+    const ox = (i % 8) * TILE_W
+    const oy = Math.floor(i / 8) * TILE_H
+    const total = totalPackage(p.lot.params)
+    const off = p.lot.params.offworkTime
+    const hh = Math.floor(off)
+    const mm = off % 1 >= 0.5 ? '30' : '00'
+    // 深底数字牌
+    ctx.fillStyle = '#0a0e14'
+    ctx.fillRect(ox, oy, TILE_W, TILE_H)
+    ctx.strokeStyle = 'rgba(255,196,107,0.85)'
+    ctx.lineWidth = 5
+    ctx.strokeRect(ox + 5, oy + 5, TILE_W - 10, TILE_H - 10)
+    // 总包（大金数字：84px，隔街 10m 可读——60px 版特写验证偏小，R19 加大）
+    ctx.fillStyle = '#ffc46b'
+    ctx.font = `800 84px "Segoe UI", Arial, sans-serif`
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.fillText(`${Math.round(total / 10000)}万`, ox + TILE_W / 2, oy + 48)
+    // 下班时间（白色小字）
+    ctx.fillStyle = '#dfe7ef'
+    ctx.font = `600 32px "Segoe UI", Arial, sans-serif`
+    ctx.fillText(`${hh}:${mm} 下班`, ox + TILE_W / 2, oy + 104)
+  })
+  const tex = new THREE.CanvasTexture(c)
+  tex.colorSpace = THREE.SRGBColorSpace
+  tex.anisotropy = 4
+  STELE_NUM_ATLAS = tex
+  return tex
+}
+
+// 参数碑：碑高=总包、5 灯条=五险、顶灯=下班时间、碑身数字面=总包+下班（5 个 InstancedMesh）
 function ParamSteles({ theme }: { theme: ThemeName }) {
   const night = theme === 'dark'
   const body = useRef<THREE.InstancedMesh>(null)
   const band = useRef<THREE.InstancedMesh>(null)
   const bars = useRef<THREE.InstancedMesh>(null)
   const lamps = useRef<THREE.InstancedMesh>(null)
+  const nums = useRef<THREE.InstancedMesh>(null)
+  // 数字面 uvOffset 数组（64 实例 × vec2），值在下方 useLayoutEffect 写入
+  const numUvArray = useMemo(() => makeUvOffsetArray(placed.length), [])
   const data = useMemo(
     () =>
       placed.map((p) => {
@@ -349,7 +396,8 @@ function ParamSteles({ theme }: { theme: ThemeName }) {
     const bd = band.current
     const br = bars.current
     const lp = lamps.current
-    if (!b || !bd || !br || !lp) return
+    const nm = nums.current
+    if (!b || !bd || !br || !lp || !nm) return
     const o = new THREE.Object3D()
     const col = new THREE.Color()
     const cos = Math.cos, sin = Math.sin
@@ -374,11 +422,20 @@ function ParamSteles({ theme }: { theme: ThemeName }) {
       o.scale.set(0.46, 0.09, 0.34)
       o.updateMatrix()
       bd.setMatrixAt(i, o.matrix)
+      // 数字面与五险灯条的碑面布局（R19 批次②：盲审点名「数字面在脚踝不可见」）——
+      // 高碑（≥1.2m）：数字面放碑身中段 y=height×0.45（高碑正好落在视平线），灯条在其上到碑顶区间；
+      // 矮碑：数字面留碑脚，灯条在上半段。灯条带高/间距随区间自适应压缩。
+      const tall = height >= 1.2
+      const numY = tall ? height * 0.45 : 0.17
+      const zoneBot = tall ? numY + 0.12 : 0.32
+      const zoneTop = height - 0.22
+      const zoneLen = Math.max(0.05, zoneTop - zoneBot)
+      const barH = Math.min(0.09, (zoneLen / 5) * 0.6)
       // 五险灯条（碑面）
       for (let j = 0; j < 5; j++) {
-        const ly = 0.3 + (j * (height - 0.55)) / 5
+        const ly = zoneBot + ((j + 0.5) * zoneLen) / 5
         o.position.set(wx + 0 * c + 0.12 * s, ly, wz - 0 * s + 0.12 * c)
-        o.scale.set(0.22, 0.09, 0.02)
+        o.scale.set(0.22, barH, 0.02)
         o.updateMatrix()
         br.setMatrixAt(barIndex, o.matrix)
         br.setColorAt(barIndex, col.set(j < lit ? ColorSceneBarOn : ColorSceneBarOff))
@@ -390,6 +447,13 @@ function ParamSteles({ theme }: { theme: ThemeName }) {
       o.updateMatrix()
       lp.setMatrixAt(i, o.matrix)
       lp.setColorAt(i, col.set(lamp))
+      // 数字面：总包+下班。面片贴在碑体前面外 0.025m（共面间隔 ≥0.02，T11）
+      o.position.set(wx + 0.135 * s, numY, wz + 0.135 * c)
+      o.scale.set(0.28, 0.15, 1)
+      o.updateMatrix()
+      nm.setMatrixAt(i, o.matrix)
+      const uvAttr = nm.geometry.getAttribute('uvOffset') as THREE.InstancedBufferAttribute
+      uvAttr.setXY(i, (i % 8) / 8, 1 - (Math.floor(i / 8) + 1) / 8)
     })
     b.instanceMatrix.needsUpdate = true
     bd.instanceMatrix.needsUpdate = true
@@ -397,6 +461,8 @@ function ParamSteles({ theme }: { theme: ThemeName }) {
     if (br.instanceColor) br.instanceColor.needsUpdate = true
     lp.instanceMatrix.needsUpdate = true
     if (lp.instanceColor) lp.instanceColor.needsUpdate = true
+    nm.instanceMatrix.needsUpdate = true
+    ;(nm.geometry.getAttribute('uvOffset') as THREE.InstancedBufferAttribute).needsUpdate = true
     ;(br.material as THREE.MeshBasicMaterial).needsUpdate = true
     ;(lp.material as THREE.MeshBasicMaterial).needsUpdate = true
   }, [data])
@@ -425,6 +491,17 @@ function ParamSteles({ theme }: { theme: ThemeName }) {
       <instancedMesh ref={lamps} args={[undefined, undefined, data.length]}>
         <sphereGeometry args={[0.19, 8, 8]} />
         <meshBasicMaterial />
+      </instancedMesh>
+      {/* 数字面：碑身下段「总包+下班」铭牌（图集选帧，1 DC；basic 自发光昼夜可读） */}
+      <instancedMesh ref={nums} args={[undefined, undefined, data.length]}>
+        <planeGeometry args={[1, 1]}>
+          <instancedBufferAttribute attach="attributes-uvOffset" args={[numUvArray, 2]} />
+        </planeGeometry>
+        <meshBasicMaterial
+          map={steleNumberAtlas()}
+          toneMapped={false}
+          onBeforeCompile={atlasOnBeforeCompile(1 / 8, 1 / 8)}
+        />
       </instancedMesh>
     </group>
   )

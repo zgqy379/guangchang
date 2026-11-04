@@ -1,6 +1,7 @@
 // 招聘街区数据：四大领域 × 每街两侧 16 个摊位 = 64 lot
 // 参数范围按行业差异化（词典字段），确定性伪随机保证构建稳定（录屏一致）
 import type { CompanyParams } from '../engine/params'
+import { totalPackage } from '../engine/params'
 import {
   ColorIndustryCulture,
   ColorIndustryFinance,
@@ -110,6 +111,43 @@ function buildLots(): Lot[] {
 }
 
 export const STREET_LOTS: Lot[] = buildLots()
+
+// ---------- 楼体高度：行业基准 × 数据驱动浮动（R19 鸟瞰数据化体量） ----------
+// 原实现：同行业 16 栋同高（互联网 8m/金融 11.5m/智造 4.6m/文创 4.2m）——
+// 鸟瞰里四块体量形状雷同、只有屋面色条不同（R17-B 短板②），
+// 且「参数→体量」这一核心命题在鸟瞰里读不出来。
+// 改法：总包在行业内归一化 → 高度 ±26% 浮动（批次③加大，首轮 ±14% 盲审读不出）；
+// 行业基准不变（楼层数仍按基准取，幕墙贴图不重组，只是每栋楼拉伸量不同——窗格行高微微不同，远观无感）。
+export const BUILDING_BASE_HEIGHT: Record<Industry, number> = {
+  internet: 8,
+  finance: 11.5,
+  manufacturing: 4.6,
+  culture: 4.2,
+}
+
+const INDUSTRY_TOTAL_RANGE: Record<Industry, [number, number]> = (() => {
+  const r: Record<Industry, [number, number]> = {
+    internet: [Infinity, -Infinity],
+    finance: [Infinity, -Infinity],
+    manufacturing: [Infinity, -Infinity],
+    culture: [Infinity, -Infinity],
+  }
+  STREET_LOTS.forEach((l) => {
+    const t = totalPackage(l.params)
+    if (t < r[l.industry][0]) r[l.industry][0] = t
+    if (t > r[l.industry][1]) r[l.industry][1] = t
+  })
+  return r
+})()
+
+/** 楼高 = 行业基准 × (0.76 + 0.52 × 行业内总包归一化)：鸟瞰里「这家公司给多少」直接写在天际线上。
+ *  批次③：±14% → ±26%——R19 两轮盲审空间组连续点名「同区楼高趋同，读不出 80万 vs 40万」。
+ *  楼层贴图仍按基准楼层数绘制（行高随楼拉伸 ±26%，窗格比例微变、远观无感）。 */
+export function buildingHeight(lot: Lot): number {
+  const [min, max] = INDUSTRY_TOTAL_RANGE[lot.industry]
+  const norm = max > min ? (totalPackage(lot.params) - min) / (max - min) : 0.5
+  return BUILDING_BASE_HEIGHT[lot.industry] * (0.76 + 0.52 * norm)
+}
 
 // 街区布局：十字路口在原点，四条街沿 ±X/±Z 延伸；每街两侧各 8 lot（共 64）
 // side ±1 = 道路两侧；slot 0..7 从路口向外

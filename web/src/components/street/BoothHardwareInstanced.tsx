@@ -19,13 +19,17 @@
 //  10. flagPole 区域色侧旗柱 cylinder
 //  11. flag    区域色侧旗旗帜 plane（per-instance 颜色：行业色）
 //  12-15. roof 雨棚顶（按 4 种行业变体分组，4 个 InstancedMesh）
-import { useLayoutEffect, useRef } from 'react'
+import { useLayoutEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import type { LotPlacement } from '../../data/street-companies'
 import { INDUSTRIES } from '../../data/street-companies'
 import type { Industry } from '../../data/street-companies'
 import type { ThemeName } from '../../engine/theme'
-import { ColorSceneBoothMetalDay, ColorStateSuccess } from '../../../generated/design-tokens.output.mjs'
+import {
+  ColorBrandGold,
+  ColorSceneBoothMetalDay,
+  ColorStateSuccess,
+} from '../../../generated/design-tokens.output.mjs'
 import { applyLotJitter, posterTexture } from './OfficeFacadeInstanced'
 import { shadowTexture } from './HRStand'
 
@@ -117,7 +121,37 @@ export function BoothHardwareInstanced({
     culture: useRef<THREE.InstancedMesh>(null),
   } as const
 
+  // 行业原型道具（R19 · R17-A 短板②「64 摊位同质」残差）：每行业一种眼部高度母题，
+  // 各 1 个 InstancedMesh（16 实例）= 4 draw call。雨棚变体在头顶 2.36m 人视读不到，
+  // 母题道具放在摊位前角 y0.5–1.1——走过一眼认出「这是哪个区」。
+  const protoRefs = {
+    internet: useRef<THREE.InstancedMesh>(null),
+    finance: useRef<THREE.InstancedMesh>(null),
+    manufacturing: useRef<THREE.InstancedMesh>(null),
+    culture: useRef<THREE.InstancedMesh>(null),
+  } as const
+  // 母题几何：互联网=悬浮数据节点 / 金融=金锭 / 智造=立齿轮 / 文创=斜置展板
+  const protoGeoms = useMemo(
+    () => ({
+      internet: new THREE.IcosahedronGeometry(0.15, 0),
+      finance: new THREE.BoxGeometry(0.34, 0.15, 0.18),
+      manufacturing: new THREE.TorusGeometry(0.15, 0.05, 6, 10).rotateX(Math.PI / 2),
+      culture: new THREE.PlaneGeometry(0.4, 0.5),
+    }),
+    [],
+  )
+  const PROTO_Y: Record<Industry, number> = {
+    internet: 1.06,
+    finance: 0.55,
+    manufacturing: 0.72,
+    culture: 0.78,
+  }
+
   const industryList: Industry[] = ['internet', 'finance', 'manufacturing', 'culture']
+
+  // 母题基色=行业色向白/中性调和（白天特写验证：纯白/纯灰读成「白模件」，染色后才读成「这个区的物件」）
+  const protoTint = (ind: Industry, toWhite: number) =>
+    '#' + new THREE.Color(INDUSTRIES[ind].color).lerp(new THREE.Color('#ffffff'), toWhite).getHexString()
 
   // ---------- 初始化 count ----------
   // 必须 useLayoutEffect：写在 useEffect 会在首帧渲染之后才设置 count，
@@ -311,6 +345,22 @@ export function BoothHardwareInstanced({
       mesh.instanceMatrix.needsUpdate = true
       if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true
     })
+
+    // 行业原型道具：摊位前角（0.98, ·, -0.5）——与参数碑（左前 -1.05,-0.55）对角呼应
+    industryList.forEach((ind) => {
+      const mesh = protoRefs[ind].current
+      if (!mesh) return
+      let idx = 0
+      placements.forEach((pl) => {
+        if (pl.lot.industry !== ind) return
+        // 每摊朝向微差（±0.16rad），16 个同母题不站成阅兵式
+        const rotY = ((pl.lot.lotNo % 5) - 2) * 0.08
+        mesh.setMatrixAt(idx, instanceMatrixFor(pl, 0.98, PROTO_Y[ind], -0.5, 1, 1, 1, rotY))
+        idx++
+      })
+      mesh.count = idx
+      mesh.instanceMatrix.needsUpdate = true
+    })
   }, [placements, count, night, envNight, delivered])
 
   return (
@@ -399,6 +449,53 @@ export function BoothHardwareInstanced({
           />
         </instancedMesh>
       )}
+      {/* 行业原型道具（R19）：互联网=悬浮数据节点 / 金融=金锭 / 智造=立齿轮 / 文创=斜置展板。
+          夜间行业色自发光提档（走过一眼认区），白天克制。 */}
+      {industryList.map((ind) => (
+        <instancedMesh
+          key={'proto-' + ind}
+          ref={protoRefs[ind]}
+          args={[undefined, undefined, 16]}
+          geometry={protoGeoms[ind]}
+        >
+          {ind === 'internet' && (
+            <meshStandardMaterial
+              color={protoTint('internet', 0.45)}
+              roughness={0.3}
+              metalness={0.2}
+              emissive={INDUSTRIES[ind].color}
+              emissiveIntensity={night ? 0.7 : 0.5}
+            />
+          )}
+          {ind === 'finance' && (
+            <meshStandardMaterial
+              color={ColorBrandGold}
+              roughness={0.32}
+              metalness={0.75}
+              emissive={ColorBrandGold}
+              emissiveIntensity={night ? 0.3 : 0.18}
+            />
+          )}
+          {ind === 'manufacturing' && (
+            <meshStandardMaterial
+              color={protoTint('manufacturing', 0.55)}
+              roughness={0.45}
+              metalness={0.6}
+              emissive={INDUSTRIES[ind].color}
+              emissiveIntensity={night ? 0.4 : 0.25}
+            />
+          )}
+          {ind === 'culture' && (
+            <meshStandardMaterial
+              color={protoTint('culture', 0.75)}
+              roughness={0.85}
+              side={THREE.DoubleSide}
+              emissive={INDUSTRIES[ind].color}
+              emissiveIntensity={night ? 0.35 : 0.22}
+            />
+          )}
+        </instancedMesh>
+      ))}
       {/* roof 按行业分组 */}
       {industryList.map((ind) => {
         const v = roofVariant(ind)

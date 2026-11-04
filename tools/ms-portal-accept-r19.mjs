@@ -1,0 +1,10 @@
+// 魔搭门户实况验收（R19）：portal ?mode=full 长等 + 截图看 iframe 实况
+const task = await taskSpace('ms-portal-r19-' + Date.now())
+const page = task.page('p1')
+await page.goto('https://modelscope.cn/studios/zgqy379/guangchang3d?mode=full', { timeout: 60000 })
+await page.waitForTimeout(20000)
+await page.evaluate(() => { window.scrollTo(0, document.body.scrollHeight / 2) })
+await page.waitForTimeout(25000)
+await page.screenshot({ path: 'E:/guangchang/tmp-design-review/ms-portal-accept-r19.png' })
+console.log('✓ portal r19 截图已存（45s）')
+await task.finish({ keep: 'all' })
