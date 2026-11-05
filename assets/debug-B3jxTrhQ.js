@@ -1,0 +1,1 @@
+function n(){if(typeof window>"u")return!1;const e=window.location.hostname;return e==="localhost"||e==="127.0.0.1"||e==="[::1]"?!0:new URLSearchParams(window.location.search).has("debug")}export{n as d};
