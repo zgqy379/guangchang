@@ -948,6 +948,47 @@ button:disabled {
     width: calc(100vw - 24px);
     bottom: 38px;
   }
+  /* 2026-11-05 移动端体验修复：进度卡在 390dp 视口里占掉半屏、图例挤成一团、
+     底部 CTA 挡住 3D 画面 —— 三者一起紧凑化，把视口还给场景 */
+  .game-hud {
+    min-width: 0;
+    width: max-content;
+    max-width: 46vw;
+    padding: 6px 9px;
+    gap: 2px;
+  }
+  .game-hud-title {
+    font-size: 11px;
+  }
+  .game-hud-level {
+    font-size: 17px;
+  }
+  .game-hud-counts {
+    font-size: 11px;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .game-hud-legend {
+    font-size: 10px;
+    line-height: 1.35;
+  }
+  .street-cta {
+    bottom: 22px;
+    padding: 6px 12px;
+    font-size: 12px;
+    max-width: 86vw;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  /* 模式切换按钮：竖屏下换行成两排，字号与触控目标要撑起来 */
+  .mode-switch button,
+  .mode-switch .theme-lock {
+    font-size: 13px;
+    padding: 10px 10px;
+    min-height: 44px;
+  }
 }
 
 .office-viewer {

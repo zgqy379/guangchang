@@ -1,24 +1,29 @@
 // NPC 求职者：复用玩家形象 + Walk 动画，沿人行道往返闲逛（街区人气）
+// 2026-11-05：改 useGLTFState 手动加载（不走 Suspense）——useGLTF 的 rejection 会穿透
+// ErrorBoundary 把整个街区刷成失败页（真机 5G 下实测），手动加载只翻状态、绝不抛出。
 import { useLayoutEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
-import { useAnimations, useGLTF } from '@react-three/drei'
+import { useAnimations } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
 import { clone as skeletonClone } from 'three/examples/jsm/utils/SkeletonUtils.js'
 import { assetUrl } from '../../engine/asset'
+import { useGLTFState } from '../SafeGLTF'
 
 const DRACO_PATH = assetUrl('/draco/')
 
 export function NPC({ a, b, night }: { a: [number, number]; b: [number, number]; night?: boolean }) {
-  const { scene } = useGLTF(assetUrl('/assets/avatar/avatar-idle.glb'), DRACO_PATH)
-  const { animations } = useGLTF(assetUrl('/assets/avatar/avatar-walk.glb'), DRACO_PATH)
+  const idle = useGLTFState(assetUrl('/assets/avatar/avatar-idle.glb'), DRACO_PATH)
+  const walk = useGLTFState(assetUrl('/assets/avatar/avatar-walk.glb'), DRACO_PATH)
+  const scene = idle.scene
+  const animations = walk.animations
   const ref = useRef<THREE.Group>(null)
-  const clone = useMemo(() => skeletonClone(scene), [scene])
+  const clone = useMemo(() => (scene ? skeletonClone(scene) : null), [scene])
   const { actions } = useAnimations(animations, ref)
   const t = useRef((a[0] + a[1]) % 7) // 各 NPC 相位错开
 
   useLayoutEffect(() => {
     const g = ref.current
-    if (!g) return
+    if (!g || !clone) return
     const box = new THREE.Box3().setFromObject(g)
     const size = box.getSize(new THREE.Vector3())
     const s = 1.6 / (size.y || 1)
@@ -42,6 +47,9 @@ export function NPC({ a, b, night }: { a: [number, number]; b: [number, number];
     const dz = (b[1] - a[1]) * Math.cos(t.current)
     if (Math.abs(dx) + Math.abs(dz) > 1e-4) g.rotation.y = Math.atan2(dx, dz)
   })
+
+  // 加载中/失败：不渲染该 NPC（静默降级，不拖垮街区）
+  if (!clone) return null
 
   return (
     <group ref={ref} dispose={null}>

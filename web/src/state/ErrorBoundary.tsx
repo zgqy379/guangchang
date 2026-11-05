@@ -106,17 +106,26 @@ function FallbackPane({
       <div style={{ maxWidth: 460, lineHeight: 1.6 }}>
         这一块没能加载出来，其余部分仍可使用。可以重试，或刷新页面。
       </div>
-      <div
-        style={{
-          fontSize: 11,
-          opacity: 0.6,
-          fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-          maxWidth: 460,
-          wordBreak: 'break-word',
-        }}
-      >
-        {error.message}
-      </div>
+      {/* 技术细节默认折叠：2026-11-05 移动端体验反馈——把
+          "Could not load xxx.glb: Failed to fetch" 直接甩给求职者毫无帮助且吓人。
+          保留可展开用于排查，但不占视觉。 */}
+      <details style={{ maxWidth: 460, fontSize: 11, opacity: 0.7, textAlign: 'left' }}>
+        <summary style={{ cursor: 'pointer', opacity: 0.8, minHeight: 24, display: 'flex', alignItems: 'center' }}>
+          技术详情
+        </summary>
+        <div
+          style={{
+            marginTop: 4,
+            opacity: 0.75,
+            fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+            wordBreak: 'break-word',
+            maxHeight: 80,
+            overflowY: 'auto',
+          }}
+        >
+          {error.stack || error.message || String(error)}
+        </div>
+      </details>
       <button
         onClick={onRetry}
         style={{

@@ -524,3 +524,15 @@
 - **两份 adb 不能混用**：`/d/Androidsdk/platform-tools/adb.exe`（1.0.41）与 `pcsuite` 自带 adb（client 40）混跑会 kill 掉 server 并让设备变 unauthorized，需 `kill-server` + 手机上重新点「允许 USB 调试」。只用主 adb。
 - **加载遮罩 ≠ 加载失败**：5G 慢速（16~37 KB/s）下 1MB+ chunk 首次下载约 100s，遮罩「招聘街区加载中…」一直挂着；用 `dumpsys gfxinfo <pkg>` 看 Total frames 是否增长来判断「在跑」，而不是盯着遮罩干等。
 - **真机采集能证伪桌面端的隐含假设**：`?hour=10` 昼间冻结、游戏化进度递增（参观 1 / XP 5/50）、Lux3D avatar、四区标签、罗盘在手机上全部真实工作——这些是报告书「移动端真机」章节的硬素材。
+
+### 13.15 useGLTF 的 rejection 会穿透 ErrorBoundary（2026-11-05 移动端稳定性事故）
+
+- **现象**：真机 5G 下点摊位/进入街区，任一 GLB（`hr-*-idle.glb` / `avatar-idle.glb`）fetch 失败，**整个「招聘街区」崩成失败页**，已逛的状态全丢。用户反馈「体验太糟糕」。
+- **错误路径**：`useGLTF`（drei suspend）加载失败 → promise reject → React 把 rejection throw 给 ErrorBoundary → **但边界并不能可靠拦住它**（实测错误照样冒泡到外层 SceneErrorBoundary；堆栈显示内层边界 onError 被调用的同时外层边界也触发）。更糟的是 rejected promise 会进 drei **全局缓存**，重挂载组件立刻复用失败结果 → 死循环，加速崩溃。
+- **错误修法（三层，已全量落地）**：
+  1. **弃用 useGLTF 加载关键资产**，改 `useGLTFState(url, dracoPath)`（`SafeGLTF.tsx`）：手动 `GLTFLoader.load` + 状态机（loading/ready/failed），失败只翻状态**绝不抛出**；带 2 次退避重试。
+  2. **局部资产边界 + 占位体**：`SafeGLTF` 包住 HR/Avatar/NPC/道具，失败渲染 `GhostFigure`（胶囊+球头）或占位体块——街区照常可逛。
+  3. **失败文案降级**：ErrorBoundary 的技术错误（`.glb: Failed to fetch`）默认折叠进「技术详情」，不再直接甩给求职者。
+- **受影响组件**：`HRStand.RealHR`、`AvatarActor`（含 `WalkClipLoader`）、`street/NPC`、`AssetProp`。**教训：grep `useGLTF(` 要覆盖全项目，首次只搜 HR 漏了 `NPC.tsx`，排查多花两轮**。
+- **验收**（`tools/accept-mobile-ux.mjs`，CDP `Network.setBlockedURLs` 注入故障）：拦截全部 HR/avatar GLB 后 canvas=1、无「加载失败」、HUD 正常 → PASS。移动端布局同测：390×844 视口 HUD 占宽 46%（原 50%+）、按钮全部 ≥44px。
+- **通用**：**Suspense + 异步库的 rejection 是不可信的错误边界信号**。凡是「加载失败可降级」的场景，用状态机封装异步加载，别指望 ErrorBoundary 兜底。

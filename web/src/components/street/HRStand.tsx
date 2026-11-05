@@ -20,6 +20,7 @@ import {
   TwinContactOpacityDay,
 } from '../../../generated/design-tokens.output.mjs'
 import type { ThemeName } from '../../engine/theme'
+import { SafeGLTF, GhostFigure, useGLTFState } from '../SafeGLTF'
 
 const DRACO_PATH = assetUrl('/draco/')
 const HR_POOL = [
@@ -373,14 +374,19 @@ const CASH_TEX = {
 export const CASH_TEXTURES = CASH_TEX
 
 // 真 HR 形象：HR GLB 负责外观，动画借用玩家 Avatar 的 idle（HR 自带 clip 是 T-pose，2026-10-26 隔离验证）
+// 2026-11-05：改用 useGLTFState 手动加载（不走 Suspense）——useGLTF 的 rejection 会穿透
+// ErrorBoundary 把整个街区刷成失败页，手动加载只翻状态、绝不抛出。
 function RealHR({ hrIndex }: { hrIndex: number }) {
   const file = HR_POOL[hrIndex % HR_POOL.length]
-  const { scene } = useGLTF(assetUrl(`/assets/hr/${file}-idle.glb`), DRACO_PATH)
+  const hr = useGLTFState(assetUrl(`/assets/hr/${file}-idle.glb`), DRACO_PATH)
   // 同一套 52 根 Mixamo 骨：玩家的 idle clip 可以直接驱动 HR
-  const { animations: avatarAnims } = useGLTF(assetUrl('/assets/avatar/avatar-idle.glb'), DRACO_PATH)
+  const idle = useGLTFState(assetUrl('/assets/avatar/avatar-idle.glb'), DRACO_PATH)
+  const scene = hr.scene
+  const avatarAnims = idle.animations
   const ref = useRef<THREE.Group>(null)
   const { actions } = useAnimations(avatarAnims, ref)
   const clone = useMemo(() => {
+    if (!scene) return null
     const c = skeletonClone(scene)
     c.traverse((o) => {
       const mesh = o as THREE.Mesh
@@ -406,7 +412,7 @@ function RealHR({ hrIndex }: { hrIndex: number }) {
 
   useLayoutEffect(() => {
     const g = ref.current
-    if (!g) return
+    if (!g || !clone) return
     const box = new THREE.Box3().setFromObject(g)
     const size = box.getSize(new THREE.Vector3())
     const s = 1.6 / (size.y || 1)
@@ -418,6 +424,9 @@ function RealHR({ hrIndex }: { hrIndex: number }) {
       actions[clip]?.stop()
     }
   }, [actions, clone])
+
+  // 手动加载中/失败：不渲染真形象（外层 SafeGLTF 的占位体兜底；失败静默降级不抛）
+  if (hr.status !== 'ready' || idle.status !== 'ready' || !clone) return null
 
   return (
     <group ref={ref} dispose={null}>
@@ -519,7 +528,18 @@ export function HRStand({ lot, onEnterOffice, delivered = false, theme = 'dark' 
             {/* 夜间 HR 补光：暖色主光（盲审 R7：HR 面部无补光/轮廓光，关键时刻没有自己的光效语言） */}
             <pointLight position={[0, 2.5, 1.6]} intensity={envNight ? 5 : 0} distance={5.5} decay={2} color="#ffd9a0" />
             <Suspense fallback={null}>
-              <RealHR hrIndex={lot.hrIndex} />
+              {/* 资产级容错（2026-11-05 移动端事故）：HR GLB 或 avatar 动画任一 fetch 失败
+                  时自动重试，仍失败只降级成占位人形，绝不让 SceneErrorBoundary 把整个街区
+                  刷成失败页（真机 5G 下点摊位即复现）。 */}
+              <SafeGLTF
+                urls={[
+                  assetUrl(`/assets/hr/${HR_POOL[lot.hrIndex % HR_POOL.length]}-idle.glb`),
+                  assetUrl('/assets/avatar/avatar-idle.glb'),
+                ]}
+                fallback={<GhostFigure color={OUTFITS[lot.hrIndex % OUTFITS.length]} />}
+              >
+                <RealHR hrIndex={lot.hrIndex} />
+              </SafeGLTF>
             </Suspense>
           </>
         ) : null}

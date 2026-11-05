@@ -1,0 +1,83 @@
+{
+  "a": {
+    "url": "http://localhost:4173/?hour=10",
+    "hasCanvas": 1,
+    "sceneFailed": false,
+    "techDetailFolded": false,
+    "techDetail": "",
+    "bodyHasGlb": false,
+    "text": "逛厂 把画的饼，砌成真的山\n◐角色逛一家A/B 对比办公室漫游🏙️ 招聘街区🗺️ 参数沙盘\n求职者进度\nLv.1\n25/50 XP\n📮 投递 1\n🧺 收藏 0\n👁 参观 3\n碑高=总包 · 灯条=五险 · 顶灯=下班\n点击地面开始逛 · 四区街道任你走\nAholo 全球 3D AI 黑客松参赛作品 · 逛厂 GuǎngChǎng · 数据为演示样例 · 源码与报告见 github.com/zgqy379/guangchang"
+  },
+  "b": {
+    "viewport": {
+      "w": 390,
+      "h": 844
+    },
+    "hud": {
+      "x": 202,
+      "y": 155,
+      "w": 178,
+      "h": 115
+    },
+    "cta": {
+      "x": 88,
+      "y": 793,
+      "w": 214,
+      "h": 29
+    },
+    "legend": {
+      "x": 211,
+      "y": 242,
+      "w": 159,
+      "h": 20
+    },
+    "buttons": [
+      {
+        "text": "◐",
+        "w": 44,
+        "h": 44
+      },
+      {
+        "text": "角色",
+        "w": 47,
+        "h": 44
+      },
+      {
+        "text": "逛一家",
+        "w": 60,
+        "h": 44
+      },
+      {
+        "text": "A/B 对比",
+        "w": 72,
+        "h": 44
+      },
+      {
+        "text": "办公室漫游",
+        "w": 86,
+        "h": 44
+      },
+      {
+        "text": "🏙️ 招聘街区",
+        "w": 95,
+        "h": 44
+      },
+      {
+        "text": "🗺️ 参数沙盘",
+        "w": 95,
+        "h": 44
+      }
+    ],
+    "hudWidthRatio": 0.46,
+    "touchTargetOk": true
+  },
+  "steps": [
+    "已拦截 HR/avatar GLB 请求",
+    "点击进入: 进入街区\n→",
+    "用例A: {\"url\":\"http://localhost:4173/?hour=10\",\"hasCanvas\":1,\"sceneFailed\":false,\"techDetailFolded\":false,\"techDetail\":\"\",\"bodyHasGlb\":false,\"text\":\"逛厂 把画的饼，砌成真的山\\n◐角色逛一家A/B 对比办公室漫游🏙️ 招聘街区🗺️ 参数沙盘\\n求职者进度\\nLv.1\\n25/50 XP\\n📮 投递 1\\n🧺 收藏 0\\n👁 参观 3\\n碑高=总包 · 灯条=五险 · 顶灯=下班\\n点击地面开始逛 · 四区街道任你走\\nAholo 全球 3D AI 黑客松参赛作品 · 逛厂 GuǎngChǎng · 数据为演示样例 · 源码与报告见 github.com/zgqy379/guangchang\"}",
+    "已解除拦截",
+    "用例B: {\"viewport\":{\"w\":390,\"h\":844},\"hud\":{\"x\":202,\"y\":155,\"w\":178,\"h\":115},\"cta\":{\"x\":88,\"y\":793,\"w\":214,\"h\":29},\"legend\":{\"x\":211,\"y\":242,\"w\":159,\"h\":20},\"buttons\":[{\"text\":\"◐\",\"w\":44,\"h\":44},{\"text\":\"角色\",\"w\":47,\"h\":44},{\"text\":\"逛一家\",\"w\":60,\"h\":44},{\"text\":\"A/B 对比\",\"w\":72,\"h\":44},{\"text\":\"办公室漫游\",\"w\":86,\"h\":44},{\"text\":\"🏙️ 招聘街区\",\"w\":95,\"h\":44},{\"text\":\"🗺️ 参数沙盘\",\"w\":95,\"h\":44}],\"hudWidthRatio\":0.46,\"touchTargetOk\":true}",
+    "空间已关闭"
+  ],
+  "pass": true
+}

@@ -2,12 +2,13 @@
 // 完整管线产物：Lux3D 文生 → auto-rig → retarget（Idle/Walk）→ Draco 3.1MB×2
 import { Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
-import { useAnimations, useGLTF } from '@react-three/drei'
+import { useAnimations } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 // 骨骼克隆：静态 scene.clone(true) 会复制 SkinnedMesh 却共享 Skeleton/Bone，
 // 两个实例互相覆盖蒙皮；含骨骼模型必须用 SkeletonUtils.clone（重建 Skeleton 层级）。
 import { clone as skeletonClone } from 'three/examples/jsm/utils/SkeletonUtils.js'
 import { assetUrl } from '../engine/asset'
+import { SafeGLTF, GhostFigure, useGLTFState } from './SafeGLTF'
 
 const DRACO_PATH = assetUrl('/draco/')
 const IDLE_URL = assetUrl('/assets/avatar/avatar-idle.glb')
@@ -34,14 +35,32 @@ export interface RoamRefs {
  * 用局部 Suspense（fallback=null）包裹，避免异步加载期间拖累整个场景。
  */
 function WalkClipLoader({ onLoaded }: { onLoaded: (clips: THREE.AnimationClip[]) => void }) {
-  const { animations } = useGLTF(WALK_URL, DRACO_PATH)
+  // 2026-11-05：手动加载，失败只丢走路动画不抛错（同 SafeGLTF 纪律）
+  const walk = useGLTFState(WALK_URL, DRACO_PATH)
   useEffect(() => {
-    onLoaded(animations)
-  }, [animations, onLoaded])
+    if (walk.status === 'ready') onLoaded(walk.animations)
+  }, [walk, onLoaded])
   return null
 }
 
-export function AvatarActor({
+export function AvatarActor(props: {
+  position?: [number, number, number]
+  facing?: number
+  roam?: boolean
+  refs?: RoamRefs
+  /** 漫游边界 clamp（默认单街区展台 ±2.8m；街区模式传更大值） */
+  bounds?: number
+}) {
+  // 资产级容错（2026-11-05 移动端事故）：avatar-idle.glb fetch 失败时降级占位人形，
+  // 不再冒泡到 SceneErrorBoundary 把整个场景刷成失败页。预检通过才挂载真实现。
+  return (
+    <SafeGLTF urls={[IDLE_URL]} fallback={<GhostFigure color="#3d4c63" height={1.6} position={props.position ?? [-1.9, 0, 2.0]} />}>
+      <AvatarActorInner {...props} />
+    </SafeGLTF>
+  )
+}
+
+function AvatarActorInner({
   position = [-1.9, 0, 2.0] as [number, number, number],
   facing = 0.35,
   roam = false,
@@ -59,7 +78,10 @@ export function AvatarActor({
   const inner = useRef<THREE.Group>(null)
   const camera = useThree((s) => s.camera)
 
-  const { scene: idleScene, animations: idleAnims } = useGLTF(IDLE_URL, DRACO_PATH)
+  // 2026-11-05：手动加载替代 useGLTF —— rejection 穿透 ErrorBoundary 的路径已封死
+  const idle = useGLTFState(IDLE_URL, DRACO_PATH)
+  const idleScene = idle.scene
+  const idleAnims = idle.animations
   // walk 剪辑惰性回填：初始为空 → 非漫游不触发 walk.glb 请求
   const [walkAnims, setWalkAnims] = useState<THREE.AnimationClip[]>([])
   // walk.glb 是否已回填完成。缺剪辑告警必须以「加载完毕」为前提：
@@ -75,6 +97,7 @@ export function AvatarActor({
   // 直接把同一 Object3D 挂进两处 <primitive> 会让后者把它搬走 → 一侧 Avatar 消失。
   // skeletonClone 重建独立骨骼层级；材质一并克隆（本实例独有，卸载可安全释放）。
   const model = useMemo(() => {
+    if (!idleScene) return null
     const clone = skeletonClone(idleScene)
     clone.traverse((o) => {
       const mesh = o as THREE.Mesh
@@ -135,7 +158,7 @@ export function AvatarActor({
   // 几何/贴图来自 useGLTF 缓存，由缓存统一管理，不在此 dispose（否则会破坏另一侧 Canvas）。
   useEffect(() => {
     return () => {
-      model.traverse((o) => {
+      model?.traverse((o) => {
         const skinned = o as THREE.SkinnedMesh
         if (skinned.isSkinnedMesh) skinned.skeleton?.dispose()
         const mesh = o as THREE.Mesh
@@ -236,6 +259,9 @@ export function AvatarActor({
     }
   })
 
+  // 手动加载中/失败：不渲染（外层 SafeGLTF 的占位人形兜底，失败静默降级不抛）
+  if (idle.status !== 'ready' || !idleScene || !model) return null
+
   return (
     <group ref={root} position={position} rotation-y={facing}>
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]}>
@@ -246,11 +272,13 @@ export function AvatarActor({
       <group ref={inner}>
         <primitive object={model} />
       </group>
-      {/* 漫游时才加载 walk.glb（惰性），局部 Suspense 防整场景闪烁 */}
+      {/* 漫游时才加载 walk.glb（惰性），局部 Suspense 防整场景闪烁；失败只丢走路动画，不崩场景 */}
       {roam && (
-        <Suspense fallback={null}>
-          <WalkClipLoader onLoaded={handleWalkAnims} />
-        </Suspense>
+        <SafeGLTF urls={[WALK_URL]} fallback={null}>
+          <Suspense fallback={null}>
+            <WalkClipLoader onLoaded={handleWalkAnims} />
+          </Suspense>
+        </SafeGLTF>
       )}
     </group>
   )
