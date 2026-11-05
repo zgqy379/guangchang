@@ -4,7 +4,7 @@
 // v4.1 美术攻关：**四区进度行已移到导航器 GcNavigator**（§8.3 浮层职责互斥：
 // HUD 只答"我的进度如何"，导航器才答"我在哪 + 怎么过去"）。
 // 之前两处都放，既重复又导致右下两个浮层在 720p 下互相压盖（实测压 44px）。
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import {
   GameXpPerDelivery,
   GameXpPerLevel,
@@ -26,6 +26,8 @@ export function GameHud({ state }: { state: HudState }) {
   const level = Math.floor(xp / GameXpPerLevel) + 1
   const xpInLevel = xp % GameXpPerLevel
   const visitedCount = useMemo(() => visited.length, [visited])
+  // 移动端图例按需（2026-11-05 评审：常驻图例挡画面 → ⓘ 点开）
+  const [legendOpen, setLegendOpen] = useState(false)
 
   return (
     <div className="game-hud">
@@ -48,6 +50,25 @@ export function GameHud({ state }: { state: HudState }) {
         <span>👁 参观 {visitedCount}</span>
       </div>
       <div className="game-hud-legend">碑高=总包 · 灯条=五险 · 顶灯=下班</div>
+      <button
+        className="legend-toggle"
+        aria-label="查看图例"
+        aria-expanded={legendOpen}
+        onClick={() => setLegendOpen((o) => !o)}
+      >
+        ⓘ
+      </button>
+      {legendOpen && (
+        <div className="legend-popover" role="tooltip">
+          楼越高越宽 = 给得越多
+          <br />
+          灯条 = 五险是否足额
+          <br />
+          顶灯亮 = 下班早
+          <br />
+          完整石台 = 五险足额
+        </div>
+      )}
     </div>
   )
 }

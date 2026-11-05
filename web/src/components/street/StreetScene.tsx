@@ -1668,6 +1668,14 @@ export function StreetScene({
   useEffect(() => {
     if (follow) preloadHRModels()
   }, [follow])
+  // CTA 瞬态（2026-11-05 评审：常驻提示挡画面 → 7s 后淡出；桌面 CSS 不消费 is-hidden，基线不变）
+  const [ctaHidden, setCtaHidden] = useState(false)
+  useEffect(() => {
+    if (follow) return
+    setCtaHidden(false)
+    const t = window.setTimeout(() => setCtaHidden(true), 7000)
+    return () => window.clearTimeout(t)
+  }, [follow])
   // 计算近景摊位集合（与 HRStand 的 NEAR=26 一致），供 PlaceholderHRs 判断哪些占位实例移出视野
   // 注意：useFrame 必须在 <Canvas> 内部调用，故通过 NearTracker 子组件在 Canvas 内运行。
   const [deliveries, setDeliveries] = useState<
@@ -1874,8 +1882,21 @@ export function StreetScene({
         />
       )}
       {!follow && (
-        <button className="street-cta" onClick={() => setFollow(true)}>
-          点击地面开始逛 · 四区街道任你走
+        <button
+          className={`street-cta${ctaHidden ? ' is-hidden' : ''}`}
+          onClick={() => setFollow(true)}
+        >
+          点击地面开始逛
+        </button>
+      )}
+      {follow && (
+        <button
+          className="street-exit"
+          onClick={() => setFollow(false)}
+          title="退出行走，回到鸟瞰"
+          aria-label="退出行走，回到鸟瞰"
+        >
+          退出行走
         </button>
       )}
       </div>

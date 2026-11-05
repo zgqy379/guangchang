@@ -1035,3 +1035,301 @@ footer {
   outline: 2px solid var(--ui-accent-orange);
   outline-offset: 2px;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   移动端 UX 收敛（2026-11-05 三方 UI/UX 评审修复）
+   基准：常驻 HUD ≤20-25% 视口 / 一主一副 HUD 簇 / 中心与下中留给场景
+   / 渐进式披露 / 瞬态提示 / 拇指区主操作 / 触控 ≥48dp / 删调试信息
+   桌面端保持原布局（R19 盲审基线不动）
+   ═══════════════════════════════════════════════════════════════ */
+@media (max-width: 720px) {
+  /* ── 1. 顶栏收敛：全宽双行 chrome → 56px 单行 + 横向滚动 chip ── */
+  header {
+    padding: 6px 10px 4px;
+    row-gap: 4px;
+    flex-wrap: nowrap;
+    align-items: center;
+  }
+  header h1 {
+    font-size: 15px;
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+  header h1 span {
+    display: none;
+  }
+  /* 模式条：单行横向滚动，不再换行堆高；低频按钮不常驻 */
+  .mode-switch {
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+    overflow-y: hidden;
+    max-width: calc(100vw - 96px);
+    gap: 6px;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+  }
+  .mode-switch::-webkit-scrollbar {
+    display: none;
+  }
+  .mode-switch button,
+  .mode-switch .theme-lock {
+    flex: 0 0 auto;
+    font-size: 12px;
+    padding: 8px 9px;
+    min-height: 40px;
+    white-space: nowrap;
+    border-radius: 999px;
+  }
+  /* 低频入口移动端不常驻（长列表里也排到末尾，靠滚动可达） */
+  .mode-switch .replay,
+  .mode-switch .basket-badge {
+    display: none;
+  }
+
+  /* ── 2. 进度 HUD：大卡片 → 单行窄条（占宽 ≤50%，高 ≤48px）── */
+  .game-hud {
+    top: 52px !important;
+    right: 8px !important;
+    left: auto !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: min(48vw, 186px) !important;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 3px 6px;
+    padding: 5px 8px !important;
+    border-radius: 12px;
+  }
+  .game-hud-title {
+    display: none;
+  }
+  .game-hud-level {
+    font-size: 14px;
+    line-height: 1.1;
+    margin: 0;
+  }
+  .game-hud .xp-bar {
+    flex: 1 1 64px;
+    min-width: 56px;
+    height: 5px;
+    margin: 0;
+    position: relative;
+  }
+  .game-hud .xp-text {
+    display: none;
+  }
+  .game-hud-counts {
+    flex: 1 1 100%;
+    gap: 6px;
+    font-size: 10px;
+    margin: 0;
+    justify-content: space-between;
+  }
+  .game-hud-counts span {
+    font-size: 10px;
+    white-space: nowrap;
+  }
+  /* 图例改为按需（ⓘ 常驻入口在 .legend-toggle，正文不常驻挡画面） */
+  .game-hud-legend {
+    display: none;
+  }
+  .legend-toggle {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 1px solid var(--ui-glass-border, rgba(255, 255, 255, 0.25));
+    background: var(--ui-glass-fill, rgba(255, 255, 255, 0.08));
+    color: var(--ui-ink-secondary, #8b949e);
+    font-size: 12px;
+    cursor: pointer;
+    flex: 0 0 auto;
+    padding: 0;
+    min-width: 22px;
+    min-height: 22px;
+    pointer-events: auto;
+  }
+  .legend-popover {
+    display: block !important;
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    width: min(70vw, 220px);
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: var(--ui-panel-bg, #14181f);
+    border: 1px solid var(--ui-glass-border, rgba(255, 255, 255, 0.14));
+    color: var(--ui-page-fg, #e6edf3);
+    font-size: 11px;
+    line-height: 1.6;
+    z-index: 30;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    pointer-events: auto;
+    text-align: left;
+    white-space: normal;
+  }
+
+  /* ── 3. 底部区域：CTA 瞬态 + 赛事声明一行化（不占拇指区）── */
+  .street-cta {
+    bottom: 64px !important;
+    padding: 9px 14px !important;
+    font-size: 12px !important;
+    max-width: 82vw;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    opacity: 1;
+    transition: opacity 600ms ease, transform 600ms ease;
+  }
+  .street-cta.is-hidden {
+    opacity: 0;
+    transform: translate(-50%, 8px);
+    pointer-events: none;
+  }
+  .site-footer {
+    position: relative;
+    padding: 4px 12px calc(4px + env(safe-area-inset-bottom, 0px));
+    font-size: 10px;
+    line-height: 1.5;
+    opacity: 0.72;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    pointer-events: none;
+  }
+  .site-footer a {
+    pointer-events: auto;
+    min-height: 24px;
+    display: inline-block;
+    padding: 4px 2px;
+  }
+
+  /* ── 4. 调试/论文信息不上移动端（桌面保留作过程证据）── */
+  .survey-tag,
+  .role-gate-figcaption,
+  .stat-3d-assets {
+    display: none !important;
+  }
+
+  /* ── 5. 失败态：半屏 bottom sheet 质感 + 双按钮进拇指区 ── */
+  .scene-fallback {
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    bottom: 88px;
+    top: auto;
+    min-height: 0 !important;
+    height: auto !important;
+    padding: 16px !important;
+    border-radius: 16px;
+    background: var(--ui-panel-bg, #14181f);
+    border: 1px solid var(--ui-glass-border, rgba(255, 255, 255, 0.14));
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+  }
+  .scene-fallback .fallback-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+  }
+  .scene-fallback .fallback-actions button {
+    flex: 1;
+    min-height: 48px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .scene-fallback .fallback-primary {
+    background: var(--color-brand-red-deep, #c23a2b);
+    border: 1px solid transparent;
+    color: #fff;
+  }
+  .scene-fallback .fallback-secondary {
+    background: transparent;
+    border: 1px solid var(--ui-glass-border, rgba(255, 255, 255, 0.22));
+    color: var(--ui-page-fg, #e6edf3);
+  }
+
+  /* ── 6. 入口页主行动唯一化：统计调试图注隐藏后，CTA 独占焦点 ── */
+  .role-gate-actions,
+  .role-gate-cta {
+    min-height: 48px;
+    width: 100%;
+  }
+
+  /* ── 7. 触控目标与 safe area ── */
+  .mode-switch button,
+  .mode-switch .theme-lock,
+  .lot-card-dock button,
+  .street-cta {
+    min-height: 44px;
+  }
+  .lot-card-dock {
+    bottom: calc(56px + env(safe-area-inset-bottom, 0px)) !important;
+    width: calc(100vw - 20px) !important;
+    left: 10px !important;
+  }
+}
+
+/* 图例 ⓘ：桌面端不需要（图例正文常驻），移动端由上文开启 */
+.legend-toggle {
+  display: none;
+}
+.legend-popover {
+  display: none;
+}
+
+/* 行走模式退出（2026-11-05 评审 P0：行走中无退出路径，只能靠系统手势） */
+.street-exit {
+  position: fixed;
+  top: 62px;
+  left: 12px;
+  z-index: 16;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--ui-glass-border, rgba(255, 255, 255, 0.22));
+  background: var(--ui-glass-fill-strong, rgba(20, 24, 31, 0.86));
+  color: var(--ui-page-fg, #e6edf3);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+@media (max-width: 720px) {
+  .street-exit {
+    top: 104px;
+    left: 10px;
+    min-height: 48px;
+  }
+}
+
+/* 行走模式退出（2026-11-05 评审 P0：行走中无退出路径，只能靠系统手势） */
+.street-exit {
+  position: fixed;
+  top: 62px;
+  left: 12px;
+  z-index: 16;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--ui-glass-border, rgba(255, 255, 255, 0.22));
+  background: var(--ui-glass-fill-strong, rgba(20, 24, 31, 0.86));
+  color: var(--ui-page-fg, #e6edf3);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+@media (max-width: 720px) {
+  .street-exit {
+    top: 104px;
+    left: 10px;
+    min-height: 48px;
+  }
+}

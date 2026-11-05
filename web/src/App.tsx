@@ -603,7 +603,7 @@ export default function App() {
         </section>
       </main>
 
-      <footer>
+      <footer className="site-footer">
         Aholo 全球 3D AI 黑客松参赛作品 · 逛厂 GuǎngChǎng · 数据为演示样例 ·
         源码与报告见 github.com/zgqy379/guangchang
       </footer>

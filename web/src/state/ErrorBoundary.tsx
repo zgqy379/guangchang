@@ -99,12 +99,12 @@ function FallbackPane({
       }
 
   return (
-    <div style={style} role="alert">
+    <div className="scene-fallback" style={style} role="alert">
       <div style={{ fontSize: compact ? 15 : 18, fontWeight: 700, color: 'var(--ui-page-fg, #e6edf3)' }}>
         {label ? `${label}加载失败` : '页面出错了'}
       </div>
       <div style={{ maxWidth: 460, lineHeight: 1.6 }}>
-        这一块没能加载出来，其余部分仍可使用。可以重试，或刷新页面。
+        网络请求没成功，这块内容暂时出不来。可以重试，或者刷新页面再试一次。
       </div>
       {/* 技术细节默认折叠：2026-11-05 移动端体验反馈——把
           "Could not load xxx.glb: Failed to fetch" 直接甩给求职者毫无帮助且吓人。
@@ -126,23 +126,43 @@ function FallbackPane({
           {error.stack || error.message || String(error)}
         </div>
       </details>
-      <button
-        onClick={onRetry}
-        style={{
-          marginTop: 4,
-          padding: '10px 20px',
-          minHeight: 44,
-          borderRadius: 12,
-          border: '1px solid var(--ui-glass-border, rgba(255,255,255,0.18))',
-          background: 'var(--color-brand-red-deep, #c23a2b)',
-          color: '#fff',
-          fontSize: 14,
-          fontWeight: 600,
-          cursor: 'pointer',
-        }}
-      >
-        重试
-      </button>
+      {/* 双恢复路径（2026-11-05 评审：文案说「可刷新」却无按钮）；按钮进拇指区、非警示红 */}
+      <div className="fallback-actions" style={{ display: 'flex', gap: 10, marginTop: 12, maxWidth: 460 }}>
+        <button
+          className="fallback-primary"
+          onClick={onRetry}
+          style={{
+            flex: 1,
+            minHeight: 48,
+            borderRadius: 12,
+            border: '1px solid transparent',
+            background: 'var(--color-brand-red-deep, #c23a2b)',
+            color: '#fff',
+            fontSize: 14,
+            fontWeight: 600,
+            cursor: 'pointer',
+          }}
+        >
+          重试
+        </button>
+        <button
+          className="fallback-secondary"
+          onClick={() => window.location.reload()}
+          style={{
+            flex: 1,
+            minHeight: 48,
+            borderRadius: 12,
+            border: '1px solid var(--ui-glass-border, rgba(255,255,255,0.22))',
+            background: 'transparent',
+            color: 'var(--ui-page-fg, #e6edf3)',
+            fontSize: 14,
+            fontWeight: 600,
+            cursor: 'pointer',
+          }}
+        >
+          刷新页面
+        </button>
+      </div>
     </div>
   )
 }

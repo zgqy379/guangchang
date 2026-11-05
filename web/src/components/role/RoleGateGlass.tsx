@@ -54,7 +54,7 @@ export function RoleGateGlass({ onPick, onEnterStreet, remembered, onDismissReme
           <span className="en">GUǍNGCHǍNG</span>
         </div>
         <div className="gg-glass gg-glass--dark gg-issue">
-          <span className="hi">FIELD SURVEY 01</span>
+          <span className="hi survey-tag">FIELD SURVEY 01</span>
           <span className="dot" aria-hidden="true" />
           <span className="hide-sm">R14 / 2026</span>
         </div>
@@ -81,7 +81,7 @@ export function RoleGateGlass({ onPick, onEnterStreet, remembered, onDismissReme
             <b>4</b>
             <span>个行业</span>
           </div>
-          <div>
+          <div className="stat-3d-assets">
             <b className="red">0</b>
             <span>个首屏 3D 资产</span>
           </div>
@@ -138,7 +138,7 @@ export function RoleGateGlass({ onPick, onEnterStreet, remembered, onDismissReme
       </section>
 
       <div className="gg-spacer" aria-hidden="true" />
-      <div className="gg-glass gg-glass--dark gg-plate">
+      <div className="gg-glass gg-glass--dark gg-plate role-gate-figcaption">
         <i className="red-dot" aria-hidden="true" />
         <span>图 01 / R14 街区 / 蓝调 19:10</span>
       </div>
