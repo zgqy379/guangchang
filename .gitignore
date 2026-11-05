@@ -51,3 +51,4 @@ tmp-design-review/
 # 风格研究全图样张（87MB 留本地不进库——全图可由 tools/shoot-* 复现；
 # 提纯结论已收编 docs/design/research/proofs-contact-sheets/）
 docs/design/proofs/
+.msvenv/

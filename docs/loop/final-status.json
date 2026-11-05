@@ -1,5 +1,5 @@
 {
-  "date": "2026-11-05 19:42",
+  "date": "2026-11-05 20:55",
   "trigger": "主理人「把没做的都做了」+「手机 USB 可控制」+「小红书帮我发了 / GitHub 想办法」",
   "completed": [
     "报告书 v3.6 重编译：docs/report.pdf 13.9MB，R19 终版实拍图 + 沙盘重构实验章节",
@@ -8,7 +8,8 @@
     "小红书笔记已发布：17:49「把 offer 砌成一条 3D 招聘街」，3 图 + 441 字正文含 #Aholo黑客松；笔记管理页确认",
     "线上 R19 复核 PASS（canvas 1 / drawCalls 668 / 零异常）",
     "egolite 空间事故修复：两处源头文档 + 27 个脚本收尾改为 finish({keep:[]})、误导注释修正、lessons §13.13、安全清理脚本",
-    "移动端真机数据采集完成：vivo V2509A / Android 16，R19 线上版角色门、3D 街区、行走漫游、昼/夜、游戏化进度全部工作；帧率 50th 8ms / Janky 1.3%（2301 帧）；报告 docs/figures/mobile-2026-11-05/mobile-test-report.json + 7 张实拍"
+    "移动端真机数据采集完成：vivo V2509A / Android 16，R19 线上版角色门、3D 街区、行走漫游、昼/夜、游戏化进度全部工作；帧率 50th 8ms / Janky 1.3%（2301 帧）；报告 docs/figures/mobile-2026-11-05/mobile-test-report.json + 7 张实拍",
+    "移动端体验修复并部署：① GLB 加载失败不再崩街区（useGLTFState 状态化加载 + SafeGLTF 占位降级，CDP 注入故障验收 PASS）② 移动端 HUD 紧凑化（占宽 46%）、按钮触控 ≥44px、失败文案技术细节折叠。commit 9250b50，已推 feat/main；Pages 已上线真机复验通过；魔搭 Normal committed 47 / LFS 0 已提交重新部署（镜像构建中）。"
   ],
   "submission": {
     "version": 3,
@@ -35,5 +36,12 @@
     "browser": "com.vivo.browser",
     "verdict": "PASS",
     "report": "docs/figures/mobile-2026-11-05/mobile-test-report.json"
+  },
+  "mobileFix": {
+    "commit": "9250b50",
+    "pages": "已部署并真机复验（rv04-street-fixed2.png：HUD 紧凑、无加载失败）",
+    "modelscope": "上传完成（Normal committed 47 / LFS 0），重新部署 CreatingBuildingImage 中",
+    "accept": "docs/loop/mobile-ux-accept.json PASS（GLB 全拦后 canvas=1、无失败页）",
+    "rootCause": "useGLTF 的 promise rejection 穿透 ErrorBoundary + rejected promise 进 drei 缓存死循环（lessons §13.15）"
   }
 }
