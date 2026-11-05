@@ -1,4 +1,4 @@
-// 逛厂项目报告书 v3.6（R19 终版 · 2026-11-05；双端已部署 R19、官网已提交第 1 版；含立体参数沙盘重构实验三轮未过线的完整留痕）
+// 逛厂项目报告书 v3.7（R19 终版 · 2026-11-05；双端已部署、官网第 4 版；含沙盘重构实验三轮留痕 + 移动端体验工程（真机/容错/三方 UX 评审））
 #set page(paper: "a4", margin: (x: 2.0cm, y: 2.2cm), numbering: "1 / 1")
 #set text(font: ("Microsoft YaHei", "Noto Sans SC", "SimHei"), size: 10pt, lang: "zh", region: "cn")
 #set heading(numbering: "1.1")
@@ -9,7 +9,7 @@
 #align(center)[
   #image("figures/og-image.png", width: 100%)
   #v(0.55em)
-  #text(size: 10pt, fill: rgb("#666"))[参数空间化 3D 求职招聘街区 · 项目报告书 v3.6]
+  #text(size: 10pt, fill: rgb("#666"))[参数空间化 3D 求职招聘街区 · 项目报告书 v3.7]
   #v(0.1em)
   #text(size: 9pt, fill: rgb("#888"))[群核科技 Aholo 全球 3D AI 黑客松 · 2026-11-05 · 必胜客的汉堡最好吃（3FO4K4VY3D07 · 单人队）]
 ]
@@ -259,6 +259,27 @@ SpatialGen / World 以纯文案生成四套行业办公室，经 Aholo Viewer �
   caption: [立体参数沙盘三轮迭代（左→右）：首轮低多边形骨架 / 选中标记与浮层收敛 / 真实落地投影与三级材质。三套画面、六位独立评审原文与全部失败轮次见 docs/design/reviews/ 与 docs/loop/。],
 ) <fig-diorama>
 
+= 移动端体验工程：真机测试、故障容错与三方 UX 评审
+
+作品的主战场之一是手机浏览器。2026-11-05 我们对移动端做了一轮完整的工程闭环：真机测试 → 发现问题 → 独立评审 → 修复 → 复验，全部留痕。
+
+*真机测试*：vivo V2509A（Android 16 / SDK 36 / 天玑 9300 / 1216×2640）真机跑通线上版——角色门、3D 街区昼夜、第三人称行走（Lux3D avatar + 罗盘 + 区域标签）、滑动转视角、`?hour=10` 昼间冻结、游戏化进度递增全部工作；2301 帧采样 Janky 1.3%、50 分位 8ms。
+
+*故障容错*：真机 5G 下暴露一例严重稳定性问题——单个 GLB（HR/Avatar 模型）网络请求失败会把整条街区刷成失败页。根因是 `useGLTF` 的 promise rejection 不可靠地穿透 React ErrorBoundary，且失败结果进全局缓存造成死循环。修复为三层：状态化手动加载（失败只降级不抛错、自动退避重试）+ 资产级占位体（模型缺失街区照常可逛）+ 失败文案降级（技术细节折叠）。以 CDP 注入全量 GLB 故障验收通过。
+
+*三方独立评审与修复*：按移动端 HUD 规范（常驻 HUD ≤20-25% 视口、中心留给场景、渐进式披露、拇指区主操作、触控 ≥44pt）组织 UI 视觉 / 交互设计 / 可用性走查三方独立评审，初始评分 4.7 / 4.6 / 5.8，共性短板：顶栏 chrome 过重、进度卡遮挡、底部常驻文字、失败态文案与事实矛盾、行走模式无退出路径、调试信息泄漏。定向修复后 3D 场景占屏从约 55% 提升到约 82%，进度 HUD 压到占宽 48%，触控目标全部 ≥44px，移动端验收通过。
+
+#figure(
+  grid(
+    columns: 3,
+    gutter: 4pt,
+    image("figures/mobile-2026-11-05/ux/ux06-tap-booth2.png", width: 100%),
+    image("figures/mobile-2026-11-05/rv04-street-fixed2.png", width: 100%),
+    image("figures/mobile-2026-11-05/ux-b-mobile-layout.png", width: 100%),
+  ),
+  caption: [移动端三轮迭代（左→右）：① 网络故障下整街区崩成失败页（问题现场）② GLB 容错修复后真机可用但 HUD 过重 ③ 三方 UX 评审定向修复后，顶栏单行化、进度卡窄条化、底部一行化，3D 场景占屏约 82%。完整评审与验收数据见 docs/loop/mobile-ux-accept.json 与 docs/figures/mobile-2026-11-05/。],
+) <fig-mobile>
+
 = 工程事实、性能与合规
 
 #figure(
@@ -295,7 +316,7 @@ SpatialGen / World 以纯文案生成四套行业办公室，经 Aholo Viewer �
   table.header([*提交物*], [*状态 / 链接*]),
   [在线 Demo], [GitHub Pages + 魔搭创空间，双端同源构建（基路径不同、bundle 哈希各异：Pages `index-6A6MFh1z.js` / 魔搭同批 Normal committed 45 / LFS 0；2026-11-04 23:16 官网已提交第 1 版）],
   [Demo 视频], [2–3 分钟实机录屏 + 旁白/字幕，随本报告同目录/链接],
-  [项目报告书], [本 PDF（v3.6，2026-11-05，R19 终版）],
+  [项目报告书], [本 PDF（v3.7，2026-11-05，R19 终版 + 移动端体验工程）],
   [源代码], [#link("https://github.com/zgqy379/guangchang")[github.com/zgqy379/guangchang]（MIT）],
   [第三方声明], [`THIRD_PARTY_NOTICES.md`：Aholo 能力/受限素材/Mixamo/Pexels/Draco/开源依赖/字体],
   [团队], [必胜客的汉堡最好吃（3FO4K4VY3D07 · 单人队）],

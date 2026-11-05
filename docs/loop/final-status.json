@@ -1,5 +1,5 @@
 {
-  "date": "2026-11-05 20:55",
+  "date": "2026-11-05 21:58",
   "trigger": "主理人「把没做的都做了」+「手机 USB 可控制」+「小红书帮我发了 / GitHub 想办法」",
   "completed": [
     "报告书 v3.6 重编译：docs/report.pdf 13.9MB，R19 终版实拍图 + 沙盘重构实验章节",
@@ -9,15 +9,17 @@
     "线上 R19 复核 PASS（canvas 1 / drawCalls 668 / 零异常）",
     "egolite 空间事故修复：两处源头文档 + 27 个脚本收尾改为 finish({keep:[]})、误导注释修正、lessons §13.13、安全清理脚本",
     "移动端真机数据采集完成：vivo V2509A / Android 16，R19 线上版角色门、3D 街区、行走漫游、昼/夜、游戏化进度全部工作；帧率 50th 8ms / Janky 1.3%（2301 帧）；报告 docs/figures/mobile-2026-11-05/mobile-test-report.json + 7 张实拍",
-    "移动端体验修复并部署：① GLB 加载失败不再崩街区（useGLTFState 状态化加载 + SafeGLTF 占位降级，CDP 注入故障验收 PASS）② 移动端 HUD 紧凑化（占宽 46%）、按钮触控 ≥44px、失败文案技术细节折叠。commit 9250b50，已推 feat/main；Pages 已上线真机复验通过；魔搭 Normal committed 47 / LFS 0 已提交重新部署（镜像构建中）。"
+    "移动端体验修复并部署：① GLB 加载失败不再崩街区（useGLTFState 状态化加载 + SafeGLTF 占位降级，CDP 注入故障验收 PASS）② 移动端 HUD 紧凑化（占宽 46%）、按钮触控 ≥44px、失败文案技术细节折叠。commit 9250b50，已推 feat/main；Pages 已上线真机复验通过；魔搭 Normal committed 47 / LFS 0 已提交重新部署（镜像构建中）。",
+    "合规收口：报告书 v3.7（18.2MB，新增「移动端体验工程」章节：真机测试/故障容错/三方 UX 评审/三轮迭代对比图）→ 官网「修改提交」第 4 版（21:55）提交成功；Demo/小红书/源码/赛道四项字段全部保留；feat 与 main 均同步至 0b60ecd。"
   ],
   "submission": {
-    "version": 3,
-    "time": "2026-11-05 17:54",
-    "report": "v3.6 / 13.9 MB",
-    "demo": "https://modelscope.cn/studios/zgqy379/guangchang3d",
-    "source": "https://github.com/zgqy379/guangchang",
+    "version": 4,
+    "time": "2026-11-05 21:55",
+    "report": "v3.7 / 18.2 MB（R19 终版 + 沙盘实验留痕 + 移动端体验工程）",
+    "demo": "https://modelscope.cn/studios/zgqy379/guangchang3d (Running)",
+    "source": "https://github.com/zgqy379/guangchang (main=feat=0b60ecd)",
     "social": "https://www.xiaohongshu.com/explore/6aec5119000000000602cd58",
+    "tracks": "游戏应用奖、空间设计应用奖",
     "status": "已提交·资格与完整性审核"
   },
   "github": {
@@ -43,5 +45,14 @@
     "modelscope": "上传完成（Normal committed 47 / LFS 0），重新部署 CreatingBuildingImage 中",
     "accept": "docs/loop/mobile-ux-accept.json PASS（GLB 全拦后 canvas=1、无失败页）",
     "rootCause": "useGLTF 的 promise rejection 穿透 ErrorBoundary + rejected promise 进 drei 缓存死循环（lessons §13.15）"
+  },
+  "complianceChecklist": {
+    "必交①Demo链接": "✅ 魔搭 Running，含当日移动端修复",
+    "必交②报告书": "✅ v3.7 含过程/迭代对比/效果截图（真机+沙盘+盲审）",
+    "加分③小红书": "✅ 已发布+官网第3/4版登记",
+    "加分④源码": "✅ feat/main=0b60ecd 公开 MIT",
+    "GPU额度(魔搭)": "✅ Running，+20h Notebook",
+    "评审30%技术栈": "✅ R19 主链路 Lux3D/SpatialGen/Aholo Viewer",
+    "评审20%材料匹配": "✅ 报告/Demo/源码同版（v3.7↔0b60ecd↔Running）"
   }
 }
