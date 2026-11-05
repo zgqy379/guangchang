@@ -10,4 +10,4 @@ const info = await page.evaluate(() => ({
   buttons: [...document.querySelectorAll('button, a, div[role="button"]')].map((b) => (b.textContent || '').trim()).filter((t) => t && t.length < 14).slice(0, 24),
 }))
 console.log(JSON.stringify(info, null, 1))
-await task.finish({ keep: 'all' })
+await task.finish({ keep: [] })

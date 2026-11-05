@@ -41,4 +41,4 @@ const info = await page.evaluate(() => {
 
 console.log('=== INFO ===');
 console.log(JSON.stringify(info, null, 1));
-await task.finish({ keep: 'all' });
+await task.finish({ keep: [] });

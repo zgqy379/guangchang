@@ -506,3 +506,12 @@
 - **换美术方向可能把最高权重维度一起换掉**：沙盘为了「一屏看全、不要走路」砍掉办公室漫游与 3DGS（任务书 §5 曾批准），连带把 Lux3D 角色、SpatialGen 空间、Aholo Viewer 从体验链路全部下线，作品变成纯 three.js 程序几何。视觉分即使补到 7，30% 维度也可能失分。**重构的砍/留清单必须过一遍官方评分维度**，不能只看产品逻辑自洽
 - **书面证据链 ≠ 运行时证据链**：`report.typ` 第八部分、`THIRD_PARTY_NOTICES.md`、`docs/iterations/`、`tools/gen_*.py` 一直很完整，但如果最终提交的是一个不用 Aholo 的版本，报告写得再好也撑不起「技术栈承担核心作用」。反过来，R19 主链路本来就在用，不需要再调 API 生成新资产——**缺口不是资产数量，是最终版本用没用上**
 - **裁决已写进权威计划书**：`project.md` v1.5-0 明确「以 R19 为主提交版本、沙盘降为未过线实验分支、第四轮视觉暂停、重心转官方合规材料」，并声明优先级高于 v1.5 其余各节。后续任何 Agent 不要再把沙盘当提交目标
+
+### 13.13 egolite TaskSpace 不关空间 → 浏览器内存事故（2026-11-05 17:4x）
+
+- **事实**：主理人反馈「几十个空间常驻，电脑快卡炸」。实测 `ego` 进程 17 个占 **2.25 GB**，加 msedge 790MB / webview2 260MB，浏览器相关合计约 **3.3 GB**。主理人已手动清理。
+- **技能其实写清楚了**（ego-browser skill v2.2.0 §User control and completion）：「When the task succeeds, close the TaskSpace **by default** with `await task.finish({ keep: [] })`」「Keeping Pages is a **rare exception**」「Use **exactly one TaskSpace** for the entire user goal … resume that same space in later rounds」「`finish()` exactly once, put it last in the final round only」「Do not call `finish()` when the task stops for user control or an error」。
+- **写错的是交接任务书**：`docs/handoff-diorama-rebuild-2026-11-05.md` §1 硬编码「结束 `task.finish({keep:'all'})`」，`project.md` v1.5 又照抄一处。我按任务书执行并扩散到 **28 个脚本**，且每个脚本用 `taskSpace('gc-xxx-' + Date.now())` **每次新建空间**，两处同时违反技能规范。任务书开头写着「三份原文赢」，但工具自己的 SKILL.md 不在这三份里 —— **引用二手任务书前必须核对一手工具文档**，尤其是资源生命周期这类副作用语义。
+- **已修**：① 两处源头文档改为 `keep: []` 并写明「一个目标一个空间、同名/id 复用、仅用户明确要求才 `keep: ["p1"]`」；② 27 个脚本的 `finish` 调用批量改为 `keep: []`（仅改代码行，事故说明注释保留）；③ `tools/shoot-diorama-d1.mjs` 里误导性注释改掉；④ `tools/ego-cleanup-spaces.mjs` 提供只清理 `ownership=agent && name^=gc-` 的安全收尾，用户自有空间（BOSS直聘 / 求职投递）显式跳过。
+- **今后硬规则**：任何 egolite 脚本 → 固定空间名（不带时间戳）→ 后续轮次 `taskSpace(同名或 id)` 复用 → 成功时**只在最终轮** `await task.finish({ keep: [] })` → 出错或交还用户控制时**不调** finish。需要把结果留在浏览器给用户看时，必须用户明确要求，且只 `keep` 那一个 Page。
+- **通用教训**：静默的资源泄漏比崩溃更难发现 —— 每次采集都「成功」、日志全绿，副作用却线性累积。**凡是「开一个东西」的 API，先查它的配对关闭语义与默认值，不要照抄样例里的参数。**

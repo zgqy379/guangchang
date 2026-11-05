@@ -31,4 +31,4 @@ for (const [name, url] of targets) {
 }
 fs.writeFileSync(OUT, JSON.stringify(results, null, 2) + '\n');
 console.log(JSON.stringify(results));
-await task.finish({ keep: 'all' });
+await task.finish({ keep: [] });

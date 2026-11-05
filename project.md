@@ -131,7 +131,7 @@
 - 新增 `design/tokens.json` 顶层 `diorama` 段（day / night / scale 三组，DTCG 标准格式），`npm run tokens` 生成 58 个 `Diorama*` 导出并通过 number 令牌自检。
 - `App.tsx`：模式 union 加 `'diorama'`、`DioramaScene` lazy、`?mode=diorama` 深链、顶栏「🗺️ 参数沙盘」按钮、`diorama` 渲染分支与 `DioramaSceneLoader`（`diorama-ready` + 12s 兜底）、`aside.controls` / `.scale-note` 在沙盘模式下隐藏。
 - `web/src/components/diorama/DioramaScene.tsx`：唯一 Canvas、T9 包围盒断言、纯程序几何、昼夜光照、四区 16 预留位 InstancedMesh。
-- `tools/shoot-diorama-d1.mjs`：深链直达采集脚本，就绪判定轮询 `window.__gl.info.render.calls > 0`（lessons §13.7），结尾 `await task.finish({ keep: 'all' })`。
+- `tools/shoot-diorama-d1.mjs`：深链直达采集脚本，就绪判定轮询 `window.__gl.info.render.calls > 0`（lessons §13.7），结尾 `await task.finish({ keep: [] })`（默认关闭空间并释放页签；`keep:'all'` 属事故写法，见 docs/lessons.md §13.13）。
 - **D1 不交付**：64 栋参数楼、四信道全量编码、hover / 点选 / 钉 3 家交互、盲审图、部署——按 D2–D6 计划推进。
 
 ## v1.4 变更记录（2026-10-27 · 双角色体系）

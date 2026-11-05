@@ -5,4 +5,4 @@ await page.goto('https://modelscope.cn/studios/zgqy379/guangchang3d?mode=full', 
 await page.waitForTimeout(30000)
 await page.screenshot({ path: 'E:/guangchang/tmp-design-review/ms-portal-accept2.png' })
 console.log('✓ portal 截图2已存（25s）')
-await task.finish({ keep: 'all' })
+await task.finish({ keep: [] })

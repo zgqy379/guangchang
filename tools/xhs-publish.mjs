@@ -154,4 +154,4 @@ try {
 
 fs.writeFileSync(OUT, JSON.stringify(result, null, 2) + '\n');
 console.log('PUBLISHED=' + result.published);
-await task.finish({ keep: 'all' });
+await task.finish({ keep: [] });

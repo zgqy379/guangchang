@@ -85,4 +85,4 @@ try {
 result.log = log;
 fs.writeFileSync(OUT, JSON.stringify(result, null, 2) + '\n');
 console.log(JSON.stringify(result));
-await task.finish({ keep: 'all' });
+await task.finish({ keep: [] });

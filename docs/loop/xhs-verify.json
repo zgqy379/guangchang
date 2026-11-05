@@ -1,0 +1,19 @@
+{
+  "confirmed": false,
+  "steps": [
+    "点击笔记管理: false",
+    "页面: {\"url\":\"https://creator.xiaohongshu.com/publish/manage\",\"titleFound\":false,\"linkCount\":0}",
+    "文本: 你访问的页面不见了，你还可以 |  | 返回上一页",
+    "管理页截图已保存",
+    "空间已关闭"
+  ],
+  "snap": {
+    "url": "https://creator.xiaohongshu.com/publish/manage",
+    "titleFound": false,
+    "text": "你访问的页面不见了，你还可以\n\n返回上一页",
+    "links": [],
+    "hasPublishedFlag": false
+  },
+  "detailLinks": [],
+  "postUrl": null
+}

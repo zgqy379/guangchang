@@ -1,0 +1,21 @@
+{
+  "published": false,
+  "steps": [
+    "位置权限已预拒绝",
+    "3 张配图已提交上传",
+    "填表: {\"titleVal\":\"把 offer 砌成一条 3D 招聘街\",\"bodyLen\":441}",
+    "内容校验: {\"hasTitle\":true,\"hasTopic\":true,\"hasDemo\":true,\"imgCount\":3}",
+    "发布按钮候选: []",
+    "发布前截图: E:/guangchang/docs/figures/xhs-before-publish.png",
+    "异常: 底部「发布」按钮未找到，不误点其它元素",
+    "异常时截图: E:/guangchang/docs/figures/xhs-after-publish.png"
+  ],
+  "check": {
+    "hasTitle": true,
+    "hasTopic": true,
+    "hasDemo": true,
+    "imgCount": 3
+  },
+  "find": [],
+  "error": "底部「发布」按钮未找到，不误点其它元素"
+}

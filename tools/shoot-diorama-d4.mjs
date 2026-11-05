@@ -111,5 +111,5 @@ try {
 } finally {
   fs.writeFileSync(`${OUT}/d4-done.json`, JSON.stringify(result, null, 2) + '\n');
   fs.writeFileSync(`${OUT}/d4-done.txt`, lines.join('\n') + '\n');
-  await task.finish({ keep: 'all' });
+  await task.finish({ keep: [] });
 }

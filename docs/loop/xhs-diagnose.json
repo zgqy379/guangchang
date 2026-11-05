@@ -1,0 +1,405 @@
+{
+  "published": false,
+  "steps": [
+    "位置权限已预拒绝",
+    "进入图文上传: true",
+    "3 张配图已提交上传",
+    "填表: {\"title\":true,\"body\":true,\"titleVal\":\"把 offer 砌成一条 3D 招聘街\",\"bodyLen\":441}",
+    "诊断: buttons=[{\"text\":\"\",\"cls\":\"chat-fab\",\"disabled\":false,\"rect\":{\"x\":1471,\"y\":887,\"w\":40,\"h\":40}},{\"text\":\"编辑\",\"cls\":\"edit-btn\",\"disabled\":false,\"rect\":{\"x\":508,\"y\":187,\"w\":24,\"h\":20}},{\"text\":\"\",\"cls\":\"image-editor-info-trigger\",\"disabled\":false,\"rect\":{\"x\":536,\"y\":190,\"w\":14,\"h\":14}},{\"text\":\"编辑\",\"cls\":\"edit-btn\",\"disabled\":false,\"rect\":{\"x\":597,\"y\":187,\"w\":24,\"h\":20}},{\"text\":\"\",\"cls\":\"image-editor-info-trigger\",\"disabled\":false,\"rect\":{\"x\":625,\"y\":190,\"w\":14,\"h\":14}},{\"text\":\"编辑\",\"cls\":\"edit-btn\",\"disabled\":false,\"rect\":{\"x\":686,\"y\":187,\"w\":24,\"h\":20}},{\"text\":\"\",\"cls\":\"image-editor-info-trigger\",\"disabled\":false,\"rect\":{\"x\":714,\"y\":190,\"w\":14,\"h\":14}},{\"text\":\"话题\",\"cls\":\"contentBtn topic-btn\",\"disabled\":false,\"rect\":{\"x\":398,\"y\":619,\"w\":71,\"h\":32}},{\"text\":\"\",\"cls\":\"topicTemplate\",\"disabled\":false,\"rect\":{\"x\":465,\"y\":625,\"w\":20,\"h\":20}},{\"text\":\"用户\",\"cls\":\"contentBtn\",\"disabled\":false,\"rect\":{\"x\":500,\"y\":619,\"w\":71,\"h\":32}},{\"text\":\"表情\",\"cls\":\"contentBtn emoticons\",\"disabled\":false,\"rect\":{\"x\":581,\"y\":619,\"w\":71,\"h\":32}},{\"text\":\"更多\",\"cls\":\"more\",\"disabled\":false,\"rect\":{\"x\":986,\"y\":1254,\"w\":44,\"h\":20}},{\"text\":\"关联\",\"cls\":\"activity-action\",\"disabled\":false,\"rect\":{\"x\":662,\"y\":1292,\"w\":28,\"h\":68}},{\"text\":\"关联\",\"cls\":\"activity-action\",\"disabled\":false,\"rect\":{\"x\":986,\"y\":1292,\"w\":28,\"h\":68}}]",
+    "诊断: candidates=[{\"tag\":\"DIV\",\"cls\":\"publish-video\",\"text\":\"发布笔记\",\"rect\":{\"x\":0,\"y\":64,\"w\":208,\"h\":76},\"disabled\":false,\"hidden\":false,\"role\":\"\",\"html\":\"<div data-v-3f98c6ee=\\\"\\\" class=\\\"publish-video\\\"><div data-v-3f98c6ee=\\\"\\\" class=\\\"btn-wrapper\\\"><div data-v-3f98c6ee=\\\"\\\" class=\\\"btn-inner\\\"><svg data-v-3f98c6ee=\\\"\\\" xmlns=\\\"http://www.w3.org\"},{\"tag\":\"DIV\",\"cls\":\"btn-wrapper\",\"text\":\"发布笔记\",\"rect\":{\"x\":24,\"y\":80,\"w\":176,\"h\":44},\"disabled\":false,\"hidden\":false,\"role\":\"\",\"html\":\"<div data-v-3f98c6ee=\\\"\\\" class=\\\"btn-wrapper\\\"><div data-v-3f98c6ee=\\\"\\\" class=\\\"btn-inner\\\"><svg data-v-3f98c6ee=\\\"\\\" xmlns=\\\"http://www.w3.org/2000/svg\\\" width=\\\"20\\\" height=\\\"16\\\" viewBox=\\\"0 0\"},{\"tag\":\"DIV\",\"cls\":\"btn-inner\",\"text\":\"发布笔记\",\"rect\":{\"x\":52,\"y\":90,\"w\":120,\"h\":24},\"disabled\":false,\"hidden\":false,\"role\":\"\",\"html\":\"<div data-v-3f98c6ee=\\\"\\\" class=\\\"btn-inner\\\"><svg data-v-3f98c6ee=\\\"\\\" xmlns=\\\"http://www.w3.org/2000/svg\\\" width=\\\"20\\\" height=\\\"16\\\" viewBox=\\\"0 0 20 16\\\" fill=\\\"none\\\" color=\\\"#FFF\\\" style=\\\"tran\"},{\"tag\":\"SPAN\",\"cls\":\"btn-text\",\"text\":\"发布笔记\",\"rect\":{\"x\":80,\"y\":90,\"w\":64,\"h\":24},\"disabled\":false,\"hidden\":false,\"role\":\"\",\"html\":\"<span data-v-3f98c6ee=\\\"\\\" class=\\\"btn-text\\\">发布笔记</span>\"},{\"tag\":\"DIV\",\"cls\":\"post-time-wrapper\",\"text\":\"定时发布\",\"rect\":{\"x\":398,\"y\":1580,\"w\":632,\"h\":44},\"disabled\":false,\"hidden\":false,\"role\":\"\",\"html\":\"<div data-v-2476ce24=\\\"\\\" data-v-3c4191e7=\\\"\\\" data-v-74e5df5a-s=\\\"\\\" data-v-7a28df78-s=\\\"\\\" class=\\\"post-time-wrapper\\\"><div data-v-2476ce24=\\\"\\\" class=\\\"post-time-switch-container\\\"><div data-\"},{\"tag\":\"DIV\",\"cls\":\"post-time-switch-container\",\"text\":\"定时发布\",\"rect\":{\"x\":398,\"y\":1580,\"w\":308,\"h\":44},\"disabled\":false,\"hidden\":false,\"role\":\"\",\"html\":\"<div data-v-2476ce24=\\\"\\\" class=\\\"post-time-switch-container\\\"><div data-v-298c3e02=\\\"\\\" data-v-2476ce24=\\\"\\\" class=\\\"custom-switch-wrapper\\\"><div data-v-298c3e02=\\\"\\\" class=\\\"custom-switch-car\"},{\"tag\":\"DIV\",\"cls\":\"custom-switch-wrapper\",\"text\":\"定时发布\",\"rect\":{\"x\":398,\"y\":1580,\"w\":308,\"h\":44},\"disabled\":false,\"hidden\":false,\"role\":\"\",\"html\":\"<div data-v-298c3e02=\\\"\\\" data-v-2476ce24=\\\"\\\" class=\\\"custom-switch-wrapper\\\"><div data-v-298c3e02=\\\"\\\" class=\\\"custom-switch-card\\\"><div data-v-298c3e02=\\\"\\\" class=\\\"custom-switch-icon\\\"><svg \"},{\"tag\":\"DIV\",\"cls\":\"custom-switch-card\",\"text\":\"定时发布\",\"rect\":{\"x\":398,\"y\":1580,\"w\":308,\"h\":44},\"disabled\":false,\"hidden\":false,\"role\":\"\",\"html\":\"<div data-v-298c3e02=\\\"\\\" class=\\\"custom-switch-card\\\"><div data-v-298c3e02=\\\"\\\" class=\\\"custom-switch-icon\\\"><svg data-v-298c3e02=\\\"\\\" width=\\\"16\\\" height=\\\"16\\\" viewBox=\\\"0 0 16 16\\\" xmlns=\\\"http\"},{\"tag\":\"DIV\",\"cls\":\"custom-switch-text-content\",\"text\":\"定时发布\",\"rect\":{\"x\":438,\"y\":1592,\"w\":212,\"h\":20},\"disabled\":false,\"hidden\":false,\"role\":\"\",\"html\":\"<div data-v-298c3e02=\\\"\\\" class=\\\"custom-switch-text-content\\\"><span data-v-298c3e02=\\\"\\\" class=\\\"has-tips\\\">定时发布</span><!----><div data-v-298c3e02=\\\"\\\" class=\\\"custom-switch-text-desc\\\"></div\"},{\"tag\":\"SPAN\",\"cls\":\"has-tips\",\"text\":\"定时发布\",\"rect\":{\"x\":438,\"y\":1594,\"w\":56,\"h\":16},\"disabled\":false,\"hidden\":false,\"role\":\"\",\"html\":\"<span data-v-298c3e02=\\\"\\\" class=\\\"has-tips\\\">定时发布</span>\"},{\"tag\":\"DIV\",\"cls\":\"preview-title\",\"text\":\"笔记预览\\n封面预览\",\"rect\":{\"x\":1086,\"y\":64,\"w\":260,\"h\":40},\"disabled\":false,\"hidden\":false,\"role\":\"\",\"html\":\"<div data-v-3c4191e7=\\\"\\\" data-v-74e5df5a-s=\\\"\\\" data-v-7a28df78-s=\\\"\\\" class=\\\"preview-title\\\"><div data-v-0b0e63a0=\\\"\\\" data-v-3c4191e7=\\\"\\\" data-v-74e5df5a-s=\\\"\\\" data-v-7a28df78-s=\\\"\\\" class=\\\"\"},{\"tag\":\"DIV\",\"cls\":\"button-switch-wrapper\",\"text\":\"笔记预览\\n封面预览\",\"rect\":{\"x\":1086,\"y\":64,\"w\":260,\"h\":40},\"disabled\":false,\"hidden\":false,\"role\":\"\",\"html\":\"<div data-v-0b0e63a0=\\\"\\\" data-v-3c4191e7=\\\"\\\" data-v-74e5df5a-s=\\\"\\\" data-v-7a28df78-s=\\\"\\\" class=\\\"button-switch-wrapper\\\"><div data-v-0b0e63a0=\\\"\\\" class=\\\"button-switch-slider\\\" style=\\\"trans\"},{\"tag\":\"DIV\",\"cls\":\"button-switch-item active\",\"text\":\"笔记预览\",\"rect\":{\"x\":1090,\"y\":68,\"w\":124,\"h\":32},\"disabled\":false,\"hidden\":false,\"role\":\"\",\"html\":\"<div data-v-0b0e63a0=\\\"\\\" class=\\\"button-switch-item active\\\">笔记预览</div>\"},{\"tag\":\"DIV\",\"cls\":\"button-switch-item\",\"text\":\"封面预览\",\"rect\":{\"x\":1218,\"y\":68,\"w\":124,\"h\":32},\"disabled\":false,\"hidden\":false,\"role\":\"\",\"html\":\"<div data-v-0b0e63a0=\\\"\\\" class=\\\"button-switch-item\\\">封面预览</div>\"}]",
+    "诊断: bodyTail=引用笔记 | 添加投票 | 标记地点或标记朋友 | 添加路线 | 选择文件 | 关联活动 | 更多 | RED11月精选作者投稿 | 11-04 至 11-25 | 关联 | 马路生活节 | 10-23 至 11-30 | 关联 | 更多设置 | 收起 | 允许正文复制 | 公开可见 | 定时发布 | 笔记预览 | 封面预览 | ㅤㅤㅤ | 1/3 | 把 offer 砌成一条 3D 招聘街 |  | “年薪 30 万”“五险一金全额”“弹性工作”……这些词到底差在哪？ 我把它们砌成了一条可以走进去的 3D 招聘街区。 64 家虚构公司，四个行业街区。走近一个摊位，HR 是 3D 生成角色；身后的钱堆是总包，碑身灯条是五险，顶灯是下班时间。拖一下滑杆，山实时长高；拖下班时间，太阳落下、月亮升起。投简历、加对比篮、两座山并排——谁画的饼更大，一眼就知道。 技术：Aholo Lux3D 生成角色/钞票，SpatialGen 生成四套办公室，Aholo Viewer 承载 3DGS 漫游。 后来我们试着把 64 家公司压成一块桌上微缩沙盘，一屏看全。三轮、六位独立评审、只看图不知实现——6.2、6.2、6.8，始终没过自己定的 7 分线。于是按写好的规则撤掉，线上仍是过线那版。失败轮次和每一版截图都留在报告书里。 在线 Demo：zgqy379.github.io/guangchang #Aholo黑客松 #3D #AI #数据可视化 #求职 #独立开发 #黑客松 |  | 编辑于  | 刚刚",
+    "截图已保存: E:/guangchang/docs/figures/xhs-editor-diagnose.png",
+    "真实发布按钮候选: []"
+  ],
+  "filled": {
+    "title": true,
+    "body": true,
+    "titleVal": "把 offer 砌成一条 3D 招聘街",
+    "bodyLen": 441
+  },
+  "diag": {
+    "url": "https://creator.xiaohongshu.com/publish/publish?from=tab_switch",
+    "bodyTail": "创作服务平台\nㅤㅤㅤ\n发布笔记\n首页\n笔记管理\nBuilder hub\n小工具\nRed Skill\n数据看板\n活动中心\n笔记灵感\n创作学院\n创作百科\n收起侧边栏\n图片编辑\n3/18\n获取封面建议\n1\n编辑\n2\n编辑\n3\n编辑\n智能标题\n\n“年薪 30 万”“五险一金全额”“弹性工作”……这些词到底差在哪？  我把它们砌成了一条可以走进去的 3D 招聘街区。 64 家虚构公司，四个行业街区。走近一个摊位，HR 是 3D 生成角色；身后的钱堆是总包，碑身灯条是五险，顶灯是下班时间。拖一下滑杆，山实时长高；拖下班时间，太阳落下、月亮升起。投简历、加对比篮、两座山并排——谁画的饼更大，一眼就知道。  技术：Aholo Lux3D 生成角色/钞票，SpatialGen 生成四套办公室，Aholo Viewer 承载 3DGS 漫游。  后来我们试着把 64 家公司压成一块桌上微缩沙盘，一屏看全。三轮、六位独立评审、只看图不知实现——6.2、6.2、6.8，始终没过自己定的 7 分线。于是按写好的规则撤掉，线上仍是过线那版。失败轮次和每一版截图都留在报告书里。  在线 Demo：zgqy379.github.io/guangchang  #Aholo黑客松 #3D #AI #数据可视化 #求职 #独立开发 #黑客松\n\n#我在小红书做游戏\n#纪念碑谷3\n#Vibecoding玩家\n更多\n 话题\n 用户\n 表情\n441\n/1000\n内容设置\n收起\n加入合集\n汇集系列视频，有利于连续性观看\n创建合集\n原创声明\n添加内容类型声明\n添加组件\n添加地点\n选择群聊\n引用笔记\n添加投票\n标记地点或标记朋友\n添加路线\n选择文件\n关联活动\n更多\nRED11月精选作者投稿\n11-04 至 11-25\n关联\n马路生活节\n10-23 至 11-30\n关联\n更多设置\n收起\n允许正文复制\n公开可见\n定时发布\n笔记预览\n封面预览\nㅤㅤㅤ\n1/3\n把 offer 砌成一条 3D 招聘街\n\n“年薪 30 万”“五险一金全额”“弹性工作”……这些词到底差在哪？ 我把它们砌成了一条可以走进去的 3D 招聘街区。 64 家虚构公司，四个行业街区。走近一个摊位，HR 是 3D 生成角色；身后的钱堆是总包，碑身灯条是五险，顶灯是下班时间。拖一下滑杆，山实时长高；拖下班时间，太阳落下、月亮升起。投简历、加对比篮、两座山并排——谁画的饼更大，一眼就知道。 技术：Aholo Lux3D 生成角色/钞票，SpatialGen 生成四套办公室，Aholo Viewer 承载 3DGS 漫游。 后来我们试着把 64 家公司压成一块桌上微缩沙盘，一屏看全。三轮、六位独立评审、只看图不知实现——6.2、6.2、6.8，始终没过自己定的 7 分线。于是按写好的规则撤掉，线上仍是过线那版。失败轮次和每一版截图都留在报告书里。 在线 Demo：zgqy379.github.io/guangchang #Aholo黑客松 #3D #AI #数据可视化 #求职 #独立开发 #黑客松\n\n编辑于 \n刚刚",
+    "buttons": [
+      {
+        "text": "",
+        "cls": "chat-fab",
+        "disabled": false,
+        "rect": {
+          "x": 1471,
+          "y": 887,
+          "w": 40,
+          "h": 40
+        }
+      },
+      {
+        "text": "编辑",
+        "cls": "edit-btn",
+        "disabled": false,
+        "rect": {
+          "x": 508,
+          "y": 187,
+          "w": 24,
+          "h": 20
+        }
+      },
+      {
+        "text": "",
+        "cls": "image-editor-info-trigger",
+        "disabled": false,
+        "rect": {
+          "x": 536,
+          "y": 190,
+          "w": 14,
+          "h": 14
+        }
+      },
+      {
+        "text": "编辑",
+        "cls": "edit-btn",
+        "disabled": false,
+        "rect": {
+          "x": 597,
+          "y": 187,
+          "w": 24,
+          "h": 20
+        }
+      },
+      {
+        "text": "",
+        "cls": "image-editor-info-trigger",
+        "disabled": false,
+        "rect": {
+          "x": 625,
+          "y": 190,
+          "w": 14,
+          "h": 14
+        }
+      },
+      {
+        "text": "编辑",
+        "cls": "edit-btn",
+        "disabled": false,
+        "rect": {
+          "x": 686,
+          "y": 187,
+          "w": 24,
+          "h": 20
+        }
+      },
+      {
+        "text": "",
+        "cls": "image-editor-info-trigger",
+        "disabled": false,
+        "rect": {
+          "x": 714,
+          "y": 190,
+          "w": 14,
+          "h": 14
+        }
+      },
+      {
+        "text": "话题",
+        "cls": "contentBtn topic-btn",
+        "disabled": false,
+        "rect": {
+          "x": 398,
+          "y": 619,
+          "w": 71,
+          "h": 32
+        }
+      },
+      {
+        "text": "",
+        "cls": "topicTemplate",
+        "disabled": false,
+        "rect": {
+          "x": 465,
+          "y": 625,
+          "w": 20,
+          "h": 20
+        }
+      },
+      {
+        "text": "用户",
+        "cls": "contentBtn",
+        "disabled": false,
+        "rect": {
+          "x": 500,
+          "y": 619,
+          "w": 71,
+          "h": 32
+        }
+      },
+      {
+        "text": "表情",
+        "cls": "contentBtn emoticons",
+        "disabled": false,
+        "rect": {
+          "x": 581,
+          "y": 619,
+          "w": 71,
+          "h": 32
+        }
+      },
+      {
+        "text": "更多",
+        "cls": "more",
+        "disabled": false,
+        "rect": {
+          "x": 986,
+          "y": 1254,
+          "w": 44,
+          "h": 20
+        }
+      },
+      {
+        "text": "关联",
+        "cls": "activity-action",
+        "disabled": false,
+        "rect": {
+          "x": 662,
+          "y": 1292,
+          "w": 28,
+          "h": 68
+        }
+      },
+      {
+        "text": "关联",
+        "cls": "activity-action",
+        "disabled": false,
+        "rect": {
+          "x": 986,
+          "y": 1292,
+          "w": 28,
+          "h": 68
+        }
+      }
+    ],
+    "candidates": [
+      {
+        "tag": "DIV",
+        "cls": "publish-video",
+        "text": "发布笔记",
+        "rect": {
+          "x": 0,
+          "y": 64,
+          "w": 208,
+          "h": 76
+        },
+        "disabled": false,
+        "hidden": false,
+        "role": "",
+        "html": "<div data-v-3f98c6ee=\"\" class=\"publish-video\"><div data-v-3f98c6ee=\"\" class=\"btn-wrapper\"><div data-v-3f98c6ee=\"\" class=\"btn-inner\"><svg data-v-3f98c6ee=\"\" xmlns=\"http://www.w3.org"
+      },
+      {
+        "tag": "DIV",
+        "cls": "btn-wrapper",
+        "text": "发布笔记",
+        "rect": {
+          "x": 24,
+          "y": 80,
+          "w": 176,
+          "h": 44
+        },
+        "disabled": false,
+        "hidden": false,
+        "role": "",
+        "html": "<div data-v-3f98c6ee=\"\" class=\"btn-wrapper\"><div data-v-3f98c6ee=\"\" class=\"btn-inner\"><svg data-v-3f98c6ee=\"\" xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"16\" viewBox=\"0 0"
+      },
+      {
+        "tag": "DIV",
+        "cls": "btn-inner",
+        "text": "发布笔记",
+        "rect": {
+          "x": 52,
+          "y": 90,
+          "w": 120,
+          "h": 24
+        },
+        "disabled": false,
+        "hidden": false,
+        "role": "",
+        "html": "<div data-v-3f98c6ee=\"\" class=\"btn-inner\"><svg data-v-3f98c6ee=\"\" xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"16\" viewBox=\"0 0 20 16\" fill=\"none\" color=\"#FFF\" style=\"tran"
+      },
+      {
+        "tag": "SPAN",
+        "cls": "btn-text",
+        "text": "发布笔记",
+        "rect": {
+          "x": 80,
+          "y": 90,
+          "w": 64,
+          "h": 24
+        },
+        "disabled": false,
+        "hidden": false,
+        "role": "",
+        "html": "<span data-v-3f98c6ee=\"\" class=\"btn-text\">发布笔记</span>"
+      },
+      {
+        "tag": "DIV",
+        "cls": "post-time-wrapper",
+        "text": "定时发布",
+        "rect": {
+          "x": 398,
+          "y": 1580,
+          "w": 632,
+          "h": 44
+        },
+        "disabled": false,
+        "hidden": false,
+        "role": "",
+        "html": "<div data-v-2476ce24=\"\" data-v-3c4191e7=\"\" data-v-74e5df5a-s=\"\" data-v-7a28df78-s=\"\" class=\"post-time-wrapper\"><div data-v-2476ce24=\"\" class=\"post-time-switch-container\"><div data-"
+      },
+      {
+        "tag": "DIV",
+        "cls": "post-time-switch-container",
+        "text": "定时发布",
+        "rect": {
+          "x": 398,
+          "y": 1580,
+          "w": 308,
+          "h": 44
+        },
+        "disabled": false,
+        "hidden": false,
+        "role": "",
+        "html": "<div data-v-2476ce24=\"\" class=\"post-time-switch-container\"><div data-v-298c3e02=\"\" data-v-2476ce24=\"\" class=\"custom-switch-wrapper\"><div data-v-298c3e02=\"\" class=\"custom-switch-car"
+      },
+      {
+        "tag": "DIV",
+        "cls": "custom-switch-wrapper",
+        "text": "定时发布",
+        "rect": {
+          "x": 398,
+          "y": 1580,
+          "w": 308,
+          "h": 44
+        },
+        "disabled": false,
+        "hidden": false,
+        "role": "",
+        "html": "<div data-v-298c3e02=\"\" data-v-2476ce24=\"\" class=\"custom-switch-wrapper\"><div data-v-298c3e02=\"\" class=\"custom-switch-card\"><div data-v-298c3e02=\"\" class=\"custom-switch-icon\"><svg "
+      },
+      {
+        "tag": "DIV",
+        "cls": "custom-switch-card",
+        "text": "定时发布",
+        "rect": {
+          "x": 398,
+          "y": 1580,
+          "w": 308,
+          "h": 44
+        },
+        "disabled": false,
+        "hidden": false,
+        "role": "",
+        "html": "<div data-v-298c3e02=\"\" class=\"custom-switch-card\"><div data-v-298c3e02=\"\" class=\"custom-switch-icon\"><svg data-v-298c3e02=\"\" width=\"16\" height=\"16\" viewBox=\"0 0 16 16\" xmlns=\"http"
+      },
+      {
+        "tag": "DIV",
+        "cls": "custom-switch-text-content",
+        "text": "定时发布",
+        "rect": {
+          "x": 438,
+          "y": 1592,
+          "w": 212,
+          "h": 20
+        },
+        "disabled": false,
+        "hidden": false,
+        "role": "",
+        "html": "<div data-v-298c3e02=\"\" class=\"custom-switch-text-content\"><span data-v-298c3e02=\"\" class=\"has-tips\">定时发布</span><!----><div data-v-298c3e02=\"\" class=\"custom-switch-text-desc\"></div"
+      },
+      {
+        "tag": "SPAN",
+        "cls": "has-tips",
+        "text": "定时发布",
+        "rect": {
+          "x": 438,
+          "y": 1594,
+          "w": 56,
+          "h": 16
+        },
+        "disabled": false,
+        "hidden": false,
+        "role": "",
+        "html": "<span data-v-298c3e02=\"\" class=\"has-tips\">定时发布</span>"
+      },
+      {
+        "tag": "DIV",
+        "cls": "preview-title",
+        "text": "笔记预览\n封面预览",
+        "rect": {
+          "x": 1086,
+          "y": 64,
+          "w": 260,
+          "h": 40
+        },
+        "disabled": false,
+        "hidden": false,
+        "role": "",
+        "html": "<div data-v-3c4191e7=\"\" data-v-74e5df5a-s=\"\" data-v-7a28df78-s=\"\" class=\"preview-title\"><div data-v-0b0e63a0=\"\" data-v-3c4191e7=\"\" data-v-74e5df5a-s=\"\" data-v-7a28df78-s=\"\" class=\""
+      },
+      {
+        "tag": "DIV",
+        "cls": "button-switch-wrapper",
+        "text": "笔记预览\n封面预览",
+        "rect": {
+          "x": 1086,
+          "y": 64,
+          "w": 260,
+          "h": 40
+        },
+        "disabled": false,
+        "hidden": false,
+        "role": "",
+        "html": "<div data-v-0b0e63a0=\"\" data-v-3c4191e7=\"\" data-v-74e5df5a-s=\"\" data-v-7a28df78-s=\"\" class=\"button-switch-wrapper\"><div data-v-0b0e63a0=\"\" class=\"button-switch-slider\" style=\"trans"
+      },
+      {
+        "tag": "DIV",
+        "cls": "button-switch-item active",
+        "text": "笔记预览",
+        "rect": {
+          "x": 1090,
+          "y": 68,
+          "w": 124,
+          "h": 32
+        },
+        "disabled": false,
+        "hidden": false,
+        "role": "",
+        "html": "<div data-v-0b0e63a0=\"\" class=\"button-switch-item active\">笔记预览</div>"
+      },
+      {
+        "tag": "DIV",
+        "cls": "button-switch-item",
+        "text": "封面预览",
+        "rect": {
+          "x": 1218,
+          "y": 68,
+          "w": 124,
+          "h": 32
+        },
+        "disabled": false,
+        "hidden": false,
+        "role": "",
+        "html": "<div data-v-0b0e63a0=\"\" class=\"button-switch-item\">封面预览</div>"
+      }
+    ],
+    "iframes": [
+      ""
+    ],
+    "scroll": {
+      "h": 943,
+      "inner": 943,
+      "y": 0
+    },
+    "images": 26,
+    "hasTopic": true,
+    "titleFilled": true
+  },
+  "pick": [],
+  "error": "未找到符合条件的真实发布按钮（诊断已落盘，未误点侧边栏）"
+}

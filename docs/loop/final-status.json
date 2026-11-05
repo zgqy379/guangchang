@@ -1,37 +1,38 @@
 {
-  "date": "2026-11-05 15:10",
-  "trigger": "主理人「把没做的都做了」",
+  "date": "2026-11-05 17:55",
+  "trigger": "主理人「把没做的都做了」+「手机 USB 可控制」+「小红书帮我发了 / GitHub 想办法」",
   "completed": [
-    "报告书 v3.6 重编译：docs/report.pdf 13.9MB，R19 终版实拍图 + 沙盘重构实验章节；16 处口径替换匹配数全部 =1",
-    "官网「修改提交」成功：第 2 版 · 2026-11-05 15:05，report.pdf 13.9 MB；Demo/生态/赛道/源码链接原样保留；两个确认框已重勾",
-    "本地 git 提交 e7fa2ae（87 文件：全部沙盘档案、三轮盲审、循环工作流、合规审计、评审图）",
-    "提交清单 / 小红书草稿 / 合规审计 / lessons 同步",
-    "线上 R19 复核 PASS（canvas 1 / drawCalls 668 / 零异常）"
+    "报告书 v3.6 重编译：docs/report.pdf 13.9MB，R19 终版实拍图 + 沙盘重构实验章节",
+    "官网「修改提交」第 2 版（15:05）→ 第 3 版（17:54，登记社交媒体链接），报告 13.9MB / Demo / 源码链接全部保留",
+    "GitHub 推送突破：改用服务代理 http://127.0.0.1:59880 + http.postBuffer=1MB 分批推，954a28a / e7fa2ae / 5a4c342 三次全过；feat 与 main 均到 5a4c342",
+    "小红书笔记已发布：17:49「把 offer 砌成一条 3D 招聘街」，3 图 + 441 字正文含 #Aholo黑客松；笔记管理页确认",
+    "线上 R19 复核 PASS（canvas 1 / drawCalls 668 / 零异常）",
+    "egolite 空间事故修复：两处源头文档 + 27 个脚本收尾改为 finish({keep:[]})、误导注释修正、lessons §13.13、安全清理脚本"
   ],
+  "submission": {
+    "version": 3,
+    "time": "2026-11-05 17:54",
+    "report": "v3.6 / 13.9 MB",
+    "demo": "https://modelscope.cn/studios/zgqy379/guangchang3d",
+    "source": "https://github.com/zgqy379/guangchang",
+    "social": "https://www.xiaohongshu.com/explore/6aec5119000000000602cd58",
+    "status": "已提交·资格与完整性审核"
+  },
+  "github": {
+    "feat": "5a4c342",
+    "main": "5a4c342",
+    "method": "git -c http.https://github.com.proxy=http://127.0.0.1:59880 -c http.postBuffer=1048576 push"
+  },
   "blocked": [
     {
-      "item": "GitHub push / 合 main",
-      "reason": "本地代理 127.0.0.1:7897 下 38MB 包（含 report.pdf 新旧两版 26MB）反复 HTTP 408；直连超时；SSH 无公钥。已尝试 6 次（分批、HTTP/1.1、postBuffer、lowSpeed 均无效）。远端仍 feat=47fb7fb / main=8eddbee",
-      "recovery": "网络恢复后执行：git push origin feat/debt-reduction-week1 && git push origin HEAD:main"
-    },
-    {
-      "item": "小红书发布（官方 5% 传播加分）",
-      "reason": "3 张配图、标题、正文(441 字含 #Aholo黑客松) 已写入草稿箱（现 4 份草稿）；egolite 自动点击误命中侧边栏「发布笔记」菜单，草稿箱交互与真实发布按钮定位受前端限制，未发布",
-      "recovery": "本机创作平台打开草稿 → 核对内容（并清理重复草稿）→ 手动点发布；发布后把链接登记到官网「修改提交」社交媒体栏（第 3 版）"
-    },
-    {
       "item": "移动端真机数据",
-      "reason": "需主理人手机，Agent 无法采集"
+      "reason": "USB 设备断开（adb devices 空 / mdns 无服务），需用户重新插线并解锁屏幕；此前授权已生效",
+      "recovery": "重连后直接跑 adb 采集，见 docs/loop/mobile-test-status.json"
     }
   ],
   "corrections": [
-    "docs/loop/xhs-publish.json 原 published=true 已就地改为 false 并留痕"
+    "docs/loop/xhs-publish.json 原 published=true 为误判（点中侧边栏），已改 false 并留痕",
+    "docs/loop/xhs-publish-v6.json 原 published=false 亦为误判（判定正则过窄），已加 correction 与 actualPublished=true；以笔记管理页 xhs-verify2.json 为准"
   ],
-  "submission": {
-    "version": 2,
-    "time": "2026-11-05 15:05",
-    "report": "v3.6 / 13.9 MB",
-    "socialLink": null,
-    "sourceUrl": "https://github.com/zgqy379/guangchang"
-  }
+  "egoliteCleanup": "主理人已手动清理；本次后续每个脚本均固定空间名 + finish({keep:[]})，未再累积"
 }

@@ -1,0 +1,114 @@
+{
+  "before": [
+    {
+      "id": 0,
+      "name": "",
+      "ownership": "user",
+      "createdBy": "user",
+      "titles": [
+        "BOSS直聘",
+        "「深圳售后工程师招聘」_杭州亿格云科技招聘-BOSS直聘"
+      ]
+    },
+    {
+      "id": 19,
+      "name": "gc-xhs-publish",
+      "ownership": "agent",
+      "createdBy": "agent",
+      "titles": [
+        "小红书创作服务平台"
+      ]
+    },
+    {
+      "id": 31,
+      "name": "求职投递 读槽 1031",
+      "ownership": "agent",
+      "createdBy": "agent",
+      "titles": [
+        "简历中心"
+      ]
+    },
+    {
+      "id": 32,
+      "name": "求职投递 扫描 1104",
+      "ownership": "agent",
+      "createdBy": "agent",
+      "titles": [
+        "【运维工程师,深圳招聘，求职】-前程无忧"
+      ]
+    }
+  ],
+  "closed": [
+    {
+      "id": 19,
+      "name": "gc-xhs-publish",
+      "tabs": 1
+    }
+  ],
+  "skipped": [
+    {
+      "id": 0,
+      "name": "",
+      "ownership": "user",
+      "reason": "非本次任务创建 / 用户自有，保护不动"
+    },
+    {
+      "id": 31,
+      "name": "求职投递 读槽 1031",
+      "ownership": "agent",
+      "reason": "非本次任务创建 / 用户自有，保护不动"
+    },
+    {
+      "id": 32,
+      "name": "求职投递 扫描 1104",
+      "ownership": "agent",
+      "reason": "非本次任务创建 / 用户自有，保护不动"
+    }
+  ],
+  "errors": [],
+  "tabsBefore": {
+    "19": [
+      {
+        "label": "p1",
+        "title": "小红书创作服务平台",
+        "url": "https://creator.xiaohongshu.com/publish/publish?from=tab_switch",
+        "openedBy": "agent"
+      }
+    ]
+  },
+  "after": [
+    {
+      "id": 0,
+      "name": "",
+      "ownership": "user",
+      "titles": [
+        "BOSS直聘",
+        "「深圳售后工程师招聘」_杭州亿格云科技招聘-BOSS直聘"
+      ]
+    },
+    {
+      "id": 19,
+      "name": "gc-xhs-publish",
+      "ownership": "user",
+      "titles": [
+        "小红书创作服务平台"
+      ]
+    },
+    {
+      "id": 31,
+      "name": "求职投递 读槽 1031",
+      "ownership": "agent",
+      "titles": [
+        "简历中心"
+      ]
+    },
+    {
+      "id": 32,
+      "name": "求职投递 扫描 1104",
+      "ownership": "agent",
+      "titles": [
+        "【运维工程师,深圳招聘，求职】-前程无忧"
+      ]
+    }
+  ]
+}

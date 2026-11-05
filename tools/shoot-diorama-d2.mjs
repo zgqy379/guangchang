@@ -96,5 +96,5 @@ try {
     `screenshot=${shotOk ? 'd2-buildings.png' : 'FAILED'}`,
     'done ' + new Date().toISOString(),
   ]);
-  await task.finish({ keep: 'all' });
+  await task.finish({ keep: [] });
 }

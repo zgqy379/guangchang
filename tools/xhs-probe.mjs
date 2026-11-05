@@ -29,4 +29,4 @@ const info = await page.evaluate(() => ({
 
 fs.writeFileSync(OUT, JSON.stringify(info, null, 2) + '\n');
 console.log(JSON.stringify(info));
-await task.finish({ keep: 'all' });
+await task.finish({ keep: [] });

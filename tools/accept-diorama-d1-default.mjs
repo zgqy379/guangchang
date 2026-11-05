@@ -68,4 +68,4 @@ try {
 
 fs.writeFileSync(`${OUT}/d1-default-gate.json`, JSON.stringify(result, null, 2) + '\n');
 console.log(JSON.stringify(result));
-await task.finish({ keep: 'all' });
+await task.finish({ keep: [] });

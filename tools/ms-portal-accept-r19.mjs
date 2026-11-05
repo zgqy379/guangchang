@@ -7,4 +7,4 @@ await page.evaluate(() => { window.scrollTo(0, document.body.scrollHeight / 2) }
 await page.waitForTimeout(25000)
 await page.screenshot({ path: 'E:/guangchang/tmp-design-review/ms-portal-accept-r19.png' })
 console.log('✓ portal r19 截图已存（45s）')
-await task.finish({ keep: 'all' })
+await task.finish({ keep: [] })

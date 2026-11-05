@@ -53,4 +53,4 @@ if (!submitted) {
   process.exit(1)
 }
 console.log('✓ ms-redeploy-ego 完成：已提交重新部署')
-await task.finish({ keep: 'all' })
+await task.finish({ keep: [] })

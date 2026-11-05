@@ -1,0 +1,42 @@
+{
+  "postUrl": null,
+  "steps": [
+    "进入笔记管理: {\"url\":\"https://creator.xiaohongshu.com/new/note-manager\",\"nav\":{\"x\":104,\"y\":214}}",
+    "挖掘: {\"ids\":[],\"allHex\":[\"622c44d0000000001000cce6\",\"48fd625e5dfe43f5a44ea81f\",\"e3193698c17efb19b0081595\",\"6aec5119000000000602cd58\",\"6aec4eb4000000001b01c73e\",\"6aeb1ced000000001402bec3\"],\"rowHtml\":\"<div data-v-7d02c7b4=\\\"\\\" data-v-ecd78800=\\\"\\\" data-impression=\\\"{&quot;index&quot;:{&quot;type&quot;:&quot;Index&quot;,&quot;value&quot;:{&quot;channelTabName&quot;:&quot;all&quot;}},&quot;noteTarget&quot;:{&quot;type&quot;:&quot;NoteTarget&quot;,&quot;value&quot;:{&quot;noteId&quot;:&quot;6aec511900000\"}",
+    "标题坐标: {\"x\":480,\"y\":194}",
+    "页签: [{\"label\":\"p1\",\"url\":\"https://creator.xiaohongshu.com/new/note-manager\",\"title\":\"小红书创作服务平台\"}]",
+    "空间已关闭"
+  ],
+  "mined": {
+    "ids": [],
+    "allHex": [
+      "622c44d0000000001000cce6",
+      "48fd625e5dfe43f5a44ea81f",
+      "e3193698c17efb19b0081595",
+      "6aec5119000000000602cd58",
+      "6aec4eb4000000001b01c73e",
+      "6aeb1ced000000001402bec3",
+      "6aeaa3610000000010010166",
+      "6ae9badd0000000003020ef5",
+      "6adeca07000000001a01490b",
+      "6adc63d7000000003301b81a",
+      "6adb4ede000000003103729c",
+      "6adb2007000000002a02b747",
+      "6adaee06000000002a013aee",
+      "ac21a95cfa8a840452f30647",
+      "bf7d4e32677698655a5cadc5",
+      "04b29480233f4def5c875875",
+      "c4a1036f72a59a66faa6f3db"
+    ],
+    "rowHtml": "<div data-v-7d02c7b4=\"\" data-v-ecd78800=\"\" data-impression=\"{&quot;index&quot;:{&quot;type&quot;:&quot;Index&quot;,&quot;value&quot;:{&quot;channelTabName&quot;:&quot;all&quot;}},&quot;noteTarget&quot;:{&quot;type&quot;:&quot;NoteTarget&quot;,&quot;value&quot;:{&quot;noteId&quot;:&quot;6aec5119000000000602cd58&quot;}},&quot;event&quot;:{&quot;type&quot;:&quot;Event&quot;,&quot;value&quot;:{&quot;action&quot;:{&quot;type&quot;:&quot;NormalizedAction&quot;,&quot;value&quot;:&quot;impression&quot;},&quot;pointId&quot;:50977}},&quot;page&quot;:{&quot;type&quot;:&quot;Page&quot;,&quot;value&quot;:{&quot;pageInstance&quot;:{&quot;type&quot;:&quot;PageInstance&quot;,&quot;value&quot;:&quot;creator_service_platform&quot;}}}}\" class=\"note-card\" note-info=\"[object Object]\" show-top=\"false\" show-perm=\"false\" is-show-audit=\"isShowAudit\" data-eaglet-imp=\"true\"><div data-v-7d02c7b4=\"\" class=\"note-card__cover\"><div data-v-7f699313=\"\" data-v-7d02c7b4=\"\" class=\"media-body note-card__media\"><div data-v-7f699313=\"\" class=\"media-bg\" style=\"background-image: url(&quot;http://sns-na-i4.xhscdn.com/spectrum/1040g34o3276f47o86e305ohc8j841j76kdf7j2g?imageView2/2/w/1080/format/jpg&amp;ext=H4sIAAAAAAAAADXLyw7CIBCF4XdhbcK1dDpbVz7GAKOSqCUUa03Td5eNJ_l339lFft7ObRO4i1wECuMUow2EVtmEcQSFNIDGoNWILrDGKSoWJ7Fm_nC9pP7xxkTnkvpP92Jk31WrFLmTpNIAVwYAE7x3mkNSMLjJOAhjnGynhdq9S0klyxs9aPvK1chYmdpc5WtuLN8LV1nmpXESx_EDTGqv87wAAAA&quot;);\"></div><div data-v-7f699313=\"\" class=\"inner-bg\"><div data-v-7f699313=\"\" class=\"inner\"><",
+    "url": "https://creator.xiaohongshu.com/new/note-manager"
+  },
+  "tabs": [
+    {
+      "label": "p1",
+      "url": "https://creator.xiaohongshu.com/new/note-manager",
+      "title": "小红书创作服务平台"
+    }
+  ],
+  "confirmed": false
+}

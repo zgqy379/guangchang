@@ -1,0 +1,38 @@
+{
+  "published": false,
+  "steps": [
+    "3 张配图已提交上传",
+    "填表: {\"titleVal\":\"把 offer 砌成一条 3D 招聘街\",\"bodyLen\":441}",
+    "发布前校验: {\"hasTitle\":true,\"hasTopic\":true,\"hasDemo\":true,\"submitText\":\"发布\",\"submitDisabled\":\"false\",\"viewport\":{\"w\":1527,\"h\":943}}",
+    "点击坐标(比例反算): {\"cx\":786,\"cy\":898,\"viewport\":{\"w\":1527,\"h\":943}}",
+    "点击前截图: E:/guangchang/docs/figures/xhs-v6-before.png",
+    "已点击红色发布按钮",
+    "发布后: {\"url\":\"https://creator.xiaohongshu.com/publish/publish?source=&published=true\",\"text\":\"创作服务平台\\nㅤㅤㅤ\\n发布笔记\\n首页\\n笔记管理\\nBuilder hub\\n小工具\\nRed Skill\\n数据看板\\n活动中心\\n笔记灵感\\n创作学院\\n创作百科\\n收起侧边栏\\n上传视频\\n上传视频\\n上传图文\\n上传图文\\n写长文\\n写长文\\n发播客\\n发播客\\n草稿箱(8)\\n\\n拖拽视频到此或点击上传\\n\\n上传视频\\n\\n视频大小\\n\\n支持时长4小时以内，\\n\\n最大20GB的视频文件\\n\\n视频格式\\n\\n支持常用视频格式，\\n\\n推荐使用mp4、mov\\n\\n视频分辨率\\n\\n超过1080P的视频用网页端上传画质更清晰\",\"success\":false,\"draft\":\"草稿箱(8)\"}",
+    "点击后截图: E:/guangchang/docs/figures/xhs-v6-after.png",
+    "空间已关闭：finish({keep:[]})"
+  ],
+  "check": {
+    "hasTitle": true,
+    "hasTopic": true,
+    "hasDemo": true,
+    "submitText": "发布",
+    "submitDisabled": "false",
+    "viewport": {
+      "w": 1527,
+      "h": 943
+    }
+  },
+  "confirm": {
+    "needed": false
+  },
+  "after": {
+    "url": "https://creator.xiaohongshu.com/publish/publish?source=&published=true",
+    "text": "创作服务平台\nㅤㅤㅤ\n发布笔记\n首页\n笔记管理\nBuilder hub\n小工具\nRed Skill\n数据看板\n活动中心\n笔记灵感\n创作学院\n创作百科\n收起侧边栏\n上传视频\n上传视频\n上传图文\n上传图文\n写长文\n写长文\n发播客\n发播客\n草稿箱(8)\n\n拖拽视频到此或点击上传\n\n上传视频\n\n视频大小\n\n支持时长4小时以内，\n\n最大20GB的视频文件\n\n视频格式\n\n支持常用视频格式，\n\n推荐使用mp4、mov\n\n视频分辨率\n\n超过1080P的视频用网页端上传画质更清晰",
+    "success": false,
+    "draft": "草稿箱(8)"
+  },
+  "postUrl": "https://www.xiaohongshu.com/explore/6aec5119000000000602cd58",
+  "correction": "2026-11-05 17:55：原 published=false 为判定正则过窄所致的误判。真实结果为已发布：跳转 URL 带 ?published=true、编辑态清空，且 xhs-verify2.json 在笔记管理页确认「把 offer 砌成一条 3D 招聘街 · 2026-11-05 17:49」位于列表首位。原文保留，实际结论见 final-status.json。",
+  "actualPublished": true,
+  "verifiedBy": "docs/loop/xhs-verify2.json (titleFound=true, url=/new/note-manager)"
+}

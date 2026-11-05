@@ -23,7 +23,7 @@
   - `npx vite preview --port 4173` 本地预览 dist
   - Pages：`$env:VITE_BASE_TOKEN='ghpages'; npm run build` → `Copy-Item ../docs/video/demo-video.mp4 dist/` → `npx gh-pages -d dist -b gh-pages`（网络偶发 408/SSL 抖动，重试即可）
   - 魔搭：`$env:VITE_BASE_TOKEN='modelscope'; npm run build` → `python ../tools/ms-upload-r19.py`（SDK 通道，令牌在 `.env`，报告须 `Normal committed N / LFS 0`）→ egolite 跑 `tools/ms-redeploy-ego.mjs` 点「重新部署→确认部署」→ 轮询 `GET /api/v1/studio/zgqy379/guangchang3d/status` 到 `Running`
-- **浏览器验证只走 egolite**：`& "C:\Users\dqy\.local\share\ego\active_version_dir\ego-browser.exe" nodejs -e "await import('file:///绝对路径.mjs')"`。先例：`tools/shoot-street-r19-day.mjs`（采集）、`tools/accept-live-r19.mjs`（线上验收，抗主线程阻塞版）。headless 截图不可靠。**console.log 会丢，结果写文件再读；一个目标一个 TaskSpace；结束 `task.finish({keep:'all'})`**
+- **浏览器验证只走 egolite**：`& "C:\Users\dqy\.local\share\ego\active_version_dir\ego-browser.exe" nodejs -e "await import('file:///绝对路径.mjs')"`。先例：`tools/shoot-street-r19-day.mjs`（采集）、`tools/accept-live-r19.mjs`（线上验收，抗主线程阻塞版）。headless 截图不可靠。**console.log 会丢，结果写文件再读；一个目标一个 TaskSpace（后续轮次用同名/id `taskSpace()` 复用，禁止每次 `Date.now()` 新建）；成功收尾 `await task.finish({ keep: [] })` 默认关闭空间并释放页签，只有用户明确要求「结果留在浏览器里」才用 `keep: ["p1"]`。`keep:'all'` 是错误写法，会永久保留空间与页签导致浏览器内存堆积（2026-11-05 事故，见 docs/lessons.md §13.13）**
 
 ## 2. 重构的来龙去脉（为什么掀桌子）
 

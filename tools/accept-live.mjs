@@ -71,4 +71,4 @@ if (!after.canvas || after.hasErrorText || !after.drawCalls) {
   process.exit(1)
 }
 console.log('✓ 线上验收通过')
-await task.finish({ keep: 'all' })
+await task.finish({ keep: [] })

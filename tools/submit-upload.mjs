@@ -54,4 +54,4 @@ const state = await page.evaluate(() => {
 
 fs.writeFileSync(OUT, JSON.stringify({ upload, state }, null, 2) + '\n');
 console.log(JSON.stringify({ upload, state }));
-await task.finish({ keep: 'all' });
+await task.finish({ keep: [] });

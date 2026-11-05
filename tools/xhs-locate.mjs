@@ -44,4 +44,4 @@ out.editor = await page.evaluate(() => {
 
 fs.writeFileSync(OUT, JSON.stringify(out, null, 2) + '\n');
 console.log(JSON.stringify(out).slice(0, 2000));
-await task.finish({ keep: 'all' });
+await task.finish({ keep: [] });

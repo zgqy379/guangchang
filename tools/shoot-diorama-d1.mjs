@@ -7,7 +7,7 @@
 //   · 就绪判定轮询 window.__gl.info.render.calls > 0（lessons §13.7：不能只等
 //     window.__diorama，它远早于首帧，会拍到无内容半成品帧），再 wait 5s 才截
 //   · 关键结果写文件（console.log 在 egolite 会丢）；截图 6 次重试
-//   · 结尾必须 await task.finish({ keep: 'all' })（原范例漏了，任务书 §1 硬要求）
+//   · 结尾必须 await task.finish({ keep: [] })（默认关闭空间、释放页签；见 docs/lessons.md §13.13）
 
 const task = await taskSpace('gc-diorama-d1-' + Date.now());
 const page = task.page('p1');
@@ -119,5 +119,5 @@ try {
     'done ' + new Date().toISOString(),
   ]);
   // 任务书 §1 硬要求：原范例脚本漏了这一步
-  await task.finish({ keep: 'all' });
+  await task.finish({ keep: [] });
 }
