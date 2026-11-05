@@ -1,5 +1,5 @@
 {
-  "date": "2026-11-05 17:55",
+  "date": "2026-11-05 19:42",
   "trigger": "主理人「把没做的都做了」+「手机 USB 可控制」+「小红书帮我发了 / GitHub 想办法」",
   "completed": [
     "报告书 v3.6 重编译：docs/report.pdf 13.9MB，R19 终版实拍图 + 沙盘重构实验章节",
@@ -7,7 +7,8 @@
     "GitHub 推送突破：改用服务代理 http://127.0.0.1:59880 + http.postBuffer=1MB 分批推，954a28a / e7fa2ae / 5a4c342 三次全过；feat 与 main 均到 5a4c342",
     "小红书笔记已发布：17:49「把 offer 砌成一条 3D 招聘街」，3 图 + 441 字正文含 #Aholo黑客松；笔记管理页确认",
     "线上 R19 复核 PASS（canvas 1 / drawCalls 668 / 零异常）",
-    "egolite 空间事故修复：两处源头文档 + 27 个脚本收尾改为 finish({keep:[]})、误导注释修正、lessons §13.13、安全清理脚本"
+    "egolite 空间事故修复：两处源头文档 + 27 个脚本收尾改为 finish({keep:[]})、误导注释修正、lessons §13.13、安全清理脚本",
+    "移动端真机数据采集完成：vivo V2509A / Android 16，R19 线上版角色门、3D 街区、行走漫游、昼/夜、游戏化进度全部工作；帧率 50th 8ms / Janky 1.3%（2301 帧）；报告 docs/figures/mobile-2026-11-05/mobile-test-report.json + 7 张实拍"
   ],
   "submission": {
     "version": 3,
@@ -23,16 +24,16 @@
     "main": "5a4c342",
     "method": "git -c http.https://github.com.proxy=http://127.0.0.1:59880 -c http.postBuffer=1048576 push"
   },
-  "blocked": [
-    {
-      "item": "移动端真机数据",
-      "reason": "USB 设备断开（adb devices 空 / mdns 无服务），需用户重新插线并解锁屏幕；此前授权已生效",
-      "recovery": "重连后直接跑 adb 采集，见 docs/loop/mobile-test-status.json"
-    }
-  ],
+  "blocked": [],
   "corrections": [
     "docs/loop/xhs-publish.json 原 published=true 为误判（点中侧边栏），已改 false 并留痕",
     "docs/loop/xhs-publish-v6.json 原 published=false 亦为误判（判定正则过窄），已加 correction 与 actualPublished=true；以笔记管理页 xhs-verify2.json 为准"
   ],
-  "egoliteCleanup": "主理人已手动清理；本次后续每个脚本均固定空间名 + finish({keep:[]})，未再累积"
+  "egoliteCleanup": "主理人已手动清理；本次后续每个脚本均固定空间名 + finish({keep:[]})，未再累积",
+  "mobile": {
+    "device": "vivo V2509A (Android 16 / SDK 36 / MT6993 / 1216x2640)",
+    "browser": "com.vivo.browser",
+    "verdict": "PASS",
+    "report": "docs/figures/mobile-2026-11-05/mobile-test-report.json"
+  }
 }

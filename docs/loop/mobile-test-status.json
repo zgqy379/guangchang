@@ -1,24 +1,27 @@
 {
-  "date": "2026-11-05 17:55",
-  "status": "blocked",
+  "date": "2026-11-05 19:42",
+  "status": "done",
   "device": {
     "model": "V2509A",
     "serial": "10AFA40QF5002R3",
-    "android": "待采集",
-    "screen": "1216x2640 待复核"
+    "android": "16 (SDK 36)",
+    "screen": "1216x2640",
+    "soc": "MT6993"
   },
   "adbPath": "D:/Androidsdk/platform-tools/adb.exe",
-  "timeline": [
-    "17:2x 首次检测：device 已授权（可 shell）",
-    "误用 /d/Program Files (x86)/pcsuite/adb/adb.exe 导致 server 版本冲突 → unauthorized",
-    "重启 1.0.41 server 后用户点「允许 USB 调试」→ 17:41 恢复 device，读到 model V2509A / wm size 1216x2640",
-    "17:5x 复查：no devices/emulators found，重启 server 与 mdns 均无设备 → USB 已断开"
+  "result": "R19 线上版真机可用：角色门/3D 街区/行走漫游/昼夜切换/游戏化进度全部工作，帧率 50th 8ms、Janky 1.3%",
+  "report": "docs/figures/mobile-2026-11-05/mobile-test-report.json",
+  "figures": [
+    "01-launch.png",
+    "02b-street.png",
+    "11-street-3d-wait.png",
+    "12-walk-start.png",
+    "13-walk-look.png",
+    "14-walk-turn.png",
+    "16-day-street.png"
   ],
-  "blockedReason": "USB 设备从系统消失，需用户重新插线 / 解锁屏幕（此前授权已生效，重连后应可直接用）",
-  "planned": [
-    "adb shell getprop / wm size / pm list packages 采集硬件与浏览器",
-    "真机浏览器打开 Pages R19 线上版，截图昼/夜、点击与滑动响应",
-    "采集加载耗时、gfxinfo 帧数据，输出 docs/figures/mobile-2026-11-05/ 与 JSON 报告",
-    "加分素材写入报告 v3.7 或提交清单"
+  "pitfalls": [
+    "Git Bash 调 adb 的 /sdcard 路径被 MSYS 转换，需 MSYS_NO_PATHCONV=1",
+    "手机锁屏会让 WebView 重载并截到黑屏，采集前 svc power stayon true"
   ]
 }

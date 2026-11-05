@@ -515,3 +515,12 @@
 - **已修**：① 两处源头文档改为 `keep: []` 并写明「一个目标一个空间、同名/id 复用、仅用户明确要求才 `keep: ["p1"]`」；② 27 个脚本的 `finish` 调用批量改为 `keep: []`（仅改代码行，事故说明注释保留）；③ `tools/shoot-diorama-d1.mjs` 里误导性注释改掉；④ `tools/ego-cleanup-spaces.mjs` 提供只清理 `ownership=agent && name^=gc-` 的安全收尾，用户自有空间（BOSS直聘 / 求职投递）显式跳过。
 - **今后硬规则**：任何 egolite 脚本 → 固定空间名（不带时间戳）→ 后续轮次 `taskSpace(同名或 id)` 复用 → 成功时**只在最终轮** `await task.finish({ keep: [] })` → 出错或交还用户控制时**不调** finish。需要把结果留在浏览器给用户看时，必须用户明确要求，且只 `keep` 那一个 Page。
 - **通用教训**：静默的资源泄漏比崩溃更难发现 —— 每次采集都「成功」、日志全绿，副作用却线性累积。**凡是「开一个东西」的 API，先查它的配对关闭语义与默认值，不要照抄样例里的参数。**
+
+### 13.14 Android 真机 adb 采集暗坑（2026-11-05 19:4x）
+
+- **Git Bash 会转换 adb 的设备端路径**：`adb shell screencap -p /sdcard/gc01.png` 会被 MSYS 改写成 `.../PortableGit/sdcard/gc01.png`，报「Error opening file」。**必须 `export MSYS_NO_PATHCONV=1`**（与 hdc 同坑，见用户级记忆）。
+- **手机锁屏会让 WebView 重载 + 截到黑屏**：等待 3D 编译期间手机自动锁屏，screencap 得到纯黑 18KB PNG，看起来像「移动端 3D 黑屏」的致命 bug，实际只是熄屏。采集前 `adb shell svc power stayon true`（充电时常亮）+ `input keyevent KEYCODE_WAKEUP`，并用 `dumpsys power | grep mWakefulness` 确认 Awake 再截图。
+- **短滑比 tap 更可靠**：`input swipe x y x y 120` 模拟点击在 WebView 上比 `input tap` 命中率高（角色门「进入街区」用 tap 无效、用短滑即进）。
+- **两份 adb 不能混用**：`/d/Androidsdk/platform-tools/adb.exe`（1.0.41）与 `pcsuite` 自带 adb（client 40）混跑会 kill 掉 server 并让设备变 unauthorized，需 `kill-server` + 手机上重新点「允许 USB 调试」。只用主 adb。
+- **加载遮罩 ≠ 加载失败**：5G 慢速（16~37 KB/s）下 1MB+ chunk 首次下载约 100s，遮罩「招聘街区加载中…」一直挂着；用 `dumpsys gfxinfo <pkg>` 看 Total frames 是否增长来判断「在跑」，而不是盯着遮罩干等。
+- **真机采集能证伪桌面端的隐含假设**：`?hour=10` 昼间冻结、游戏化进度递增（参观 1 / XP 5/50）、Lux3D avatar、四区标签、罗盘在手机上全部真实工作——这些是报告书「移动端真机」章节的硬素材。
