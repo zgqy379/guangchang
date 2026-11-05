@@ -1,0 +1,37 @@
+{
+  "date": "2026-11-05 15:10",
+  "trigger": "主理人「把没做的都做了」",
+  "completed": [
+    "报告书 v3.6 重编译：docs/report.pdf 13.9MB，R19 终版实拍图 + 沙盘重构实验章节；16 处口径替换匹配数全部 =1",
+    "官网「修改提交」成功：第 2 版 · 2026-11-05 15:05，report.pdf 13.9 MB；Demo/生态/赛道/源码链接原样保留；两个确认框已重勾",
+    "本地 git 提交 e7fa2ae（87 文件：全部沙盘档案、三轮盲审、循环工作流、合规审计、评审图）",
+    "提交清单 / 小红书草稿 / 合规审计 / lessons 同步",
+    "线上 R19 复核 PASS（canvas 1 / drawCalls 668 / 零异常）"
+  ],
+  "blocked": [
+    {
+      "item": "GitHub push / 合 main",
+      "reason": "本地代理 127.0.0.1:7897 下 38MB 包（含 report.pdf 新旧两版 26MB）反复 HTTP 408；直连超时；SSH 无公钥。已尝试 6 次（分批、HTTP/1.1、postBuffer、lowSpeed 均无效）。远端仍 feat=47fb7fb / main=8eddbee",
+      "recovery": "网络恢复后执行：git push origin feat/debt-reduction-week1 && git push origin HEAD:main"
+    },
+    {
+      "item": "小红书发布（官方 5% 传播加分）",
+      "reason": "3 张配图、标题、正文(441 字含 #Aholo黑客松) 已写入草稿箱（现 4 份草稿）；egolite 自动点击误命中侧边栏「发布笔记」菜单，草稿箱交互与真实发布按钮定位受前端限制，未发布",
+      "recovery": "本机创作平台打开草稿 → 核对内容（并清理重复草稿）→ 手动点发布；发布后把链接登记到官网「修改提交」社交媒体栏（第 3 版）"
+    },
+    {
+      "item": "移动端真机数据",
+      "reason": "需主理人手机，Agent 无法采集"
+    }
+  ],
+  "corrections": [
+    "docs/loop/xhs-publish.json 原 published=true 已就地改为 false 并留痕"
+  ],
+  "submission": {
+    "version": 2,
+    "time": "2026-11-05 15:05",
+    "report": "v3.6 / 13.9 MB",
+    "socialLink": null,
+    "sourceUrl": "https://github.com/zgqy379/guangchang"
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "upload": {
+    "ok": true,
+    "file": "E:/guangchang/docs/report.pdf",
+    "bytes": 14570601
+  },
+  "state": {
+    "url": "https://www.aholo3d.cn/hackathon/my",
+    "reportLine": "report.pdf",
+    "sizeLine": "13.9 MB",
+    "checkboxes": [
+      {
+        "v": "NONE",
+        "checked": true
+      },
+      {
+        "v": "INSTA360",
+        "checked": false
+      },
+      {
+        "v": "DEEP_ROBOTICS",
+        "checked": false
+      },
+      {
+        "v": "WORKBUDDY",
+        "checked": false
+      },
+      {
+        "v": "NONE",
+        "checked": false
+      },
+      {
+        "v": "GAME",
+        "checked": true
+      },
+      {
+        "v": "SPATIAL_DESIGN",
+        "checked": true
+      },
+      {
+        "v": "FILM",
+        "checked": false
+      },
+      {
+        "v": "PRINT_3D",
+        "checked": false
+      },
+      {
+        "v": "EMBODIED_AI",
+        "checked": false
+      },
+      {
+        "v": "on",
+        "checked": true
+      },
+      {
+        "v": "on",
+        "checked": true
+      }
+    ],
+    "buttons": [
+      "编辑团队",
+      "解散团队",
+      "诸葛青云你",
+      "去提交作品",
+      "修改选题",
+      "点击上传或拖拽文件到此处PDF / PPT / PPTX，不超过 500 MB",
+      "移除",
+      "无",
+      "游戏应用奖、空间设计应用奖",
+      "提交新版本",
+      "保存草稿",
+      "取消",
+      "加入赛事社群",
+      "×"
+    ],
+    "tail": "或上传）。\n\nDemo / 视频链接\n上传视频文件\n任选一种方式提交即可\n项目报告书\n\n上传 PDF/PPT 或填写报告链接，需包含过程截图、关键资产迭代对比或关键效果截图；请确保链接可供评审访问。\n\n报告链接\n上传文件\n任选一种方式提交即可\nreport.pdf\n13.9 MB\n更换\n移除\n生态合作设备/技术使用情况\n\n可多选。未使用请选择「无」；勾选「无」后其他选项不可选，取消「无」后才能再选。\n\n无\n应用赛道\n\n可多选。选择 1～3 项希望参评的应用奖。未参评请选择「无」；勾选「无」后其他选项不可选，取消「无」后才能再选。\n\n游戏应用奖、空间设计应用奖\n加分项\n选填，提交后可获得额外加分\n社交媒体发布链接\n\n发布至小红书并带 #Aholo黑客松。每件作品仅可登记一个链接。\n\n项目源代码\n\n项目链接或代码压缩包。\n\n填写链接\n上传压缩包\n任选一种方式提交即可\n我确认作品使用 Aholo Lux3D 完成，且可运行、可演示\n我已阅读并同意《群核科技 Aholo 全球 3D AI 黑客松参赛作品提交须知》，确认所提交的作品和信息真实、完整，并同意按公布的赛事规则参与资格审核、评审及结果公示。\n提交新版本\n保存草稿\n取消\n草稿已保存 · 11 月 4 日 23:16\n\n截止前可多次提交，评审以 11 月 19 日 19:00 前最后一次成功提交的版本为准。\n\n赛事\n关于比赛\n赛程细则\n奖项与评审\n开放工具\nFAQ\n工具\nAholo Lux3D\nAholo\nAholo API\nLuxReal\n联系\n加入赛事社群\n© 2026 Aholo · Manycore Tech\n保留所有权利"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "home": "创作服务平台\nㅤㅤㅤ\n发布笔记\n首页\n笔记管理\nBuilder hub\n小工具\nRed Skill\n数据看板\n活动中心\n笔记灵感\n创作学院\n创作百科\n收起侧边栏\n上传视频\n上传视频\n上传图文\n上传图文\n上传图文\n写长文\n写长文\n发播客\n发播客\n草稿箱(4)\n\n拖拽视频到此或点击上传\n\n上传视频\n\n视频大小\n\n支持时长4小时以内，\n\n最大20GB的视频文件\n\n视频格式\n\n支持常用视频格式，\n\n推荐使用mp4、mov\n\n视频分辨率\n\n超过1080P的视频用网页端上传画质更清晰",
+  "draftPanel": {
+    "url": "https://creator.xiaohongshu.com/publish/publish",
+    "text": "创作服务平台\nㅤㅤㅤ\n发布笔记\n首页\n笔记管理\nBuilder hub\n小工具\nRed Skill\n数据看板\n活动中心\n笔记灵感\n创作学院\n创作百科\n收起侧边栏\n上传视频\n上传视频\n上传图文\n上传图文\n上传图文\n写长文\n写长文\n发播客\n发播客\n草稿箱(4)\n\n拖拽视频到此或点击上传\n\n上传视频\n\n视频大小\n\n支持时长4小时以内，\n\n最大20GB的视频文件\n\n视频格式\n\n支持常用视频格式，\n\n推荐使用mp4、mov\n\n视频分辨率\n\n超过1080P的视频用网页端上传画质更清晰",
+    "buttons": [
+      "上传视频"
+    ]
+  },
+  "editor": {
+    "url": "https://creator.xiaohongshu.com/publish/publish",
+    "tail": "创作服务平台\nㅤㅤㅤ\n发布笔记\n首页\n笔记管理\nBuilder hub\n小工具\nRed Skill\n数据看板\n活动中心\n笔记灵感\n创作学院\n创作百科\n收起侧边栏\n上传视频\n上传视频\n上传图文\n上传图文\n上传图文\n写长文\n写长文\n发播客\n发播客\n草稿箱(4)\n\n拖拽视频到此或点击上传\n\n上传视频\n\n视频大小\n\n支持时长4小时以内，\n\n最大20GB的视频文件\n\n视频格式\n\n支持常用视频格式，\n\n推荐使用mp4、mov\n\n视频分辨率\n\n超过1080P的视频用网页端上传画质更清晰",
+    "publishLeaves": [
+      {
+        "tag": "SPAN",
+        "cls": "btn-text",
+        "text": "发布笔记",
+        "top": 90
+      }
+    ],
+    "buttons": [
+      "上传视频"
+    ]
+  }
+}

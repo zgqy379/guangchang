@@ -1,0 +1,20 @@
+{
+  "url": "https://creator.xiaohongshu.com/publish/publish?from=tab_switch",
+  "title": "小红书创作服务平台",
+  "inputs": [
+    {
+      "type": "file",
+      "accept": ".jpg,.jpeg,.png,.webp",
+      "multiple": true,
+      "placeholder": "",
+      "cls": "upload-input"
+    }
+  ],
+  "textareas": [],
+  "contentEditable": 0,
+  "buttons": [
+    "上传图片",
+    "文字配图"
+  ],
+  "text": "创作服务平台\nㅤㅤㅤ\n发布笔记\n首页\n笔记管理\nBuilder hub\n小工具\nRed Skill\n数据看板\n活动中心\n笔记灵感\n创作学院\n创作百科\n收起侧边栏\n上传视频\n上传视频\n上传图文\n上传图文\n上传图文\n写长文\n写长文\n发播客\n发播客\n草稿箱(0)\n\n上传图片，或写文字生成图片\n\n上传图片\n文字配图\n\n图片大小\n\n支持上传的图片大小，\n\n最大32MB的图片文件\n\n图片格式\n\n支持上传的图片格式，\n\n推荐使用png、jpg、jpeg、webp，不支持gif、live及其转化后的图片\n\n图片分辨率\n\n不限制宽高比例，推荐上传3:4至2:1之间、分辨率不低于720*960的照片，\n\n超过1280P的图片用网页端上传画质更清晰"
+}

@@ -1,0 +1,102 @@
+{
+  "published": false,
+  "steps": [
+    "位置权限已预拒绝",
+    "3 张配图已提交上传",
+    "编辑态表单: {\"inputs\":[{\"type\":\"text\",\"ph\":\"填写标题会有更多赞哦\",\"max\":-1,\"cls\":\"d-text\"},{\"type\":\"checkbox\",\"ph\":\"\",\"max\":-1,\"cls\":\"\"},{\"type\":\"text\",\"ph\":\"\",\"max\":-1,\"cls\":\"d-text --color-text-title\"},{\"type\":\"text\",\"ph\":\"\",\"max\":-1,\"cls\":\"d-text --color-text-title\"},{\"type\":\"checkbox\",\"ph\":\"\",\"max\":-1,\"cls\":\"\"},{\"type\":\"checkbox\",\"ph\":\"\",\"max\":-1,\"cls\":\"\"}],\"editables\":[{\"tag\":\"DIV\",\"cls\":\"tiptap ProseMirror\",\"ph\":\"\"}],\"buttons\":[\"编辑\",\"编辑\",\"编辑\",\"话题\",\"用户\",\"表情\",\"更多\",\"关联\",\"关联\"]}",
+    "填表: {\"title\":true,\"body\":true,\"titleVal\":\"把 offer 砌成一条 3D 招聘街\",\"bodyLen\":441}",
+    "发布按钮: {\"clicked\":true,\"label\":\"发布笔记\",\"candidates\":[{\"tag\":\"DIV\",\"t\":\"发布笔记\",\"top\":90},{\"tag\":\"SPAN\",\"t\":\"发布笔记\",\"top\":90},{\"tag\":\"DIV\",\"t\":\"发布笔记\",\"top\":80},{\"tag\":\"DIV\",\"t\":\"发布笔记\",\"top\":64}]}",
+    "发布后: {\"url\":\"https://creator.xiaohongshu.com/publish/publish?from=menu&target=video\",\"text\":\"创作服务平台\\nㅤㅤㅤ\\n发布笔记\\n首页\\n笔记管理\\nBuilder hub\\n小工具\\nRed Skill\\n数据看板\\n活动中心\\n笔记灵感\\n创作学院\\n创作百科\\n收起侧边栏\\n上传视频\\n上传视频\\n上传图文\\n上传图文\\n写长文\\n写长文\\n发播客\\n发播客\\n草稿箱(4)\\n\\n拖拽视频到此或点击上传\\n\\n上传视频\\n\\n视频大小\\n\\n支持时长4小时以内，\\n\\n最大20GB的视频文件\\n\\n视频格式\\n\\n支持常用视频格式，\\n\\n推荐使用mp4、mov\\n\\n视频分辨率\\n\\n超过1080P的视频用网页端上传画质更清晰\",\"success\":false}"
+  ],
+  "form": {
+    "url": "https://creator.xiaohongshu.com/publish/publish?from=tab_switch",
+    "inputs": [
+      {
+        "type": "text",
+        "ph": "填写标题会有更多赞哦",
+        "max": -1,
+        "cls": "d-text"
+      },
+      {
+        "type": "checkbox",
+        "ph": "",
+        "max": -1,
+        "cls": ""
+      },
+      {
+        "type": "text",
+        "ph": "",
+        "max": -1,
+        "cls": "d-text --color-text-title"
+      },
+      {
+        "type": "text",
+        "ph": "",
+        "max": -1,
+        "cls": "d-text --color-text-title"
+      },
+      {
+        "type": "checkbox",
+        "ph": "",
+        "max": -1,
+        "cls": ""
+      },
+      {
+        "type": "checkbox",
+        "ph": "",
+        "max": -1,
+        "cls": ""
+      }
+    ],
+    "editables": [
+      {
+        "tag": "DIV",
+        "cls": "tiptap ProseMirror",
+        "ph": ""
+      }
+    ],
+    "buttons": [
+      "编辑",
+      "编辑",
+      "编辑",
+      "话题",
+      "用户",
+      "表情",
+      "更多",
+      "关联",
+      "关联"
+    ],
+    "text": "创作服务平台\nㅤㅤㅤ\n发布笔记\n首页\n笔记管理\nBuilder hub\n小工具\nRed Skill\n数据看板\n活动中心\n笔记灵感\n创作学院\n创作百科\n收起侧边栏\n图片编辑\n3/18\n获取封面建议\n1\n编辑\n2\n编辑\n3\n编辑\n智能标题\n\n\n\n\n#我在小红书做游戏\n#纪念碑谷3\n#Vibecoding玩家\n更多\n 话题\n 用户\n 表情\n0\n/1000\n内容设置\n收起\n加入合集\n汇集系列视频，有利于连续性观看\n创建合集\n原创声明\n添加内容类型声明\n添加组件\n添加地点\n选择群聊\n引用笔记\n添加投票\n标记地点或标记朋友\n添加路线\n选择文件\n关联活动\n更多\nRED11月精选作者投稿\n11-04 至 11-25\n关联\n马路生活节\n10-23 至 11-30\n关联\n更多设置\n收起\n允许正文复制\n公开可见\n定时发布\n笔记预览\n封面预览\nㅤㅤㅤ\n1/3\n编辑于 \n刚刚"
+  },
+  "filled": {
+    "title": true,
+    "body": true,
+    "titleVal": "把 offer 砌成一条 3D 招聘街",
+    "bodyLen": 441
+  },
+  "verify": {
+    "title": "把 offer 砌成一条 3D 招聘街",
+    "body": "“年薪 30 万”“五险一金全额”“弹性工作”……这些词到底差在哪？  我把它们砌成了一条可以走进去的 3D 招聘街区。 64 家虚构公司，四个行业街区。走近一个摊位，HR 是 3D 生成角色；身后的钱堆是总包，碑身灯条是五险，顶灯是下班时间。拖一下滑杆，山实时长高；拖下班时间，太阳落下、月亮升起。投简历、加对比篮、两座山并排——谁画的饼更大，一眼就知道。  技术：Aholo Lux3D 生成角色/钞票，SpatialGen 生成四套办公室，Aholo Viewer 承载 3DGS 漫游。  后来我们试着把 64 家公司压成一块桌上微缩沙盘，一屏看全。三轮、六位独立评审、只看图不知实现——6.2、6.2、6.8，始终没过自己定的 7 分线。于是按写好的规则撤掉，线上仍是过线那版。失败轮次和每一版截图都留在报告书里。  在线 Demo：zgqy379.github.io/guangchang",
+    "imgs": 26,
+    "buttons": [
+      "编辑",
+      "编辑",
+      "编辑",
+      "话题",
+      "用户",
+      "表情",
+      "更多",
+      "关联",
+      "关联"
+    ],
+    "text": "创作服务平台\nㅤㅤㅤ\n发布笔记\n首页\n笔记管理\nBuilder hub\n小工具\nRed Skill\n数据看板\n活动中心\n笔记灵感\n创作学院\n创作百科\n收起侧边栏\n图片编辑\n3/18\n获取封面建议\n1\n编辑\n2\n编辑\n3\n编辑\n智能标题\n\n“年薪 30 万”“五险一金全额”“弹性工作”……这些词到底差在哪？  我把它们砌成了一条可以走进去的 3D 招聘街区。 64 家虚构公司，四个行业街区。走近一个摊位，HR 是 3D 生成角色；身后的钱堆是总包，碑身灯条是五险，顶灯是下班时间。拖一下滑杆，山实时长高；拖下班时间，太阳落下、月亮升起。投简历、加对比篮、两座山并排——谁画的饼更大，一眼就知道。  技术：Aholo Lux3D 生成角色/钞票，SpatialGen 生成四套办公室，Aholo Viewer 承载 3DGS 漫游。  后来我们试着把 64 家公司压成一块桌上微缩沙盘，一屏看全。三轮、六位独立评审、只看图不知实现——6.2、6.2、6.8，始终没过自己定的 7 分线。于是按写好的规则撤掉，线上仍是过线那版。失败轮次和每一版截图都留在报告书里。  在线 Demo：zgqy379.github.io/guangchang  #Aholo黑客松 #3D #AI #数据可视化 #求职 #独立开发 #黑客松\n\n#我在小红书做游戏\n#纪念碑谷3\n#Vibecoding玩家\n更多\n 话题\n 用户\n 表情\n441\n/1000\n内容设置\n收起\n加入合集\n汇集系列视频，有利于连续性观看\n创建合集\n原创声明\n添加内容类型声明\n添加组件\n添加地点\n选择群聊\n引用笔记\n添加投票\n标记地点或标记朋友\n添加路线\n选择文件\n关联活动\n更多\nRED11月精选作者投稿\n11-04 至 11-25\n关联\n马路生活节\n10-23 至 11-30\n关联\n更多设置\n收起\n允许正文复制\n公开可见\n定时发布\n笔记预览\n封面预览\nㅤㅤㅤ\n1/3\n把 offer 砌成一条 3D 招聘街\n\n“年薪 30 万”“五险一金全额”“弹性工作”……这些词到底差在哪？ 我把它们砌成了一条可以走进去的 3D 招聘街区。 64 家"
+  },
+  "after": {
+    "url": "https://creator.xiaohongshu.com/publish/publish?from=menu&target=video",
+    "text": "创作服务平台\nㅤㅤㅤ\n发布笔记\n首页\n笔记管理\nBuilder hub\n小工具\nRed Skill\n数据看板\n活动中心\n笔记灵感\n创作学院\n创作百科\n收起侧边栏\n上传视频\n上传视频\n上传图文\n上传图文\n写长文\n写长文\n发播客\n发播客\n草稿箱(4)\n\n拖拽视频到此或点击上传\n\n上传视频\n\n视频大小\n\n支持时长4小时以内，\n\n最大20GB的视频文件\n\n视频格式\n\n支持常用视频格式，\n\n推荐使用mp4、mov\n\n视频分辨率\n\n超过1080P的视频用网页端上传画质更清晰",
+    "success": false
+  },
+  "postUrl": "https://creator.xiaohongshu.com/publish/publish?from=menu&target=video",
+  "correction": "2026-11-05：原 published=true 为脚本误判。实际点中的是侧边栏「发布笔记」菜单（top 64–90），URL 跳回上传页、草稿箱增至 4，笔记未发布。判定正则误命中侧边栏「笔记管理」。原文保留供追溯。",
+  "actualState": "未发布；3 张配图、标题、正文(441 字含 #Aholo黑客松) 已写入草稿，需在本机创作平台打开草稿手动点发布"
+}

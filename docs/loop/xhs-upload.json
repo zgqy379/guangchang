@@ -1,0 +1,10 @@
+{
+  "upload": {
+    "ok": true,
+    "count": 3,
+    "nodeId": 57
+  },
+  "info": {
+    "error": "A browser permission prompt for location access has appeared.\nThe user now controls this task space. Wait for the user to handle the prompt.\nResume only after the user confirms, using takeOverTaskSpace(spaceId)."
+  }
+}
