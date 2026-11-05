@@ -1,0 +1,50 @@
+{
+  "round": "R2",
+  "date": "2026-11-05",
+  "reviewer": "内部质量门（主理人 · 构建证据 + egolite 真浏览器实拍 + 回归脚本）",
+  "milestone": "D2",
+  "kind": "quality-gate",
+  "checks": [
+    { "id": "C-D2-01", "item": "64 栋参数楼全部落位", "verdict": "pass", "evidence": "d2-done.txt diag: buildingVolumes=64 / volumeCount=74；layout.ts BUILDINGS 由 STREET_LOTS 4 行业 × 16 生成，d2-buildings.png 四区各 16 栋可见" },
+    { "id": "C-D2-02", "item": "体量=总包：行业内归一化 → 高×宽联动，量程足", "verdict": "pass", "evidence": "d2-done.txt volumeRange: height [0.6,3.6] 6×、width [0.42,1.02] 2.43×、count 64；远超 R19 实测 ±26% 感知阈值；实拍可见高低排序" },
+    { "id": "C-D2-03", "item": "InstancedMesh 池（useLayoutEffect / 不开 vertexColors）", "verdict": "pass", "evidence": "BuildingField.tsx 五个池各 64 实例，setMatrixAt/setColorAt 全在 useLayoutEffect，材质不传 color 与 vertexColors；layout.ts BUILDINGS 为模块级快照只算一次" },
+    { "id": "C-D2-04", "item": "egolite 实测 draw calls ≤ 150", "verdict": "pass", "evidence": "d2-done.txt ready=true / drawCalls=16 / drawCallsPass=true（D1 为 35，实例池后反而下降；R19 街区为 686）" },
+    { "id": "C-D2-05", "item": "T9 包围盒验证覆盖 64 栋新体块", "verdict": "pass", "evidence": "d2-done.txt: volumeCount=74（10 桌台/地块 + 64 参数楼）、buildingVolumes=64、cameraOutside=true、minGap=36.944m、hits 0" },
+    { "id": "C-D2-06", "item": "typecheck + build + 实拍非黑帧", "verdict": "pass", "evidence": "npm run tokens 自检 72 个 number 令牌通过；typecheck exit 0；✓ built in 13.94s；DioramaScene chunk 8.07kB；d2-buildings.png 非黑帧" },
+    { "id": "C-D2-07", "item": "未改 D1 已验收配色", "verdict": "pass", "evidence": "tokens.json 仅新增 diorama.scale 四个 number 令牌（buildingHeight/Width Min/Max），day/night 44 个色值逐字未动；DioramaScene 调色板注释明确 D4 才收敛" },
+    { "id": "C-D2-08", "item": "默认 URL 回归仍通过", "verdict": "pass", "evidence": "D2 构建后重跑 accept-diorama-d1-default.mjs → d2-default-gate.json pass=true / canvasCount=0 / heavyAssets=[] / errorText=[]" }
+  ],
+  "problems": [
+    {
+      "id": "I-001",
+      "title": "（评审复述上轮问题）沙盘下残留生长动画/对比篮控件",
+      "severity": "problem",
+      "affects": "D1",
+      "suggestion": "无需处理，R1 已闭环 —— 本条用于验证循环引擎的去重机制"
+    },
+    {
+      "id": "I-004",
+      "title": "64 栋楼只占每区地块中心约 1/4 面积（4×4 网格 5.4m vs 地块 11m），单栋屏幕占比小，D3 的 hover / 点选命中困难",
+      "severity": "problem",
+      "affects": "D3",
+      "suggestion": "D3 实现交互时同步解决：用 InstancedMesh raycast 的 instanceId 映射 + 放宽拾取容差（或加悬停辅助高亮/命中盒），必要时适度放大 PITCH 与楼宽；不要改动 D2 已冻结的配色与体量映射公式"
+    }
+  ],
+  "blockers": [],
+  "closedIds": [],
+  "suggestions": [
+    "D3 优先解决 I-004（交互命中），再铺 hover 公司卡 / 点选拉近 / 钉选 ≤3 家",
+    "D4 统一闭环 I-002 / I-003（配色收敛与桌台环境），当前仍为糖果色 + 纯色天幕",
+    "每轮审查写 docs/loop/reviews/round-RN.json，跑 node tools/review-loop.mjs --review <文件> 生成下一轮待办",
+    "盲审轮次必须填 scores，门禁取视觉/空间两项较低者均 ≥7；失败轮次同样入库存档"
+  ],
+  "scores": null,
+  "evidence": [
+    "docs/figures/diorama-2026-11-05-d2/d2-buildings.png",
+    "docs/figures/diorama-2026-11-05-d2/d2-done.txt",
+    "docs/figures/diorama-2026-11-05-d2/d2-default-gate.json",
+    "web/src/components/diorama/layout.ts",
+    "web/src/components/diorama/BuildingField.tsx",
+    "web/src/components/diorama/DioramaScene.tsx"
+  ]
+}

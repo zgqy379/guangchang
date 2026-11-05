@@ -1,0 +1,155 @@
+{
+  "round": "R2",
+  "date": "2026-11-05",
+  "reviewer": "内部质量门（主理人 · 构建证据 + egolite 真浏览器实拍 + 回归脚本）",
+  "mode": "ADVANCE",
+  "pace": "normal",
+  "progress": {
+    "completionPercent": 35,
+    "activeMilestone": "D3",
+    "daysLeft": 5,
+    "milestones": [
+      {
+        "id": "D1",
+        "status": "done",
+        "met": 9,
+        "total": 9
+      },
+      {
+        "id": "D2",
+        "status": "done",
+        "met": 8,
+        "total": 8
+      },
+      {
+        "id": "D3",
+        "status": "in_progress",
+        "met": 0,
+        "total": 5
+      },
+      {
+        "id": "D4",
+        "status": "pending",
+        "met": 0,
+        "total": 5
+      },
+      {
+        "id": "D5",
+        "status": "pending",
+        "met": 0,
+        "total": 4
+      },
+      {
+        "id": "D6",
+        "status": "pending",
+        "met": 0,
+        "total": 5
+      }
+    ],
+    "issues": {
+      "open": 3,
+      "closed": 1,
+      "blocker": 0,
+      "problem": 1,
+      "concern": 2
+    }
+  },
+  "adjustmentBasis": [
+    "无阻塞项、门禁未触发、时间盒内：按当前里程碑剩余验收项继续推进",
+    "拦截 1 条重复处理（已闭环问题被再次提交），未重复排期",
+    "2 个 concern 影响未来里程碑（D4/D4）：登记为 deferred，本轮不排期也不遗忘"
+  ],
+  "closedThisRound": [],
+  "openedThisRound": [
+    "I-004"
+  ],
+  "duplicateSkipped": [
+    {
+      "id": "I-001",
+      "reason": "已闭环，拒绝重复处理"
+    }
+  ],
+  "deferred": [
+    {
+      "id": "I-002",
+      "title": "四区地块为高饱和橙/蓝/黄/紫，实拍读作「糖果色色卡」，与低多边形 diorama 柔和陶土质感不符",
+      "affects": "D4",
+      "suggestion": "D4 统一收敛配色（降饱和、加明度层次、补材质）；D2/D3 不得擅自改色，避免盲审基线漂移。R19 死因是塑料感/昼间灰平，此项为同类风险前置登记"
+    },
+    {
+      "id": "I-003",
+      "title": "桌台悬浮在纯色天幕中，缺「桌子放在环境里」的微缩场景感与接地阴影",
+      "affects": "D4",
+      "suggestion": "D4 补桌面环境/底座投影/黄昏氛围，与 I-002 一并收敛"
+    }
+  ],
+  "nextRound": {
+    "round": "R3",
+    "focusMilestone": "D3",
+    "taskCount": 6,
+    "tasks": [
+      {
+        "key": "FIX-I-004",
+        "priority": "P0",
+        "kind": "problem",
+        "text": "[I-004] 64 栋楼只占每区地块中心约 1/4 面积（4×4 网格 5.4m vs 地块 11m），单栋屏幕占比小，D3 的 hover / 点选命中困难",
+        "acceptance": "D3 实现交互时同步解决：用 InstancedMesh raycast 的 instanceId 映射 + 放宽拾取容差（或加悬停辅助高亮/命中盒），必要时适度放大 PITCH 与楼宽；不要改动 D2 已冻结的配色与体量映射公式"
+      },
+      {
+        "key": "C-D3-01",
+        "priority": "P1",
+        "kind": "criterion",
+        "text": "[D3] hover 出公司卡（参数可读）",
+        "acceptance": "hover 出公司卡（参数可读）",
+        "milestone": "D3"
+      },
+      {
+        "key": "C-D3-02",
+        "priority": "P1",
+        "kind": "criterion",
+        "text": "[D3] 点选拉近（轨道相机平滑聚焦）",
+        "acceptance": "点选拉近（轨道相机平滑聚焦）",
+        "milestone": "D3"
+      },
+      {
+        "key": "C-D3-03",
+        "priority": "P1",
+        "kind": "criterion",
+        "text": "[D3] 最多钉选 3 家并排对比",
+        "acceptance": "最多钉选 3 家并排对比",
+        "milestone": "D3"
+      },
+      {
+        "key": "C-D3-04",
+        "priority": "P1",
+        "kind": "criterion",
+        "text": "[D3] HUD 简化（进度/图例），浮层按最坏背景垫实底、对比度 ≥4.5:1",
+        "acceptance": "HUD 简化（进度/图例），浮层按最坏背景垫实底、对比度 ≥4.5:1",
+        "milestone": "D3"
+      },
+      {
+        "key": "C-D3-05",
+        "priority": "P1",
+        "kind": "criterion",
+        "text": "[D3] egolite 交互验收全流程可点通",
+        "acceptance": "egolite 交互验收全流程可点通",
+        "milestone": "D3"
+      }
+    ]
+  },
+  "policyFlags": {
+    "killSwitch": false,
+    "abort": false,
+    "gateMinScore": 7,
+    "fallback": "R19"
+  },
+  "notes": [],
+  "evidence": [
+    "docs/figures/diorama-2026-11-05-d2/d2-buildings.png",
+    "docs/figures/diorama-2026-11-05-d2/d2-done.txt",
+    "docs/figures/diorama-2026-11-05-d2/d2-default-gate.json",
+    "web/src/components/diorama/layout.ts",
+    "web/src/components/diorama/BuildingField.tsx",
+    "web/src/components/diorama/DioramaScene.tsx"
+  ]
+}

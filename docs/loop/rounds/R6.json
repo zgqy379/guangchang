@@ -1,0 +1,134 @@
+{
+  "round": "R6",
+  "date": "2026-11-05",
+  "reviewer": "主理人豁免 + 官方合规审计 + D6 定向修复自查",
+  "mode": "ADVANCE",
+  "pace": "normal",
+  "progress": {
+    "completionPercent": 84,
+    "activeMilestone": "D5",
+    "daysLeft": 5,
+    "milestones": [
+      {
+        "id": "D1",
+        "status": "done",
+        "met": 9,
+        "total": 9
+      },
+      {
+        "id": "D2",
+        "status": "done",
+        "met": 8,
+        "total": 8
+      },
+      {
+        "id": "D3",
+        "status": "done",
+        "met": 5,
+        "total": 5
+      },
+      {
+        "id": "D4",
+        "status": "done",
+        "met": 5,
+        "total": 5
+      },
+      {
+        "id": "D5",
+        "status": "in_progress",
+        "met": 3,
+        "total": 4
+      },
+      {
+        "id": "D6",
+        "status": "pending",
+        "met": 0,
+        "total": 5
+      }
+    ],
+    "issues": {
+      "open": 6,
+      "closed": 6,
+      "blocker": 0,
+      "problem": 3,
+      "concern": 3
+    }
+  },
+  "adjustmentBasis": [
+    "无阻塞项、门禁未触发、时间盒内：按当前里程碑剩余验收项继续推进",
+    "1 个 concern 影响未来里程碑（D6）：登记为 deferred，本轮不排期也不遗忘",
+    "2 个 concern 直接影响当前里程碑 D5：并入本轮待办"
+  ],
+  "closedThisRound": [],
+  "openedThisRound": [
+    "I-009",
+    "I-010",
+    "I-011",
+    "I-012"
+  ],
+  "duplicateSkipped": [],
+  "deferred": [
+    {
+      "id": "I-007",
+      "title": "夜景暖窗灯在高亮下略趋白（暖色语义弱于设计意图），画面四角仍偏暗但可接受",
+      "affects": "D6",
+      "suggestion": "作为可接受残差登记。若 D5 双盲审明确点名，D6 定向修复后须重新采集并重评；**若未点名则不再改动**（纪律：过线后不许追加视觉改动，部署构建必须等于被评审构建）"
+    }
+  ],
+  "nextRound": {
+    "round": "R7",
+    "focusMilestone": "D5",
+    "taskCount": 5,
+    "tasks": [
+      {
+        "key": "FIX-I-009",
+        "priority": "P0",
+        "kind": "problem",
+        "text": "[I-009] 源码链接与线上版本不同步：本地领先 origin/main 15 个提交未 push，远端停在 R18 时代",
+        "acceptance": "按任务书 §9 硬纪律等主理人发话后 push / 合 main，使加分项源码链接与最终提交版本同构"
+      },
+      {
+        "key": "FIX-I-010",
+        "priority": "P0",
+        "kind": "problem",
+        "text": "[I-010] 报告书 v3.5 仍为 R18 口径、Pages 视频仍是 R14 街区画面，与线上 R19 已差一代",
+        "acceptance": "无论回 R19 还是沙盘过线，都需报告 v3.6（换最终图 + 盲审留痕）与视频同步，再走官网「修改提交」重新上传 PDF"
+      },
+      {
+        "key": "FIX-I-011",
+        "priority": "P0",
+        "kind": "problem",
+        "text": "[I-011] 小红书 5% 传播加分未拿（官方加分项，需主理人本人账号）",
+        "acceptance": "草稿 docs/xiaohongshu-post.md 已有；发布后走官网「修改提交」补登记唯一链接，结果公布前保持公开"
+      },
+      {
+        "key": "FIX-I-012",
+        "priority": "P0",
+        "kind": "problem",
+        "text": "[I-012] 官方 30% 权重「群核技术栈应用」风险：沙盘为纯程序几何、零 Aholo 生成资产，砍掉了 3DGS/avatar 链路",
+        "acceptance": "若继续推沙盘版，报告书需用 Aholo 资产迭代过程单独撑起技术栈章节，或保留一处 Aholo 资产入口；R19 在该维度更稳"
+      },
+      {
+        "key": "C-D5-03",
+        "priority": "P1",
+        "kind": "criterion",
+        "text": "[D5] 门禁判定：视觉/空间两项较低者均 ≥7，失败轮次同样入库",
+        "acceptance": "门禁判定：视觉/空间两项较低者均 ≥7，失败轮次同样入库",
+        "milestone": "D5"
+      }
+    ]
+  },
+  "policyFlags": {
+    "killSwitch": false,
+    "abort": false,
+    "gateMinScore": 7,
+    "fallback": "R19"
+  },
+  "notes": [],
+  "evidence": [
+    "docs/submission-compliance-audit-2026-11-05.md",
+    "docs/design/reviews/diorama-d6-blind-review.md",
+    "docs/figures/diorama-2026-11-05-d5-firstround/",
+    "docs/figures/diorama-2026-11-05-d6/"
+  ]
+}

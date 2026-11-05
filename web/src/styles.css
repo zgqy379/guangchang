@@ -190,6 +190,15 @@ header h1 span {
   /* 红底必须用白字：继承的面板深字压在品牌红上（浅色主题 #0b0e1a 压 #c23a2b 仅 ~3.6:1）不达 AA */
   color: #fff;
 }
+/* D6 盲审修复（两位评审共同点名）：沙盘入口 active 态不再用高饱和红底，
+   改为普通面板底 + 低饱和强调色底边线，沿用已验算的面板前景色（双主题 ≥4.5:1）。
+   选择器 (0,3,1) 高于上面的 (0,2,1)，无需 !important。 */
+.mode-switch button.diorama-entry.active {
+  background: var(--ui-surface);
+  border-color: var(--ui-panel-accent);
+  color: var(--ui-page-fg);
+  box-shadow: inset 0 -3px 0 var(--ui-panel-accent);
+}
 .mode-switch button.replay {
   /* 状态文字改用随主题反相变体（浅色主题白底上原 #4ade80 ≈1.9:1 不达 AA） */
   color: var(--ui-accent-success);

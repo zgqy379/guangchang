@@ -1,0 +1,65 @@
+{
+  "pass": true,
+  "drawCalls": 17,
+  "birdShot": "d3-bird.png",
+  "projectedCount": 64,
+  "pinSteps": [
+    {
+      "index": 0,
+      "card": "visible",
+      "cardText": "星链科技 | #01 | 互联网区 · 扁平管理 · 下午茶 | 年总包 | 80.0 万 | 下班时间 | 22:30 | 五险 | 按 60% 基数 | ＋ 钉选对比",
+      "pinClicked": true,
+      "bar": "并排对比 · 1/3"
+    },
+    {
+      "index": 20,
+      "card": "visible",
+      "cardText": "澜山基金 | #21 | 金融区 · 平台大 · 起点高 | 年总包 | 60.0 万 | 下班时间 | 22:30 | 五险 | 按 80% 基数 | ＋ 钉选对比",
+      "pinClicked": true,
+      "bar": "并排对比 · 2/3"
+    },
+    {
+      "index": 40,
+      "card": "visible",
+      "cardText": "巨浪液压 | #41 | 智造区 · 宿舍食堂 · 离家近 | 年总包 | 27.0 万 | 下班时间 | 18:30 | 五险 | 足额缴纳 | ＋ 钉选对比",
+      "pinClicked": true,
+      "bar": "并排对比 · 3/3"
+    },
+    {
+      "index": 55,
+      "card": "visible",
+      "cardText": "胶片公社 | #56 | 文创区 · 项目奖金 · 灵感自由 | 年总包 | 26.0 万 | 下班时间 | 20:30 | 五险 | 按 80% 基数 | ＋ 钉选对比",
+      "pinClicked": true,
+      "bar": "并排对比 · 3/3"
+    }
+  ],
+  "pinCapOk": true,
+  "contrast": {
+    "main": 19.23,
+    "muted": 7.96,
+    "styles": {
+      "bg": "rgba(255, 255, 255, 0.92)",
+      "fg": "rgb(11, 14, 26)",
+      "mutedFg": "rgb(74, 81, 96)"
+    }
+  },
+  "contrastOk": true,
+  "focusShiftPx": 25.4,
+  "focusOk": true,
+  "bodyFlags": {
+    "visited": "已浏览 5 / 64",
+    "errors": []
+  },
+  "screenshot": "d3-interaction.png",
+  "nightContrast": {
+    "main": 16.02,
+    "muted": 6.15,
+    "styles": {
+      "bg": "rgb(13, 17, 23)",
+      "fg": "rgb(230, 237, 243)",
+      "mutedFg": "rgb(139, 148, 158)"
+    }
+  },
+  "nightShot": "d3-night.png",
+  "nightContrastOk": true
+}

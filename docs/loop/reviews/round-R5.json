@@ -1,0 +1,39 @@
+{
+  "round": "R5",
+  "date": "2026-11-05",
+  "reviewer": "双盲审门禁 · 视觉总监 + 空间体验设计师（两名全新独立评审，新会话、只看四张图、不知实现、互不见结论）",
+  "milestone": "D5",
+  "kind": "blind-review-gate",
+  "checks": [
+    { "id": "C-D5-01", "item": "性能审计（draw calls / 首屏体积 / 零异常）", "verdict": "pass", "evidence": "d4-done.json 四张图 drawCalls=23（红线 150）；默认 URL 回归 pass（canvasCount=0 / heavyAssets=[] / errorText=[]）；DioramaScene lazy chunk 17.46kB，未进主 chunk；四态零异常文案" },
+    { "id": "C-D5-02", "item": "首版截图 + 两名全新独立评审", "verdict": "pass", "evidence": "docs/figures/diorama-2026-11-05-d4/ 四张 1600×900 实拍；两位评审原文完整归档 docs/design/reviews/diorama-d5-blind-review.md" },
+    { "id": "C-D5-03", "item": "门禁判定：视觉/空间两项较低者均 ≥7", "verdict": "fail", "evidence": "视觉总监 6.2/6.5、空间体验设计师 6.8/7.0 → 两项较低者 视觉 6.2 / 空间 6.5，均 <7 → FAIL" },
+    { "id": "C-D5-04", "item": "kill switch 判定与执行留痕", "verdict": "pass", "evidence": "docs/design/reviews/diorama-d5-blind-review.md §三 执行记录；顶栏 diorama 按钮已摘、线上 R19 从未改动、失败轮次完整入库" }
+  ],
+  "problems": [
+    {
+      "id": "I-008",
+      "title": "双盲审共性短板三项：① 选中/钉选态在 3D 主体上零反馈（两人都点名）② 浮层与 UI 抢戏、口诀字号过小且夜间失读、底部面板遮挡前排楼体 ③ 材质与光比层次薄（昼灰平、夜分组失读、近景复制感）",
+      "severity": "problem",
+      "affects": "D6",
+      "suggestion": "完整可执行施工单见 docs/design/reviews/diorama-d5-blind-review.md §四；按 kill switch 纪律**不自动继续**，须主理人明确豁免才启动第二轮盲审。时间盒剩 5 天"
+    }
+  ],
+  "blockers": [],
+  "closedIds": [],
+  "suggestions": [
+    "按任务书 §6 kill switch 立即中止重构，不自行豁免，成绩无损（线上 R19 从未改动）",
+    "失败轮次与成功轮次同等入库，评审原文不得删改",
+    "不部署、不 push、不合 main、不做官网「修改提交」",
+    "若主理人决定豁免：以 §四 施工单做 D6 定向修复，重采四张图并重跑双盲审；过线后部署构建必须等于被评审构建"
+  ],
+  "scores": { "visual": 6.2, "spatial": 6.5 },
+  "evidence": [
+    "docs/design/reviews/diorama-d5-blind-review.md",
+    "docs/figures/diorama-2026-11-05-d4/d4-day-bird.png",
+    "docs/figures/diorama-2026-11-05-d4/d4-night-bird.png",
+    "docs/figures/diorama-2026-11-05-d4/d4-closeup.png",
+    "docs/figures/diorama-2026-11-05-d4/d4-compare.png",
+    "docs/figures/diorama-2026-11-05-d4/d4-done.json"
+  ]
+}

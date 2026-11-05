@@ -1,0 +1,11 @@
+goto ok: /?hour=10&mode=diorama
+ready, drawCalls = 35 at 0s
+diag = {"cameraPosition":[28.2842712474619,30,28.2842712474619],"target":[0,1,0],"cameraOutside":true,"minGap":36.94429958224738,"volumeCount":14,"readyAt":"2026-11-05T03:19:55.673Z"}
+shot: d1-sandbox-base.png
+DONE
+url=http://localhost:4173/?hour=10&mode=diorama
+ready=true
+drawCalls=35
+diag={"cameraPosition":[28.2842712474619,30,28.2842712474619],"target":[0,1,0],"cameraOutside":true,"minGap":36.94429958224738,"volumeCount":14,"readyAt":"2026-11-05T03:19:55.673Z"}
+screenshot=d1-sandbox-base.png
+done 2026-11-05T03:20:08.720Z

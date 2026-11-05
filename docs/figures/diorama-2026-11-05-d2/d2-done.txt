@@ -1,0 +1,13 @@
+goto ok: /?hour=10&mode=diorama
+ready, drawCalls = 16 at 0s
+diag = {"cameraPosition":[28.2842712474619,30,28.2842712474619],"cameraOutside":true,"minGap":36.94429958224738,"volumeCount":74,"volumeRange":{"height":[0.6,3.6],"width":[0.42,1.02],"heightRatio":6,"widthRatio":2.43,"count":64},"buildingVolumes":64}
+shot: d2-buildings.png
+DONE
+url=http://localhost:4173/?hour=10&mode=diorama
+ready=true
+drawCalls=16
+drawCallsRedLine=150
+drawCallsPass=true
+diag={"cameraPosition":[28.2842712474619,30,28.2842712474619],"cameraOutside":true,"minGap":36.94429958224738,"volumeCount":74,"volumeRange":{"height":[0.6,3.6],"width":[0.42,1.02],"heightRatio":6,"widthRatio":2.43,"count":64},"buildingVolumes":64}
+screenshot=d2-buildings.png
+done 2026-11-05T03:40:18.340Z

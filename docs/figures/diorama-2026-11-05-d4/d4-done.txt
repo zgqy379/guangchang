@@ -1,0 +1,11 @@
+open hour=10, drawCalls=23, errors=0
+shot: d4-day-bird.png (drawCalls=23)
+diagnostics={"cameraOutside":true,"minGap":35.66117696551858,"volumeCount":74,"volumeRange":{"height":[0.6,4.4],"width":[0.42,1.3],"heightRatio":7.33,"widthRatio":3.1,"count":64},"channelStats":{"crown":45,"pearl":60,"warmWindows":26,"coldWindows":38,"fullInsurance":39,"cutInsurance":25}}
+open hour=21, drawCalls=23, errors=0
+shot: d4-night-bird.png (drawCalls=23)
+open hour=10, drawCalls=23, errors=0
+shot: d4-closeup.png (drawCalls=23)
+open hour=10, drawCalls=23, errors=0
+compareBar=并排对比 · 3/3
+shot: d4-compare.png (drawCalls=23)
+pass=true

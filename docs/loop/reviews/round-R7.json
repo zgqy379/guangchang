@@ -1,0 +1,36 @@
+{
+  "round": "R7",
+  "date": "2026-11-05",
+  "reviewer": "第二轮双盲审 · 视觉总监 C + 空间体验设计师 D（全新独立评审，新会话、只看 d6 四张图、不知实现、不知首轮结论、互不见结论）",
+  "milestone": "D5",
+  "kind": "blind-review-gate-round2",
+  "checks": [
+    { "id": "C-D5-03", "item": "门禁判定：视觉/空间两项较低者均 ≥7", "verdict": "fail", "evidence": "第二轮 视觉总监 6.2/7.8、空间体验设计师 7.1/7.3 → 两项较低者 视觉 6.2 / 空间 7.3；视觉仍 <7。空间分较首轮 +0.8，视觉分 ±0" },
+    { "id": "C-D5-04", "item": "kill switch 判定与执行留痕", "verdict": "pass", "evidence": "docs/design/reviews/diorama-d6-blind-review.md §三/§五；豁免使本地入口保持开启，但部署门禁关闭、线上 R19 未动、失败轮次完整入库" }
+  ],
+  "problems": [
+    {
+      "id": "I-013",
+      "title": "视觉分两轮纹丝不动（6.2 → 6.2）：纯程序几何 + flat shading 的方向性天花板，非收尾未完成",
+      "severity": "problem",
+      "affects": "D6",
+      "suggestion": "四位评审反复指向无落地投影/无材质区分/近景纸片感。若继续需真实 shadowMap、按区材质与窗框倒角、夜景抬暗部、UI 放大与标记描边、高度定量标尺；但须先评估 30% 技术栈维度机会成本（I-012）。本轮按纪律不加第三轮"
+    }
+  ],
+  "blockers": [],
+  "closedIds": [],
+  "suggestions": [
+    "交互/信息设计短板已闭环：两位第二轮评审都把 ①②③ 标记↔对比栏双向对应、浮层贴边不遮挡列为最强项，空间分 6.5/7.0 → 7.8/7.3",
+    "部署门禁保持关闭：不部署、不 push、不做官网「修改提交」；线上 R19 成绩无损",
+    "本地 diorama 入口按豁免保持开启、代码全部保留，便于后续继续迭代",
+    "若主理人决定继续，第三轮施工单见 diorama-d6-blind-review.md §四，需重新授权"
+  ],
+  "scores": { "visual": 6.2, "spatial": 7.3 },
+  "evidence": [
+    "docs/design/reviews/diorama-d6-blind-review.md",
+    "docs/figures/diorama-2026-11-05-d6/d6-day-bird.png",
+    "docs/figures/diorama-2026-11-05-d6/d6-night-bird.png",
+    "docs/figures/diorama-2026-11-05-d6/d6-closeup.png",
+    "docs/figures/diorama-2026-11-05-d6/d6-compare.png"
+  ]
+}

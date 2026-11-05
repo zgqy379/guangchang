@@ -1,0 +1,51 @@
+{
+  "round": "R8",
+  "date": "2026-11-05",
+  "reviewer": "第三轮双盲审 · 视觉总监 E + 空间体验设计师 F（全新独立评审，新会话、只看 d7 四张图、不知实现、不知前两轮结论、互不见结论）",
+  "milestone": "D5",
+  "kind": "blind-review-gate-round3",
+  "checks": [
+    { "id": "C-D5-03", "item": "门禁判定：视觉/空间两项较低者均 ≥7", "verdict": "fail", "evidence": "第三轮 视觉总监 6.8/7.6、空间体验设计师 7.6/6.8 → 两项较低者 6.8/6.8，均 <7。三轮趋势 视觉 6.2→6.2→6.8、空间 6.5→7.3→6.8，在 6.8–7.6 区间震荡未稳定过线" },
+    { "id": "C-D5-04", "item": "kill switch 判定与执行留痕", "verdict": "pass", "evidence": "docs/design/reviews/diorama-d7-blind-review.md；第三轮授权范围已跑完，不再擅自加轮次；部署门禁关闭、线上 R19 未动、失败轮次完整入库" }
+  ],
+  "problems": [
+    {
+      "id": "I-014",
+      "title": "真实 bug：点选打开详情卡时「已浏览」仍为 0/64，计数与选中态矛盾（评审 F 点名）",
+      "severity": "problem",
+      "affects": "D6",
+      "suggestion": "handleSelect 同步把该 index 计入 visitedRef，或图例改标「已选中」；与 I-015~I-018 一并作为第四轮残差施工单，见 d7 归档 §四"
+    },
+    {
+      "id": "I-016",
+      "title": "对比态「并排对比」名不副实：三列差异只靠小字、标记色与卡片色跨屏对色、无并排可视化",
+      "severity": "problem",
+      "affects": "D6",
+      "suggestion": "标题改「已钉选 3 家」；标记改带编号高对比圆牌；三列加数值条；编号统一 ①②③"
+    },
+    {
+      "id": "I-017",
+      "title": "昼间背景平涂、主体与背景明度接近，缺高光锚点（评审 E 第 2 条）",
+      "severity": "concern",
+      "affects": "D6",
+      "suggestion": "背景径向渐变/淡雾 + 塔顶受光面高光，把夜景已有的光比逻辑回灌一部分到昼间"
+    }
+  ],
+  "blockers": [],
+  "closedIds": [],
+  "suggestions": [
+    "第三轮修复见效：真实 shadowMap 投影 + 三级材质 + 窗框亮边使视觉分 6.2→6.8，两位评审都把昼间明暗面/短阴影、夜景光比列为最强项",
+    "差距缩到 0.2 但未稳定过线；按授权范围（冲第三轮）到此为止，不擅自加第四轮",
+    "不部署、不 push、不做官网修改提交；线上 R19 成绩无损；本地入口按豁免保持开启",
+    "若继续，第四轮优先 I-014 / I-016 / I-017（低成本、直指空间与视觉各 0.2 缺口），完整残差表见 d7 归档 §四"
+  ],
+  "scores": { "visual": 6.8, "spatial": 6.8 },
+  "evidence": [
+    "docs/design/reviews/diorama-d7-blind-review.md",
+    "docs/figures/diorama-2026-11-05-d7/d7-day-bird.png",
+    "docs/figures/diorama-2026-11-05-d7/d7-night-bird.png",
+    "docs/figures/diorama-2026-11-05-d7/d7-closeup.png",
+    "docs/figures/diorama-2026-11-05-d7/d7-compare.png",
+    "docs/figures/diorama-2026-11-05-d7/d7-done.json"
+  ]
+}

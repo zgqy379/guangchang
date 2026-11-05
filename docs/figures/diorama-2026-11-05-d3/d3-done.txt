@@ -1,0 +1,12 @@
+goto ok
+drawCalls=17
+projected buildings=64
+hover 0: card=visible, pin=true, bar=并排对比 · 1/3
+hover 20: card=visible, pin=true, bar=并排对比 · 2/3
+hover 40: card=visible, pin=true, bar=并排对比 · 3/3
+hover 55: card=visible, pin=true, bar=并排对比 · 3/3
+contrast={"main":19.23,"muted":7.96,"styles":{"bg":"rgba(255, 255, 255, 0.92)","fg":"rgb(11, 14, 26)","mutedFg":"rgb(74, 81, 96)"}}
+focusShiftPx=25.4
+bodyFlags={"visited":"已浏览 5 / 64","errors":[]}
+nightContrast={"main":16.02,"muted":6.15,"styles":{"bg":"rgb(13, 17, 23)","fg":"rgb(230, 237, 243)","mutedFg":"rgb(139, 148, 158)"}}
+pass=true

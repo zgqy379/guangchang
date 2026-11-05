@@ -1,0 +1,53 @@
+{
+  "round": "R6",
+  "date": "2026-11-05",
+  "reviewer": "主理人豁免 + 官方合规审计 + D6 定向修复自查",
+  "milestone": "D6",
+  "kind": "waiver-and-compliance-audit",
+  "checks": [],
+  "problems": [
+    {
+      "id": "I-009",
+      "title": "源码链接与线上版本不同步：本地领先 origin/main 15 个提交未 push，远端停在 R18 时代",
+      "severity": "problem",
+      "affects": "D5",
+      "suggestion": "按任务书 §9 硬纪律等主理人发话后 push / 合 main，使加分项源码链接与最终提交版本同构"
+    },
+    {
+      "id": "I-010",
+      "title": "报告书 v3.5 仍为 R18 口径、Pages 视频仍是 R14 街区画面，与线上 R19 已差一代",
+      "severity": "problem",
+      "affects": "D5",
+      "suggestion": "无论回 R19 还是沙盘过线，都需报告 v3.6（换最终图 + 盲审留痕）与视频同步，再走官网「修改提交」重新上传 PDF"
+    },
+    {
+      "id": "I-011",
+      "title": "小红书 5% 传播加分未拿（官方加分项，需主理人本人账号）",
+      "severity": "concern",
+      "affects": "D5",
+      "suggestion": "草稿 docs/xiaohongshu-post.md 已有；发布后走官网「修改提交」补登记唯一链接，结果公布前保持公开"
+    },
+    {
+      "id": "I-012",
+      "title": "官方 30% 权重「群核技术栈应用」风险：沙盘为纯程序几何、零 Aholo 生成资产，砍掉了 3DGS/avatar 链路",
+      "severity": "concern",
+      "affects": "D5",
+      "suggestion": "若继续推沙盘版，报告书需用 Aholo 资产迭代过程单独撑起技术栈章节，或保留一处 Aholo 资产入口；R19 在该维度更稳"
+    }
+  ],
+  "blockers": [],
+  "closedIds": [],
+  "suggestions": [
+    "2026-11-05 13:03 主理人明确豁免 kill switch：解除「中止重构」，不解除「部署门禁」；R5 FAIL 记录不篡改",
+    "豁免后执行 D6 定向修复一轮并重采四张图，随后跑第二轮双盲审（R7）",
+    "合规审计结论：内部质量门（时间盒/双盲审/kill switch）是项目自定纪律，不替代官方合规；审计全文 docs/submission-compliance-audit-2026-11-05.md",
+    "合规缺口登记进循环台账，避免随沙盘中止而遗忘"
+  ],
+  "scores": null,
+  "evidence": [
+    "docs/submission-compliance-audit-2026-11-05.md",
+    "docs/design/reviews/diorama-d6-blind-review.md",
+    "docs/figures/diorama-2026-11-05-d5-firstround/",
+    "docs/figures/diorama-2026-11-05-d6/"
+  ]
+}

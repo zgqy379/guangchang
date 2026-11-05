@@ -1,0 +1,111 @@
+{
+  "round": "R5",
+  "date": "2026-11-05",
+  "reviewer": "双盲审门禁 · 视觉总监 + 空间体验设计师（两名全新独立评审，新会话、只看四张图、不知实现、互不见结论）",
+  "mode": "KILL_SWITCH",
+  "pace": "normal",
+  "progress": {
+    "completionPercent": 84,
+    "activeMilestone": "D5",
+    "daysLeft": 5,
+    "milestones": [
+      {
+        "id": "D1",
+        "status": "done",
+        "met": 9,
+        "total": 9
+      },
+      {
+        "id": "D2",
+        "status": "done",
+        "met": 8,
+        "total": 8
+      },
+      {
+        "id": "D3",
+        "status": "done",
+        "met": 5,
+        "total": 5
+      },
+      {
+        "id": "D4",
+        "status": "done",
+        "met": 5,
+        "total": 5
+      },
+      {
+        "id": "D5",
+        "status": "in_progress",
+        "met": 3,
+        "total": 4
+      },
+      {
+        "id": "D6",
+        "status": "pending",
+        "met": 0,
+        "total": 5
+      }
+    ],
+    "issues": {
+      "open": 2,
+      "closed": 6,
+      "blocker": 0,
+      "problem": 1,
+      "concern": 1
+    }
+  },
+  "adjustmentBasis": [
+    "盲审较低项 6.2 < 7：按纪律当天中止重构，摘掉 diorama 入口，回 R19 轨道（报告 v3.6 + 小红书）",
+    "本轮 1 个验收项未通过 → 这些项自动置顶为下一轮 P0",
+    "1 个 concern 影响未来里程碑（D6）：登记为 deferred，本轮不排期也不遗忘"
+  ],
+  "closedThisRound": [],
+  "openedThisRound": [
+    "I-008"
+  ],
+  "duplicateSkipped": [],
+  "deferred": [
+    {
+      "id": "I-007",
+      "title": "夜景暖窗灯在高亮下略趋白（暖色语义弱于设计意图），画面四角仍偏暗但可接受",
+      "affects": "D6",
+      "suggestion": "作为可接受残差登记。若 D5 双盲审明确点名，D6 定向修复后须重新采集并重评；**若未点名则不再改动**（纪律：过线后不许追加视觉改动，部署构建必须等于被评审构建）"
+    }
+  ],
+  "nextRound": {
+    "round": "R6",
+    "focusMilestone": "D5",
+    "taskCount": 2,
+    "tasks": [
+      {
+        "key": "KILL-01",
+        "priority": "P0",
+        "kind": "kill-switch",
+        "text": "摘掉 diorama 入口，恢复 R19 轨道",
+        "acceptance": "默认 URL 与线上同构，diorama 不可达"
+      },
+      {
+        "key": "KILL-02",
+        "priority": "P0",
+        "kind": "kill-switch",
+        "text": "回 R19 收尾：报告 v3.6 + 小红书",
+        "acceptance": "材料齐备，等用户确认后官网「修改提交」"
+      }
+    ]
+  },
+  "policyFlags": {
+    "killSwitch": true,
+    "abort": false,
+    "gateMinScore": 7,
+    "fallback": "R19"
+  },
+  "notes": [],
+  "evidence": [
+    "docs/design/reviews/diorama-d5-blind-review.md",
+    "docs/figures/diorama-2026-11-05-d4/d4-day-bird.png",
+    "docs/figures/diorama-2026-11-05-d4/d4-night-bird.png",
+    "docs/figures/diorama-2026-11-05-d4/d4-closeup.png",
+    "docs/figures/diorama-2026-11-05-d4/d4-compare.png",
+    "docs/figures/diorama-2026-11-05-d4/d4-done.json"
+  ]
+}

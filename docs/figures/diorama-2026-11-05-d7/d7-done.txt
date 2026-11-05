@@ -1,0 +1,11 @@
+open hour=10, drawCalls=33, errors=0
+shot: d7-day-bird.png (drawCalls=33)
+diagnostics={"cameraOutside":true,"minGap":35.66117696551858,"volumeCount":74,"volumeRange":{"height":[0.6,4.4],"width":[0.42,1.3],"heightRatio":7.33,"widthRatio":3.1,"count":64},"channelStats":{"crown":45,"pearl":60,"warmWindows":26,"coldWindows":38,"fullInsurance":39,"cutInsurance":25}}
+open hour=21, drawCalls=33, errors=0
+shot: d7-night-bird.png (drawCalls=33)
+open hour=10, drawCalls=33, errors=0
+shot: d7-closeup.png (drawCalls=33)
+open hour=10, drawCalls=33, errors=0
+compareBar=并排对比 · 3/3
+shot: d7-compare.png (drawCalls=33)
+pass=true

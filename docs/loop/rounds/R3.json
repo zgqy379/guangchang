@@ -1,0 +1,163 @@
+{
+  "round": "R3",
+  "date": "2026-11-05",
+  "reviewer": "内部质量门（主理人 · egolite 交互全流程 + 双主题对比度实算 + 鸟瞰/夜景实拍）",
+  "mode": "ADVANCE",
+  "pace": "normal",
+  "progress": {
+    "completionPercent": 55,
+    "activeMilestone": "D4",
+    "daysLeft": 5,
+    "milestones": [
+      {
+        "id": "D1",
+        "status": "done",
+        "met": 9,
+        "total": 9
+      },
+      {
+        "id": "D2",
+        "status": "done",
+        "met": 8,
+        "total": 8
+      },
+      {
+        "id": "D3",
+        "status": "done",
+        "met": 5,
+        "total": 5
+      },
+      {
+        "id": "D4",
+        "status": "in_progress",
+        "met": 0,
+        "total": 5
+      },
+      {
+        "id": "D5",
+        "status": "pending",
+        "met": 0,
+        "total": 4
+      },
+      {
+        "id": "D6",
+        "status": "pending",
+        "met": 0,
+        "total": 5
+      }
+    ],
+    "issues": {
+      "open": 4,
+      "closed": 2,
+      "blocker": 0,
+      "problem": 2,
+      "concern": 2
+    }
+  },
+  "adjustmentBasis": [
+    "无阻塞项、门禁未触发、时间盒内：按当前里程碑剩余验收项继续推进",
+    "本轮闭环 1 个问题（I-004），从待办中永久移除",
+    "2 个 concern 直接影响当前里程碑 D4：并入本轮待办"
+  ],
+  "closedThisRound": [
+    "I-004"
+  ],
+  "openedThisRound": [
+    "I-005",
+    "I-006"
+  ],
+  "duplicateSkipped": [],
+  "deferred": [],
+  "nextRound": {
+    "round": "R4",
+    "focusMilestone": "D4",
+    "taskCount": 9,
+    "tasks": [
+      {
+        "key": "FIX-I-002",
+        "priority": "P0",
+        "kind": "problem",
+        "text": "[I-002] 四区地块为高饱和橙/蓝/黄/紫，实拍读作「糖果色色卡」，与低多边形 diorama 柔和陶土质感不符",
+        "acceptance": "D4 统一收敛配色（降饱和、加明度层次、补材质）；D2/D3 不得擅自改色，避免盲审基线漂移。R19 死因是塑料感/昼间灰平，此项为同类风险前置登记"
+      },
+      {
+        "key": "FIX-I-003",
+        "priority": "P0",
+        "kind": "problem",
+        "text": "[I-003] 桌台悬浮在纯色天幕中，缺「桌子放在环境里」的微缩场景感与接地阴影",
+        "acceptance": "D4 补桌面环境/底座投影/黄昏氛围，与 I-002 一并收敛"
+      },
+      {
+        "key": "FIX-I-005",
+        "priority": "P0",
+        "kind": "problem",
+        "text": "[I-005] 64 栋楼全部顶着橙冠与青顶珠，但概念是「增薪=冠 / 期权=顶珠」——12 薪、无期权的公司不该有对应构件，当前四信道读不出「钱怎么构成」",
+        "acceptance": "D4 按 incrementPackage()/equityValue 决定冠与顶珠的有无和大小：12 薪不显冠、equity=0 不显顶珠；冠高随增薪额、顶珠半径随期权额分级。用实例缩放 0 或额外实例池实现，不增加 draw call"
+      },
+      {
+        "key": "FIX-I-006",
+        "priority": "P0",
+        "kind": "problem",
+        "text": "[I-006] D3 鸟瞰里楼体「窗灯」在昼间几乎不可辨（暖色贴片与楼身同明度），夜景也未见明显发光差异",
+        "acceptance": "D4 把窗灯做成 emissive 发光面（夜间暖灯亮起、晚下班黑窗冷玻璃），昼间靠色相/明度反差保证可读；InstancedMesh 的 emissive 是材质级，需用两个实例池（暖/冷）分别设 emissive 材质"
+      },
+      {
+        "key": "C-D4-01",
+        "priority": "P1",
+        "kind": "criterion",
+        "text": "[D4] 窗灯编码下班时间（早下班暖灯 / 晚下班黑窗冷玻璃）",
+        "acceptance": "窗灯编码下班时间（早下班暖灯 / 晚下班黑窗冷玻璃）",
+        "milestone": "D4"
+      },
+      {
+        "key": "C-D4-02",
+        "priority": "P1",
+        "kind": "criterion",
+        "text": "[D4] 楼身色带分段（底薪主色 / 增薪冠 / 期权顶珠）",
+        "acceptance": "楼身色带分段（底薪主色 / 增薪冠 / 期权顶珠）",
+        "milestone": "D4"
+      },
+      {
+        "key": "C-D4-03",
+        "priority": "P1",
+        "kind": "criterion",
+        "text": "[D4] 地基台编码五险诚实度（足额完整 / 打折缺口缩台）",
+        "acceptance": "地基台编码五险诚实度（足额完整 / 打折缺口缩台）",
+        "milestone": "D4"
+      },
+      {
+        "key": "C-D4-04",
+        "priority": "P1",
+        "kind": "criterion",
+        "text": "[D4] I-002/I-003 闭环：配色收敛 + 桌台环境/阴影/黄昏氛围",
+        "acceptance": "I-002/I-003 闭环：配色收敛 + 桌台环境/阴影/黄昏氛围",
+        "milestone": "D4"
+      },
+      {
+        "key": "C-D4-05",
+        "priority": "P1",
+        "kind": "criterion",
+        "text": "[D4] 四张评审图 1600×900（昼鸟瞰 / 夜鸟瞰 / 近景 / 对比态）",
+        "acceptance": "四张评审图 1600×900（昼鸟瞰 / 夜鸟瞰 / 近景 / 对比态）",
+        "milestone": "D4"
+      }
+    ]
+  },
+  "policyFlags": {
+    "killSwitch": false,
+    "abort": false,
+    "gateMinScore": 7,
+    "fallback": "R19"
+  },
+  "notes": [],
+  "evidence": [
+    "docs/figures/diorama-2026-11-05-d3/d3-bird.png",
+    "docs/figures/diorama-2026-11-05-d3/d3-interaction.png",
+    "docs/figures/diorama-2026-11-05-d3/d3-night.png",
+    "docs/figures/diorama-2026-11-05-d3/d3-done.json",
+    "web/src/components/diorama/DioramaHud.tsx",
+    "web/src/components/diorama/BuildingField.tsx",
+    "web/src/components/diorama/DioramaScene.tsx",
+    "tools/accept-diorama-d3.mjs"
+  ]
+}

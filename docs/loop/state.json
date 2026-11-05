@@ -1,0 +1,684 @@
+{
+  "schema": 1,
+  "project": "逛厂 · 立体参数沙盘重构（diorama）",
+  "description": "审查驱动的循环工作流状态机。由 tools/review-loop.mjs 读写，勿手工编辑 rounds/milestones 状态；审查输入放 docs/loop/reviews/round-RN.json。",
+  "baseline": {
+    "commit": "954a28a",
+    "branch": "feat/debt-reduction-week1",
+    "pushed": false,
+    "online": "R19",
+    "onlineAssets": "Pages index-6A6MFh1z.js / 魔搭 Running",
+    "fallback": "R19 已提交版永远在线，重构仅在双盲审过线后才刷新官网提交"
+  },
+  "timebox": {
+    "start": "2026-11-05",
+    "end": "2026-11-10",
+    "submissionDeadline": "2026-11-19 19:00"
+  },
+  "policy": {
+    "gateMinScore": 7,
+    "gateRule": "双盲审取视觉/空间两项较低者，均 ≥7 才放行；失败轮次同样入库",
+    "drawCallsRedLine": 150,
+    "fallback": "R19",
+    "mustNotRepeat": true,
+    "visualFreezeAfterGate": "过线后不许追加视觉改动，部署构建必须等于被评审构建"
+  },
+  "milestones": [
+    {
+      "id": "D1",
+      "name": "设计定稿落盘 + 沙盘骨架",
+      "weight": 15,
+      "status": "done",
+      "roundOpened": null,
+      "roundClosed": "R1",
+      "criteria": [
+        {
+          "id": "C-D1-01",
+          "item": "project.md 升 v1.5（旧章节保留 + 冲突声明 + 暗坑逐条规避表）",
+          "met": true,
+          "evidence": "project.md v1.5-1..8；14 条暗坑规避答案表；旧章节 Grep 复核 v1.4 标题/四街64摊/不许动清单/A-B对比P0 原样保留；显式声明冲突以 v1.5 为准",
+          "lastRound": "R1"
+        },
+        {
+          "id": "C-D1-02",
+          "item": "diorama.* 令牌段落盘并跑 npm run tokens",
+          "met": true,
+          "evidence": "web/design/tokens.json 新增 diorama.day/night 各 22 色 + scale 14 数；58 个 Diorama* 导出；tokens 自检 68 个 number 令牌通过；tokens.config.mjs 未改",
+          "lastRound": "R1"
+        },
+        {
+          "id": "C-D1-03",
+          "item": "App.tsx 模式/导航/lazy 分拨/?mode=diorama 深链",
+          "met": true,
+          "evidence": "App.tsx L35 lazy、L183-200 DIORAMA_DEEPLINK + mode/roleGate 初值、L394 参数沙盘按钮、L526 SceneErrorBoundary+Suspense 分支、L655 DioramaSceneLoader；其余入口按钮未动",
+          "lastRound": "R1"
+        },
+        {
+          "id": "C-D1-04",
+          "item": "DioramaScene 骨架（轨道相机/低 FOV 高俯角/桌台/2×2 象限盘/昼夜光照）",
+          "met": true,
+          "evidence": "DioramaScene.tsx：FOV 30°、俯角 35.94°、OrbitControls、桌台基座 + 2×2 四区地块 + 64 网格位 InstancedMesh + 4 栋示意楼 + 昼/夜 ambient/directional + 天幕/雾",
+          "lastRound": "R1"
+        },
+        {
+          "id": "C-D1-05",
+          "item": "typecheck + tokens + build 全绿（须见 vite ✓ built）",
+          "met": true,
+          "evidence": "npm run typecheck 退出 0；npm run build ✓ built in 12.10s；主 chunk index-DUzD3Ane.js；DioramaScene 独立 lazy chunk 6.61kB",
+          "lastRound": "R1"
+        },
+        {
+          "id": "C-D1-06",
+          "item": "egolite 实拍非黑帧、能看到沙盘底",
+          "met": true,
+          "evidence": "docs/figures/diorama-2026-11-05-d1/d1-sandbox-base.png（1600×900, 114149B）；drawCalls=35；桌台/四区/网格位/4 栋楼/冠/顶珠/窗灯均可见",
+          "lastRound": "R1"
+        },
+        {
+          "id": "C-D1-07",
+          "item": "T9 相机包围盒相交验证通过（hits=0）",
+          "met": true,
+          "evidence": "14 个体块 Box3、相机 (28.284,30,28.284)、minGap 36.944m、hits 0、cameraOutside=true（d1-done.txt diag）",
+          "lastRound": "R1"
+        },
+        {
+          "id": "C-D1-08",
+          "item": "默认 URL 回归：零 Canvas / 零 3D 资产 / 零异常",
+          "met": true,
+          "evidence": "tools/accept-diorama-d1-default.mjs → d1-default-gate.json pass=true；canvasCount=0、heavyAssets=[]、errorText=[]、角色门原样（显示「0 个首屏 3D 资产」）",
+          "lastRound": "R1"
+        },
+        {
+          "id": "C-D1-09",
+          "item": "R19 兜底未动（未 commit/push/部署）",
+          "met": true,
+          "evidence": "git status 改动全在工作区；未 commit/push/部署；线上仍 index-6A6MFh1z.js",
+          "lastRound": "R1"
+        }
+      ]
+    },
+    {
+      "id": "D2",
+      "name": "64 栋参数楼体量生成器 + InstancedMesh 池",
+      "weight": 20,
+      "status": "done",
+      "roundOpened": "R1",
+      "roundClosed": "R2",
+      "criteria": [
+        {
+          "id": "C-D2-01",
+          "item": "64 栋参数楼全部落位（4 区 × 16，复用 STREET_LOTS）",
+          "met": true,
+          "evidence": "d2-done.txt diag: buildingVolumes=64 / volumeCount=74；layout.ts BUILDINGS 由 STREET_LOTS 4 行业 × 16 生成，d2-buildings.png 四区各 16 栋可见",
+          "lastRound": "R2"
+        },
+        {
+          "id": "C-D2-02",
+          "item": "体量=总包：行业内归一化 → 高×宽联动，量程足（≥±26% 感知阈值）",
+          "met": true,
+          "evidence": "d2-done.txt volumeRange: height [0.6,3.6] 6×、width [0.42,1.02] 2.43×、count 64；远超 R19 实测 ±26% 感知阈值；实拍可见高低排序",
+          "lastRound": "R2"
+        },
+        {
+          "id": "C-D2-03",
+          "item": "InstancedMesh 池（矩阵在 useLayoutEffect、不开 vertexColors）",
+          "met": true,
+          "evidence": "BuildingField.tsx 五个池各 64 实例，setMatrixAt/setColorAt 全在 useLayoutEffect，材质不传 color 与 vertexColors；layout.ts BUILDINGS 为模块级快照只算一次",
+          "lastRound": "R2"
+        },
+        {
+          "id": "C-D2-04",
+          "item": "egolite 实测 draw calls ≤ 150",
+          "met": true,
+          "evidence": "d2-done.txt ready=true / drawCalls=16 / drawCallsPass=true（D1 为 35，实例池后反而下降；R19 街区为 686）",
+          "lastRound": "R2"
+        },
+        {
+          "id": "C-D2-05",
+          "item": "T9 包围盒验证覆盖 64 栋新体块（hits=0）",
+          "met": true,
+          "evidence": "d2-done.txt: volumeCount=74（10 桌台/地块 + 64 参数楼）、buildingVolumes=64、cameraOutside=true、minGap=36.944m、hits 0",
+          "lastRound": "R2"
+        },
+        {
+          "id": "C-D2-06",
+          "item": "typecheck + build 过，egolite 实拍 64 栋非黑帧",
+          "met": true,
+          "evidence": "npm run tokens 自检 72 个 number 令牌通过；typecheck exit 0；✓ built in 13.94s；DioramaScene chunk 8.07kB；d2-buildings.png 非黑帧",
+          "lastRound": "R2"
+        },
+        {
+          "id": "C-D2-07",
+          "item": "未改 D1 已验收配色（I-002/I-003 约束不破坏）",
+          "met": true,
+          "evidence": "tokens.json 仅新增 diorama.scale 四个 number 令牌（buildingHeight/Width Min/Max），day/night 44 个色值逐字未动；DioramaScene 调色板注释明确 D4 才收敛",
+          "lastRound": "R2"
+        },
+        {
+          "id": "C-D2-08",
+          "item": "默认 URL 回归仍通过（零 Canvas / 零 3D 资产）",
+          "met": true,
+          "evidence": "D2 构建后重跑 accept-diorama-d1-default.mjs → d2-default-gate.json pass=true / canvasCount=0 / heavyAssets=[] / errorText=[]",
+          "lastRound": "R2"
+        }
+      ]
+    },
+    {
+      "id": "D3",
+      "name": "交互：hover / 点选 / 钉选对比 / HUD 简化",
+      "weight": 20,
+      "status": "done",
+      "roundOpened": "R2",
+      "roundClosed": "R3",
+      "criteria": [
+        {
+          "id": "C-D3-01",
+          "item": "hover 出公司卡（参数可读）",
+          "met": true,
+          "evidence": "d3-done.json pinSteps 4/4 card=visible；卡内可读公司名/编号/行业/年总包/下班时间/五险，例：星链科技 80.0 万 / 22:30 / 按 60% 基数",
+          "lastRound": "R3"
+        },
+        {
+          "id": "C-D3-02",
+          "item": "点选拉近（轨道相机平滑聚焦）",
+          "met": true,
+          "evidence": "d3-done.json focusShiftPx=25.4（点击后楼体投影明显位移）；CameraFocus 用 useFrame lerp controls.target + camera.position，偏移 19.7m > minDistance 18 避免收敛卡死",
+          "lastRound": "R3"
+        },
+        {
+          "id": "C-D3-03",
+          "item": "最多钉选 3 家并排对比",
+          "met": true,
+          "evidence": "d3-done.json 四次钉选：1/3 → 2/3 → 3/3 → 3/3（pinCapOk=true）；对比栏三家参数并排可读",
+          "lastRound": "R3"
+        },
+        {
+          "id": "C-D3-04",
+          "item": "HUD 简化（进度/图例），浮层按最坏背景垫实底、对比度 ≥4.5:1",
+          "met": true,
+          "evidence": "浅色主题 主文字 19.23:1 / 次级 7.96:1；夜间主题 主文字 16.02:1 / 次级 6.15:1（d3-done.json contrast / nightContrast）；面板用 --ui-panel-bg + --ui-page-fg / --ui-panel-fg-muted，未混用玻璃墨色；按最坏背景（压深色楼体）复算仍 ≥6:1。真实「已浏览 5/64」计数，无假进度",
+          "lastRound": "R3"
+        },
+        {
+          "id": "C-D3-05",
+          "item": "egolite 交互验收全流程可点通",
+          "met": true,
+          "evidence": "accept-diorama-d3.mjs pass=true；drawCalls=17、__dioramaProject 投影 64 栋精确命中、零异常文案；d3-bird.png / d3-interaction.png / d3-night.png 三张实拍",
+          "lastRound": "R3"
+        }
+      ]
+    },
+    {
+      "id": "D4",
+      "name": "细节层：四信道全量 + 配色氛围收敛 + 四张评审图",
+      "weight": 20,
+      "status": "done",
+      "roundOpened": "R3",
+      "roundClosed": "R4",
+      "criteria": [
+        {
+          "id": "C-D4-01",
+          "item": "窗灯编码下班时间（早下班暖灯 / 晚下班黑窗冷玻璃）",
+          "met": true,
+          "evidence": "d4-done.json channelStats: warmWindows=26 / coldWindows=38；拆成暖/冷两个独立 emissive 材质池，夜间暖灯发光、晚下班黑窗冷玻璃；昼间靠明度反差可见",
+          "lastRound": "R4"
+        },
+        {
+          "id": "C-D4-02",
+          "item": "楼身色带分段（底薪主色 / 增薪冠 / 期权顶珠）",
+          "met": true,
+          "evidence": "channelStats: crown=45/64（19 家 12 薪无增薪 → 不显冠）、pearl=60/64（4 家 equity=0 → 不显顶珠，顶珠半径随金额分级）；图例补「金冠=增薪 · 青珠=期权」",
+          "lastRound": "R4"
+        },
+        {
+          "id": "C-D4-03",
+          "item": "地基台编码五险诚实度（足额完整 / 打折缺口缩台）",
+          "met": true,
+          "evidence": "channelStats: fullInsurance=39 / cutInsurance=25；足额=完整方台，打折=x 方向短一截的非对称「缺口」缩台，两个独立实例池",
+          "lastRound": "R4"
+        },
+        {
+          "id": "C-D4-04",
+          "item": "I-002/I-003 闭环：配色收敛 + 桌台环境/阴影/黄昏氛围",
+          "met": true,
+          "evidence": "44 个 day/night 色值收敛为低饱和暖灰/陶土/雾蓝调 + 新增 deskTop/deskShadow/treeTrunk/treeCanopy 8 个令牌；实拍 d4-day-bird.png 不再是糖果色；桌面大平面 + 接地阴影 + 28 棵低多边形树 + 半球补光；微缩环境感成立",
+          "lastRound": "R4"
+        },
+        {
+          "id": "C-D4-05",
+          "item": "四张评审图 1600×900（昼鸟瞰 / 夜鸟瞰 / 近景 / 对比态）",
+          "met": true,
+          "evidence": "docs/figures/diorama-2026-11-05-d4/：d4-day-bird.png / d4-night-bird.png / d4-closeup.png / d4-compare.png；d4-done.json pass=true，四张 drawCalls=23、零异常文案、对比态 3/3",
+          "lastRound": "R4"
+        }
+      ]
+    },
+    {
+      "id": "D5",
+      "name": "性能审计 + 首轮双盲审门禁",
+      "weight": 12,
+      "status": "in_progress",
+      "roundOpened": "R4",
+      "roundClosed": null,
+      "criteria": [
+        {
+          "id": "C-D5-01",
+          "item": "性能审计（draw calls / 首屏体积 / 零异常）",
+          "met": true,
+          "evidence": "d4-done.json 四张图 drawCalls=23（红线 150）；默认 URL 回归 pass（canvasCount=0 / heavyAssets=[] / errorText=[]）；DioramaScene lazy chunk 17.46kB，未进主 chunk；四态零异常文案",
+          "lastRound": "R5"
+        },
+        {
+          "id": "C-D5-02",
+          "item": "首版截图 + 两名全新独立评审（只看图、不知实现、互不见结论）",
+          "met": true,
+          "evidence": "docs/figures/diorama-2026-11-05-d4/ 四张 1600×900 实拍；两位评审原文完整归档 docs/design/reviews/diorama-d5-blind-review.md",
+          "lastRound": "R5"
+        },
+        {
+          "id": "C-D5-03",
+          "item": "门禁判定：视觉/空间两项较低者均 ≥7，失败轮次同样入库",
+          "met": false,
+          "evidence": "第三轮 视觉总监 6.8/7.6、空间体验设计师 7.6/6.8 → 两项较低者 6.8/6.8，均 <7。三轮趋势 视觉 6.2→6.2→6.8、空间 6.5→7.3→6.8，在 6.8–7.6 区间震荡未稳定过线",
+          "lastRound": "R8"
+        },
+        {
+          "id": "C-D5-04",
+          "item": "kill switch 判定与执行留痕（任一较低项 <7 当天中止）",
+          "met": true,
+          "evidence": "docs/design/reviews/diorama-d7-blind-review.md；第三轮授权范围已跑完，不再擅自加轮次；部署门禁关闭、线上 R19 未动、失败轮次完整入库",
+          "lastRound": "R8"
+        }
+      ]
+    },
+    {
+      "id": "D6",
+      "name": "定向修复 + 二轮盲审 + 条件部署",
+      "weight": 13,
+      "status": "pending",
+      "roundOpened": null,
+      "roundClosed": null,
+      "criteria": [
+        {
+          "id": "C-D6-01",
+          "item": "定向修复 + 第二轮盲审过线",
+          "met": false,
+          "evidence": null,
+          "lastRound": null
+        },
+        {
+          "id": "C-D6-02",
+          "item": "部署构建 = 被评审构建（过线后无追加视觉改动）",
+          "met": false,
+          "evidence": null,
+          "lastRound": null
+        },
+        {
+          "id": "C-D6-03",
+          "item": "双端部署（Pages + 魔搭 Running，报告 Normal/LFS 0）",
+          "met": false,
+          "evidence": null,
+          "lastRound": null
+        },
+        {
+          "id": "C-D6-04",
+          "item": "线上完整启动验收（DOM/canvas/drawCalls 非零/零异常）",
+          "met": false,
+          "evidence": null,
+          "lastRound": null
+        },
+        {
+          "id": "C-D6-05",
+          "item": "官网「修改提交」待用户确认后执行",
+          "met": false,
+          "evidence": null,
+          "lastRound": null
+        }
+      ]
+    }
+  ],
+  "issues": [
+    {
+      "id": "I-001",
+      "title": "沙盘模式下残留「▶ 生长动画」与「🧺 对比篮」控件（钞票山/A-B 页语义，点了无反应）",
+      "severity": "problem",
+      "affects": "D1",
+      "suggestion": "diorama 模式下排除两个条件渲染，其余模式行为不变",
+      "status": "closed",
+      "raisedIn": "R1",
+      "closedIn": "R1",
+      "closedEvidence": "App.tsx L372 加 mode !== 'diorama'（对比篮）、L399 加 mode !== 'diorama'（生长动画）；重新 typecheck+build（✓ built in 12.10s）+ 重拍 d1-sandbox-base.png 确认顶栏只剩 6 个入口按钮；改前对照图 d1-sandbox-base-before-cleanup.png",
+      "lastSeen": "R1"
+    },
+    {
+      "id": "I-002",
+      "title": "四区地块为高饱和橙/蓝/黄/紫，实拍读作「糖果色色卡」，与低多边形 diorama 柔和陶土质感不符",
+      "severity": "concern",
+      "affects": "D4",
+      "suggestion": "D4 统一收敛配色（降饱和、加明度层次、补材质）；D2/D3 不得擅自改色，避免盲审基线漂移。R19 死因是塑料感/昼间灰平，此项为同类风险前置登记",
+      "status": "closed",
+      "raisedIn": "R1",
+      "closedIn": "R4",
+      "closedEvidence": "docs/figures/diorama-2026-11-05-d4/d4-day-bird.png; docs/figures/diorama-2026-11-05-d4/d4-night-bird.png; docs/figures/diorama-2026-11-05-d4/d4-closeup.png; docs/figures/diorama-2026-11-05-d4/d4-compare.png; docs/figures/diorama-2026-11-05-d4/d4-done.json; web/src/components/diorama/BuildingField.tsx; web/src/components/diorama/DioramaScene.tsx; web/src/components/diorama/DioramaHud.tsx; web/design/tokens.json",
+      "lastSeen": "R1"
+    },
+    {
+      "id": "I-003",
+      "title": "桌台悬浮在纯色天幕中，缺「桌子放在环境里」的微缩场景感与接地阴影",
+      "severity": "concern",
+      "affects": "D4",
+      "suggestion": "D4 补桌面环境/底座投影/黄昏氛围，与 I-002 一并收敛",
+      "status": "closed",
+      "raisedIn": "R1",
+      "closedIn": "R4",
+      "closedEvidence": "docs/figures/diorama-2026-11-05-d4/d4-day-bird.png; docs/figures/diorama-2026-11-05-d4/d4-night-bird.png; docs/figures/diorama-2026-11-05-d4/d4-closeup.png; docs/figures/diorama-2026-11-05-d4/d4-compare.png; docs/figures/diorama-2026-11-05-d4/d4-done.json; web/src/components/diorama/BuildingField.tsx; web/src/components/diorama/DioramaScene.tsx; web/src/components/diorama/DioramaHud.tsx; web/design/tokens.json",
+      "lastSeen": "R1"
+    },
+    {
+      "id": "I-004",
+      "title": "64 栋楼只占每区地块中心约 1/4 面积（4×4 网格 5.4m vs 地块 11m），单栋屏幕占比小，D3 的 hover / 点选命中困难",
+      "severity": "problem",
+      "affects": "D3",
+      "suggestion": "D3 实现交互时同步解决：用 InstancedMesh raycast 的 instanceId 映射 + 放宽拾取容差（或加悬停辅助高亮/命中盒），必要时适度放大 PITCH 与楼宽；不要改动 D2 已冻结的配色与体量映射公式",
+      "status": "closed",
+      "raisedIn": "R2",
+      "closedIn": "R3",
+      "closedEvidence": "docs/figures/diorama-2026-11-05-d3/d3-bird.png; docs/figures/diorama-2026-11-05-d3/d3-interaction.png; docs/figures/diorama-2026-11-05-d3/d3-night.png; docs/figures/diorama-2026-11-05-d3/d3-done.json; web/src/components/diorama/DioramaHud.tsx; web/src/components/diorama/BuildingField.tsx; web/src/components/diorama/DioramaScene.tsx; tools/accept-diorama-d3.mjs",
+      "lastSeen": "R2"
+    },
+    {
+      "id": "I-005",
+      "title": "64 栋楼全部顶着橙冠与青顶珠，但概念是「增薪=冠 / 期权=顶珠」——12 薪、无期权的公司不该有对应构件，当前四信道读不出「钱怎么构成」",
+      "severity": "problem",
+      "affects": "D4",
+      "suggestion": "D4 按 incrementPackage()/equityValue 决定冠与顶珠的有无和大小：12 薪不显冠、equity=0 不显顶珠；冠高随增薪额、顶珠半径随期权额分级。用实例缩放 0 或额外实例池实现，不增加 draw call",
+      "status": "closed",
+      "raisedIn": "R3",
+      "closedIn": "R4",
+      "closedEvidence": "docs/figures/diorama-2026-11-05-d4/d4-day-bird.png; docs/figures/diorama-2026-11-05-d4/d4-night-bird.png; docs/figures/diorama-2026-11-05-d4/d4-closeup.png; docs/figures/diorama-2026-11-05-d4/d4-compare.png; docs/figures/diorama-2026-11-05-d4/d4-done.json; web/src/components/diorama/BuildingField.tsx; web/src/components/diorama/DioramaScene.tsx; web/src/components/diorama/DioramaHud.tsx; web/design/tokens.json",
+      "lastSeen": "R3"
+    },
+    {
+      "id": "I-006",
+      "title": "D3 鸟瞰里楼体「窗灯」在昼间几乎不可辨（暖色贴片与楼身同明度），夜景也未见明显发光差异",
+      "severity": "problem",
+      "affects": "D4",
+      "suggestion": "D4 把窗灯做成 emissive 发光面（夜间暖灯亮起、晚下班黑窗冷玻璃），昼间靠色相/明度反差保证可读；InstancedMesh 的 emissive 是材质级，需用两个实例池（暖/冷）分别设 emissive 材质",
+      "status": "closed",
+      "raisedIn": "R3",
+      "closedIn": "R4",
+      "closedEvidence": "docs/figures/diorama-2026-11-05-d4/d4-day-bird.png; docs/figures/diorama-2026-11-05-d4/d4-night-bird.png; docs/figures/diorama-2026-11-05-d4/d4-closeup.png; docs/figures/diorama-2026-11-05-d4/d4-compare.png; docs/figures/diorama-2026-11-05-d4/d4-done.json; web/src/components/diorama/BuildingField.tsx; web/src/components/diorama/DioramaScene.tsx; web/src/components/diorama/DioramaHud.tsx; web/design/tokens.json",
+      "lastSeen": "R3"
+    },
+    {
+      "id": "I-007",
+      "title": "夜景暖窗灯在高亮下略趋白（暖色语义弱于设计意图），画面四角仍偏暗但可接受",
+      "severity": "concern",
+      "affects": "D6",
+      "suggestion": "作为可接受残差登记。若 D5 双盲审明确点名，D6 定向修复后须重新采集并重评；**若未点名则不再改动**（纪律：过线后不许追加视觉改动，部署构建必须等于被评审构建）",
+      "status": "open",
+      "raisedIn": "R4",
+      "closedIn": null,
+      "closedEvidence": null,
+      "lastSeen": "R4"
+    },
+    {
+      "id": "I-008",
+      "title": "双盲审共性短板三项：① 选中/钉选态在 3D 主体上零反馈（两人都点名）② 浮层与 UI 抢戏、口诀字号过小且夜间失读、底部面板遮挡前排楼体 ③ 材质与光比层次薄（昼灰平、夜分组失读、近景复制感）",
+      "severity": "problem",
+      "affects": "D6",
+      "suggestion": "完整可执行施工单见 docs/design/reviews/diorama-d5-blind-review.md §四；按 kill switch 纪律**不自动继续**，须主理人明确豁免才启动第二轮盲审。时间盒剩 5 天",
+      "status": "open",
+      "raisedIn": "R5",
+      "closedIn": null,
+      "closedEvidence": null,
+      "lastSeen": "R5"
+    },
+    {
+      "id": "I-009",
+      "title": "源码链接与线上版本不同步：本地领先 origin/main 15 个提交未 push，远端停在 R18 时代",
+      "severity": "problem",
+      "affects": "D5",
+      "suggestion": "按任务书 §9 硬纪律等主理人发话后 push / 合 main，使加分项源码链接与最终提交版本同构",
+      "status": "open",
+      "raisedIn": "R6",
+      "closedIn": null,
+      "closedEvidence": null,
+      "lastSeen": "R6"
+    },
+    {
+      "id": "I-010",
+      "title": "报告书 v3.5 仍为 R18 口径、Pages 视频仍是 R14 街区画面，与线上 R19 已差一代",
+      "severity": "problem",
+      "affects": "D5",
+      "suggestion": "无论回 R19 还是沙盘过线，都需报告 v3.6（换最终图 + 盲审留痕）与视频同步，再走官网「修改提交」重新上传 PDF",
+      "status": "open",
+      "raisedIn": "R6",
+      "closedIn": null,
+      "closedEvidence": null,
+      "lastSeen": "R6"
+    },
+    {
+      "id": "I-011",
+      "title": "小红书 5% 传播加分未拿（官方加分项，需主理人本人账号）",
+      "severity": "concern",
+      "affects": "D5",
+      "suggestion": "草稿 docs/xiaohongshu-post.md 已有；发布后走官网「修改提交」补登记唯一链接，结果公布前保持公开",
+      "status": "open",
+      "raisedIn": "R6",
+      "closedIn": null,
+      "closedEvidence": null,
+      "lastSeen": "R6"
+    },
+    {
+      "id": "I-012",
+      "title": "官方 30% 权重「群核技术栈应用」风险：沙盘为纯程序几何、零 Aholo 生成资产，砍掉了 3DGS/avatar 链路",
+      "severity": "problem",
+      "affects": "D5",
+      "suggestion": "以 R19 为主提交版本（主链路含 Lux3D 角色/逛厂币、SpatialGen 四办公室、Aholo Viewer 3DGS）；沙盘降为未过线实验分支保留代码但不部署；把工作重心转到技术栈证据链与提交材料合规，暂停第四轮视觉盲审",
+      "status": "open",
+      "raisedIn": "R6",
+      "closedIn": null,
+      "closedEvidence": null,
+      "lastSeen": "R9"
+    },
+    {
+      "id": "I-013",
+      "title": "视觉分两轮纹丝不动（6.2 → 6.2）：纯程序几何 + flat shading 的方向性天花板，非收尾未完成",
+      "severity": "problem",
+      "affects": "D6",
+      "suggestion": "四位评审反复指向无落地投影/无材质区分/近景纸片感。若继续需真实 shadowMap、按区材质与窗框倒角、夜景抬暗部、UI 放大与标记描边、高度定量标尺；但须先评估 30% 技术栈维度机会成本（I-012）。本轮按纪律不加第三轮",
+      "status": "open",
+      "raisedIn": "R7",
+      "closedIn": null,
+      "closedEvidence": null,
+      "lastSeen": "R7"
+    },
+    {
+      "id": "I-014",
+      "title": "真实 bug：点选打开详情卡时「已浏览」仍为 0/64，计数与选中态矛盾（评审 F 点名）",
+      "severity": "problem",
+      "affects": "D6",
+      "suggestion": "handleSelect 同步把该 index 计入 visitedRef，或图例改标「已选中」；与 I-015~I-018 一并作为第四轮残差施工单，见 d7 归档 §四",
+      "status": "open",
+      "raisedIn": "R8",
+      "closedIn": null,
+      "closedEvidence": null,
+      "lastSeen": "R8"
+    },
+    {
+      "id": "I-016",
+      "title": "对比态「并排对比」名不副实：三列差异只靠小字、标记色与卡片色跨屏对色、无并排可视化",
+      "severity": "problem",
+      "affects": "D6",
+      "suggestion": "标题改「已钉选 3 家」；标记改带编号高对比圆牌；三列加数值条；编号统一 ①②③",
+      "status": "open",
+      "raisedIn": "R8",
+      "closedIn": null,
+      "closedEvidence": null,
+      "lastSeen": "R8"
+    },
+    {
+      "id": "I-017",
+      "title": "昼间背景平涂、主体与背景明度接近，缺高光锚点（评审 E 第 2 条）",
+      "severity": "concern",
+      "affects": "D6",
+      "suggestion": "背景径向渐变/淡雾 + 塔顶受光面高光，把夜景已有的光比逻辑回灌一部分到昼间",
+      "status": "open",
+      "raisedIn": "R8",
+      "closedIn": null,
+      "closedEvidence": null,
+      "lastSeen": "R8"
+    },
+    {
+      "id": "I-019",
+      "title": "第四轮视觉盲审按主理人新定调降级：三轮分数在 6.8–7.6 震荡未过线，继续冲 0.2 的机会成本高于 30% 技术栈维度与材料合规",
+      "severity": "concern",
+      "affects": "D6",
+      "suggestion": "视觉残差 I-014~I-018 保留在台账但不排期；若主理人后续重新授权再启动第四轮",
+      "status": "open",
+      "raisedIn": "R9",
+      "closedIn": null,
+      "closedEvidence": null,
+      "lastSeen": "R9"
+    }
+  ],
+  "rounds": [
+    {
+      "round": "R1",
+      "date": "2026-11-05",
+      "reviewer": "内部质量门（主理人 · 真浏览器实拍 + 构建证据复核）",
+      "milestone": "D1",
+      "checkPass": 9,
+      "checkFail": 0,
+      "blockerCount": 0,
+      "openedProblemCount": 2,
+      "closedCount": 1,
+      "duplicateSkipped": 0,
+      "completionPercent": 15,
+      "mode": "ADVANCE",
+      "pace": "normal"
+    },
+    {
+      "round": "R2",
+      "date": "2026-11-05",
+      "reviewer": "内部质量门（主理人 · 构建证据 + egolite 真浏览器实拍 + 回归脚本）",
+      "milestone": "D2",
+      "checkPass": 8,
+      "checkFail": 0,
+      "blockerCount": 0,
+      "openedProblemCount": 1,
+      "closedCount": 0,
+      "duplicateSkipped": 1,
+      "completionPercent": 35,
+      "mode": "ADVANCE",
+      "pace": "normal"
+    },
+    {
+      "round": "R3",
+      "date": "2026-11-05",
+      "reviewer": "内部质量门（主理人 · egolite 交互全流程 + 双主题对比度实算 + 鸟瞰/夜景实拍）",
+      "milestone": "D3",
+      "checkPass": 5,
+      "checkFail": 0,
+      "blockerCount": 0,
+      "openedProblemCount": 2,
+      "closedCount": 1,
+      "duplicateSkipped": 0,
+      "completionPercent": 55,
+      "mode": "ADVANCE",
+      "pace": "normal"
+    },
+    {
+      "round": "R4",
+      "date": "2026-11-05",
+      "reviewer": "内部质量门（主理人 · 四张 1600×900 实拍 + 机器诊断 + 双主题光照复核）",
+      "milestone": "D4",
+      "checkPass": 5,
+      "checkFail": 0,
+      "blockerCount": 0,
+      "openedProblemCount": 1,
+      "closedCount": 4,
+      "duplicateSkipped": 0,
+      "completionPercent": 75,
+      "mode": "ADVANCE",
+      "pace": "normal"
+    },
+    {
+      "round": "R5",
+      "date": "2026-11-05",
+      "reviewer": "双盲审门禁 · 视觉总监 + 空间体验设计师（两名全新独立评审，新会话、只看四张图、不知实现、互不见结论）",
+      "milestone": "D5",
+      "checkPass": 3,
+      "checkFail": 1,
+      "blockerCount": 0,
+      "openedProblemCount": 1,
+      "closedCount": 0,
+      "duplicateSkipped": 0,
+      "completionPercent": 84,
+      "mode": "KILL_SWITCH",
+      "pace": "normal"
+    },
+    {
+      "round": "R6",
+      "date": "2026-11-05",
+      "reviewer": "主理人豁免 + 官方合规审计 + D6 定向修复自查",
+      "milestone": "D6",
+      "checkPass": 0,
+      "checkFail": 0,
+      "blockerCount": 0,
+      "openedProblemCount": 4,
+      "closedCount": 0,
+      "duplicateSkipped": 0,
+      "completionPercent": 84,
+      "mode": "ADVANCE",
+      "pace": "normal"
+    },
+    {
+      "round": "R7",
+      "date": "2026-11-05",
+      "reviewer": "第二轮双盲审 · 视觉总监 C + 空间体验设计师 D（全新独立评审，新会话、只看 d6 四张图、不知实现、不知首轮结论、互不见结论）",
+      "milestone": "D5",
+      "checkPass": 1,
+      "checkFail": 1,
+      "blockerCount": 0,
+      "openedProblemCount": 1,
+      "closedCount": 0,
+      "duplicateSkipped": 0,
+      "completionPercent": 84,
+      "mode": "KILL_SWITCH",
+      "pace": "normal"
+    },
+    {
+      "round": "R8",
+      "date": "2026-11-05",
+      "reviewer": "第三轮双盲审 · 视觉总监 E + 空间体验设计师 F（全新独立评审，新会话、只看 d7 四张图、不知实现、不知前两轮结论、互不见结论）",
+      "milestone": "D5",
+      "checkPass": 1,
+      "checkFail": 1,
+      "blockerCount": 0,
+      "openedProblemCount": 3,
+      "closedCount": 0,
+      "duplicateSkipped": 0,
+      "completionPercent": 84,
+      "mode": "KILL_SWITCH",
+      "pace": "normal"
+    },
+    {
+      "round": "R9",
+      "date": "2026-11-05",
+      "reviewer": "主理人定调：官方指定工具使用是重点工作（优先级重排）",
+      "milestone": "D5",
+      "checkPass": 0,
+      "checkFail": 0,
+      "blockerCount": 0,
+      "openedProblemCount": 1,
+      "closedCount": 0,
+      "duplicateSkipped": 0,
+      "completionPercent": 84,
+      "mode": "ADVANCE",
+      "pace": "normal"
+    }
+  ],
+  "lastUpdated": "2026-11-05T06:17:25.688Z"
+}

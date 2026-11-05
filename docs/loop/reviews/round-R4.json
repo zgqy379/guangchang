@@ -1,0 +1,43 @@
+{
+  "round": "R4",
+  "date": "2026-11-05",
+  "reviewer": "内部质量门（主理人 · 四张 1600×900 实拍 + 机器诊断 + 双主题光照复核）",
+  "milestone": "D4",
+  "kind": "quality-gate",
+  "checks": [
+    { "id": "C-D4-01", "item": "窗灯编码下班时间", "verdict": "pass", "evidence": "d4-done.json channelStats: warmWindows=26 / coldWindows=38；拆成暖/冷两个独立 emissive 材质池，夜间暖灯发光、晚下班黑窗冷玻璃；昼间靠明度反差可见" },
+    { "id": "C-D4-02", "item": "楼身色带分段（底薪主色 / 增薪冠 / 期权顶珠）", "verdict": "pass", "evidence": "channelStats: crown=45/64（19 家 12 薪无增薪 → 不显冠）、pearl=60/64（4 家 equity=0 → 不显顶珠，顶珠半径随金额分级）；图例补「金冠=增薪 · 青珠=期权」" },
+    { "id": "C-D4-03", "item": "地基台编码五险诚实度", "verdict": "pass", "evidence": "channelStats: fullInsurance=39 / cutInsurance=25；足额=完整方台，打折=x 方向短一截的非对称「缺口」缩台，两个独立实例池" },
+    { "id": "C-D4-04", "item": "I-002/I-003 闭环：配色收敛 + 桌台环境/阴影/黄昏氛围", "verdict": "pass", "evidence": "44 个 day/night 色值收敛为低饱和暖灰/陶土/雾蓝调 + 新增 deskTop/deskShadow/treeTrunk/treeCanopy 8 个令牌；实拍 d4-day-bird.png 不再是糖果色；桌面大平面 + 接地阴影 + 28 棵低多边形树 + 半球补光；微缩环境感成立" },
+    { "id": "C-D4-05", "item": "四张评审图 1600×900", "verdict": "pass", "evidence": "docs/figures/diorama-2026-11-05-d4/：d4-day-bird.png / d4-night-bird.png / d4-closeup.png / d4-compare.png；d4-done.json pass=true，四张 drawCalls=23、零异常文案、对比态 3/3" }
+  ],
+  "problems": [
+    {
+      "id": "I-007",
+      "title": "夜景暖窗灯在高亮下略趋白（暖色语义弱于设计意图），画面四角仍偏暗但可接受",
+      "severity": "concern",
+      "affects": "D6",
+      "suggestion": "作为可接受残差登记。若 D5 双盲审明确点名，D6 定向修复后须重新采集并重评；**若未点名则不再改动**（纪律：过线后不许追加视觉改动，部署构建必须等于被评审构建）"
+    }
+  ],
+  "blockers": [],
+  "closedIds": ["I-002", "I-003", "I-005", "I-006"],
+  "suggestions": [
+    "D5 立即启动双盲审：两名全新独立评审、新会话、只看四张图、不知实现、互不见结论；门禁取视觉/空间两项较低者均 ≥7",
+    "本轮四张图是最终构建产物（DioramaScene-GVTFpN4J.js），盲审过线后不得再追加视觉改动",
+    "失败轮次必须和成功轮次一样入库；任一较低项 <7 当天执行 kill switch，摘 diorama 入口回 R19",
+    "性能审计：draw calls 23（红线 150）、默认 URL 零 Canvas 回归需在 D5 复验一次"
+  ],
+  "scores": null,
+  "evidence": [
+    "docs/figures/diorama-2026-11-05-d4/d4-day-bird.png",
+    "docs/figures/diorama-2026-11-05-d4/d4-night-bird.png",
+    "docs/figures/diorama-2026-11-05-d4/d4-closeup.png",
+    "docs/figures/diorama-2026-11-05-d4/d4-compare.png",
+    "docs/figures/diorama-2026-11-05-d4/d4-done.json",
+    "web/src/components/diorama/BuildingField.tsx",
+    "web/src/components/diorama/DioramaScene.tsx",
+    "web/src/components/diorama/DioramaHud.tsx",
+    "web/design/tokens.json"
+  ]
+}

@@ -1,0 +1,169 @@
+{
+  "round": "R1",
+  "date": "2026-11-05",
+  "reviewer": "内部质量门（主理人 · 真浏览器实拍 + 构建证据复核）",
+  "mode": "ADVANCE",
+  "pace": "normal",
+  "progress": {
+    "completionPercent": 15,
+    "activeMilestone": "D2",
+    "daysLeft": 5,
+    "milestones": [
+      {
+        "id": "D1",
+        "status": "done",
+        "met": 9,
+        "total": 9
+      },
+      {
+        "id": "D2",
+        "status": "in_progress",
+        "met": 0,
+        "total": 8
+      },
+      {
+        "id": "D3",
+        "status": "pending",
+        "met": 0,
+        "total": 5
+      },
+      {
+        "id": "D4",
+        "status": "pending",
+        "met": 0,
+        "total": 5
+      },
+      {
+        "id": "D5",
+        "status": "pending",
+        "met": 0,
+        "total": 4
+      },
+      {
+        "id": "D6",
+        "status": "pending",
+        "met": 0,
+        "total": 5
+      }
+    ],
+    "issues": {
+      "open": 2,
+      "closed": 1,
+      "blocker": 0,
+      "problem": 0,
+      "concern": 2
+    }
+  },
+  "adjustmentBasis": [
+    "无阻塞项、门禁未触发、时间盒内：按当前里程碑剩余验收项继续推进",
+    "本轮闭环 1 个问题（I-001），从待办中永久移除",
+    "2 个 concern 影响未来里程碑（D4/D4）：登记为 deferred，本轮不排期也不遗忘"
+  ],
+  "closedThisRound": [
+    "I-001"
+  ],
+  "openedThisRound": [
+    "I-002",
+    "I-003"
+  ],
+  "duplicateSkipped": [],
+  "deferred": [
+    {
+      "id": "I-002",
+      "title": "四区地块为高饱和橙/蓝/黄/紫，实拍读作「糖果色色卡」，与低多边形 diorama 柔和陶土质感不符",
+      "affects": "D4",
+      "suggestion": "D4 统一收敛配色（降饱和、加明度层次、补材质）；D2/D3 不得擅自改色，避免盲审基线漂移。R19 死因是塑料感/昼间灰平，此项为同类风险前置登记"
+    },
+    {
+      "id": "I-003",
+      "title": "桌台悬浮在纯色天幕中，缺「桌子放在环境里」的微缩场景感与接地阴影",
+      "affects": "D4",
+      "suggestion": "D4 补桌面环境/底座投影/黄昏氛围，与 I-002 一并收敛"
+    }
+  ],
+  "nextRound": {
+    "round": "R2",
+    "focusMilestone": "D2",
+    "taskCount": 8,
+    "tasks": [
+      {
+        "key": "C-D2-01",
+        "priority": "P1",
+        "kind": "criterion",
+        "text": "[D2] 64 栋参数楼全部落位（4 区 × 16，复用 STREET_LOTS）",
+        "acceptance": "64 栋参数楼全部落位（4 区 × 16，复用 STREET_LOTS）",
+        "milestone": "D2"
+      },
+      {
+        "key": "C-D2-02",
+        "priority": "P1",
+        "kind": "criterion",
+        "text": "[D2] 体量=总包：行业内归一化 → 高×宽联动，量程足（≥±26% 感知阈值）",
+        "acceptance": "体量=总包：行业内归一化 → 高×宽联动，量程足（≥±26% 感知阈值）",
+        "milestone": "D2"
+      },
+      {
+        "key": "C-D2-03",
+        "priority": "P1",
+        "kind": "criterion",
+        "text": "[D2] InstancedMesh 池（矩阵在 useLayoutEffect、不开 vertexColors）",
+        "acceptance": "InstancedMesh 池（矩阵在 useLayoutEffect、不开 vertexColors）",
+        "milestone": "D2"
+      },
+      {
+        "key": "C-D2-04",
+        "priority": "P1",
+        "kind": "criterion",
+        "text": "[D2] egolite 实测 draw calls ≤ 150",
+        "acceptance": "egolite 实测 draw calls ≤ 150",
+        "milestone": "D2"
+      },
+      {
+        "key": "C-D2-05",
+        "priority": "P1",
+        "kind": "criterion",
+        "text": "[D2] T9 包围盒验证覆盖 64 栋新体块（hits=0）",
+        "acceptance": "T9 包围盒验证覆盖 64 栋新体块（hits=0）",
+        "milestone": "D2"
+      },
+      {
+        "key": "C-D2-06",
+        "priority": "P1",
+        "kind": "criterion",
+        "text": "[D2] typecheck + build 过，egolite 实拍 64 栋非黑帧",
+        "acceptance": "typecheck + build 过，egolite 实拍 64 栋非黑帧",
+        "milestone": "D2"
+      },
+      {
+        "key": "C-D2-07",
+        "priority": "P1",
+        "kind": "criterion",
+        "text": "[D2] 未改 D1 已验收配色（I-002/I-003 约束不破坏）",
+        "acceptance": "未改 D1 已验收配色（I-002/I-003 约束不破坏）",
+        "milestone": "D2"
+      },
+      {
+        "key": "C-D2-08",
+        "priority": "P1",
+        "kind": "criterion",
+        "text": "[D2] 默认 URL 回归仍通过（零 Canvas / 零 3D 资产）",
+        "acceptance": "默认 URL 回归仍通过（零 Canvas / 零 3D 资产）",
+        "milestone": "D2"
+      }
+    ]
+  },
+  "policyFlags": {
+    "killSwitch": false,
+    "abort": false,
+    "gateMinScore": 7,
+    "fallback": "R19"
+  },
+  "notes": [],
+  "evidence": [
+    "docs/figures/diorama-2026-11-05-d1/d1-sandbox-base.png",
+    "docs/figures/diorama-2026-11-05-d1/d1-sandbox-base-before-cleanup.png",
+    "docs/figures/diorama-2026-11-05-d1/d1-done.txt",
+    "docs/figures/diorama-2026-11-05-d1/d1-default-gate.json",
+    "docs/figures/diorama-2026-11-05-d1/d1-default-gate.png"
+  ]
+}

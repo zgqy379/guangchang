@@ -1,0 +1,49 @@
+{
+  "pass": true,
+  "shots": [
+    {
+      "name": "d6-day-bird",
+      "drawCalls": 25
+    },
+    {
+      "name": "d6-night-bird",
+      "drawCalls": 25
+    },
+    {
+      "name": "d6-closeup",
+      "drawCalls": 25
+    },
+    {
+      "name": "d6-compare",
+      "drawCalls": 25
+    }
+  ],
+  "errors": [],
+  "diagnostics": {
+    "cameraOutside": true,
+    "minGap": 35.66117696551858,
+    "volumeCount": 74,
+    "volumeRange": {
+      "height": [
+        0.6,
+        4.4
+      ],
+      "width": [
+        0.42,
+        1.3
+      ],
+      "heightRatio": 7.33,
+      "widthRatio": 3.1,
+      "count": 64
+    },
+    "channelStats": {
+      "crown": 45,
+      "pearl": 60,
+      "warmWindows": 26,
+      "coldWindows": 38,
+      "fullInsurance": 39,
+      "cutInsurance": 25
+    }
+  },
+  "compareBar": "并排对比 · 3/3"
+}

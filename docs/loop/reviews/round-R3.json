@@ -1,0 +1,49 @@
+{
+  "round": "R3",
+  "date": "2026-11-05",
+  "reviewer": "内部质量门（主理人 · egolite 交互全流程 + 双主题对比度实算 + 鸟瞰/夜景实拍）",
+  "milestone": "D3",
+  "kind": "quality-gate",
+  "checks": [
+    { "id": "C-D3-01", "item": "hover 出公司卡（参数可读）", "verdict": "pass", "evidence": "d3-done.json pinSteps 4/4 card=visible；卡内可读公司名/编号/行业/年总包/下班时间/五险，例：星链科技 80.0 万 / 22:30 / 按 60% 基数" },
+    { "id": "C-D3-02", "item": "点选拉近（轨道相机平滑聚焦）", "verdict": "pass", "evidence": "d3-done.json focusShiftPx=25.4（点击后楼体投影明显位移）；CameraFocus 用 useFrame lerp controls.target + camera.position，偏移 19.7m > minDistance 18 避免收敛卡死" },
+    { "id": "C-D3-03", "item": "最多钉选 3 家并排对比", "verdict": "pass", "evidence": "d3-done.json 四次钉选：1/3 → 2/3 → 3/3 → 3/3（pinCapOk=true）；对比栏三家参数并排可读" },
+    { "id": "C-D3-04", "item": "HUD 简化 + 浮层最坏背景对比度 ≥4.5:1", "verdict": "pass", "evidence": "浅色主题 主文字 19.23:1 / 次级 7.96:1；夜间主题 主文字 16.02:1 / 次级 6.15:1（d3-done.json contrast / nightContrast）；面板用 --ui-panel-bg + --ui-page-fg / --ui-panel-fg-muted，未混用玻璃墨色；按最坏背景（压深色楼体）复算仍 ≥6:1。真实「已浏览 5/64」计数，无假进度" },
+    { "id": "C-D3-05", "item": "egolite 交互验收全流程可点通", "verdict": "pass", "evidence": "accept-diorama-d3.mjs pass=true；drawCalls=17、__dioramaProject 投影 64 栋精确命中、零异常文案；d3-bird.png / d3-interaction.png / d3-night.png 三张实拍" }
+  ],
+  "problems": [
+    {
+      "id": "I-005",
+      "title": "64 栋楼全部顶着橙冠与青顶珠，但概念是「增薪=冠 / 期权=顶珠」——12 薪、无期权的公司不该有对应构件，当前四信道读不出「钱怎么构成」",
+      "severity": "problem",
+      "affects": "D4",
+      "suggestion": "D4 按 incrementPackage()/equityValue 决定冠与顶珠的有无和大小：12 薪不显冠、equity=0 不显顶珠；冠高随增薪额、顶珠半径随期权额分级。用实例缩放 0 或额外实例池实现，不增加 draw call"
+    },
+    {
+      "id": "I-006",
+      "title": "D3 鸟瞰里楼体「窗灯」在昼间几乎不可辨（暖色贴片与楼身同明度），夜景也未见明显发光差异",
+      "severity": "problem",
+      "affects": "D4",
+      "suggestion": "D4 把窗灯做成 emissive 发光面（夜间暖灯亮起、晚下班黑窗冷玻璃），昼间靠色相/明度反差保证可读；InstancedMesh 的 emissive 是材质级，需用两个实例池（暖/冷）分别设 emissive 材质"
+    }
+  ],
+  "blockers": [],
+  "closedIds": ["I-004"],
+  "suggestions": [
+    "D4 统一闭环 I-002（糖果色收敛）、I-003（桌台悬浮/缺环境）、I-005（冠珠编码）、I-006（窗灯发光）",
+    "D4 产出四张 1600×900 评审图：昼鸟瞰 / 夜鸟瞰 / 近景 / 对比态，供 D5 双盲审",
+    "配色收敛改 diorama.day/night 令牌后必须重跑 npm run tokens + build + 重拍；过线后不得再追加视觉改动",
+    "D5 盲审须两名全新独立评审（新会话、只看图、不知实现、互不见结论），门禁取视觉/空间两项较低者均 ≥7"
+  ],
+  "scores": null,
+  "evidence": [
+    "docs/figures/diorama-2026-11-05-d3/d3-bird.png",
+    "docs/figures/diorama-2026-11-05-d3/d3-interaction.png",
+    "docs/figures/diorama-2026-11-05-d3/d3-night.png",
+    "docs/figures/diorama-2026-11-05-d3/d3-done.json",
+    "web/src/components/diorama/DioramaHud.tsx",
+    "web/src/components/diorama/BuildingField.tsx",
+    "web/src/components/diorama/DioramaScene.tsx",
+    "tools/accept-diorama-d3.mjs"
+  ]
+}

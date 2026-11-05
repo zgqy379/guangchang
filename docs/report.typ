@@ -1,4 +1,4 @@
-// 逛厂项目报告书 v3.5（提交版 · 2026-10-29；v3.5 = 批次②视觉（R16/R17/R18 三轮盲审后过 ≥7 门禁：视觉 7.7 / 空间 7.3）+ 参数碑街面可读 + 双端线上同步）
+// 逛厂项目报告书 v3.6（R19 终版 · 2026-11-05；双端已部署 R19、官网已提交第 1 版；含立体参数沙盘重构实验三轮未过线的完整留痕）
 #set page(paper: "a4", margin: (x: 2.0cm, y: 2.2cm), numbering: "1 / 1")
 #set text(font: ("Microsoft YaHei", "Noto Sans SC", "SimHei"), size: 10pt, lang: "zh", region: "cn")
 #set heading(numbering: "1.1")
@@ -9,9 +9,9 @@
 #align(center)[
   #image("figures/og-image.png", width: 100%)
   #v(0.55em)
-  #text(size: 10pt, fill: rgb("#666"))[参数空间化 3D 求职招聘街区 · 项目报告书 v3.5]
+  #text(size: 10pt, fill: rgb("#666"))[参数空间化 3D 求职招聘街区 · 项目报告书 v3.6]
   #v(0.1em)
-  #text(size: 9pt, fill: rgb("#888"))[群核科技 Aholo 全球 3D AI 黑客松 · 2026-10-28 · 必胜客的汉堡最好吃（3FO4K4VY3D07 · 单人队）]
+  #text(size: 9pt, fill: rgb("#888"))[群核科技 Aholo 全球 3D AI 黑客松 · 2026-11-05 · 必胜客的汉堡最好吃（3FO4K4VY3D07 · 单人队）]
 ]
 
 #v(0.5em)
@@ -32,7 +32,7 @@
   *一句话*：逛厂把薪资 offer 从一张表格，变成一条可以走进去、逐家对照的 3D 招聘街区。\
   *四个可玩场景*：逛一家（参数→山）/ A/B 对比 / 办公室 3DGS 漫游 / 64 摊招聘街区。\
   *技术底座*：Aholo Lux3D 生成角色与钞票资产，SpatialGen 生成四行业办公室，Aholo Viewer 承载 3DGS 漫游；前端 React + R3F，全部资产预生成、滑杆实时驱动。\
-  *本报告*：记录从创意、资产迭代、工程事故到十八轮 agent 盲审（含停止规则、视觉冻结，以及两轮未过 7 分门禁的如实留痕）的完整过程——包括没做成的部分。
+  *本报告*：记录从创意、资产迭代、工程事故到十八轮街区盲审、R19 三轮残差复评与沙盘重构三轮独立盲审（含停止规则、视觉冻结，以及两轮未过 7 分门禁的如实留痕）的完整过程——包括没做成的部分。
 ]
 
 = 问题：offer 谈判里的“感知错配”
@@ -93,22 +93,22 @@ v1 是参数可视化单场景；v2 按用户洞察升级为*可逛的招聘会�
   grid(
     columns: 2,
     gutter: 5pt,
-    image("figures/street-2026-10-29-batch2/day-bird.png", width: 100%),
-    image("figures/street-2026-10-29-batch2/day-walk.png", width: 100%),
+    image("figures/street-2026-11-04-r19/day-bird.png", width: 100%),
+    image("figures/street-2026-11-04-r19/day-walk.png", width: 100%),
     image("figures/verify/street-focus.png", width: 100%),
     image("figures/street-2026-10-28-life-v2/deliver.png", width: 100%),
   ),
-  caption: [招聘街区实拍（2026-10-29 R18 构建，过 R18 双盲审门禁：视觉 7.7 / 空间 7.3）：鸟瞰四区与中央光柱 / 越肩漫游与游戏 HUD（路缘青瓷树列、8 名 NPC） / 走近摊位的真 HR·钱堆·参数碑·柜台业务屏 / 投递结算（右下帧沿用 R14 同流程画面：toast + XP + 世界内“已投递”绿标）],
+  caption: [招聘街区实拍（2026-11-04 R19 终版构建，过三轮盲审门禁：视觉 7.2 / 空间 7.0）：鸟瞰四区与中央光柱 / 越肩漫游与游戏 HUD（路缘青瓷树列、8 名 NPC） / 走近摊位的真 HR·钱堆·参数碑·柜台业务屏 / 投递结算（右下帧沿用 R14 同流程画面：toast + XP + 世界内“已投递”绿标）],
 ) <fig-street>
 
 #figure(
   grid(
     columns: 2,
     gutter: 5pt,
-    image("figures/street-2026-10-29-batch2/night-bird.png", width: 100%),
-    image("figures/street-2026-10-29-batch2/night-walk.png", width: 100%),
+    image("figures/street-2026-11-04-r19/night-bird.png", width: 100%),
+    image("figures/street-2026-11-04-r19/night-walk.png", width: 100%),
   ),
-  caption: [夜间同一街区（2026-10-29 R18）：四区色带 + 沿街发光边 + 路灯光池 + 中央光枢 / 入口霓虹门楼、地面投光字与 NPC 脚光环。颜色即导航，不必读字。],
+  caption: [夜间同一街区（2026-11-04 R19 终版）：四区色带 + 沿街发光边 + 路灯光池 + 中央光枢 / 入口霓虹门楼、地面投光字与 NPC 脚光环。颜色即导航，不必读字。],
 ) <fig-night>
 
 = 数据即景观：把 offer 读成地形
@@ -136,7 +136,7 @@ v1 是参数可视化单场景；v2 按用户洞察升级为*可逛的招聘会�
 
 #figure(
   image("figures/verify/street-focus.png", width: 92%),
-  caption: [特写同框（2026-10-29 R18）：真 HR + 身后钱堆 + 参数碑（碑高=总包 / 灯条=五险 / 顶灯=下班，R18 起碑高拉开到 0.8–3.2m 并加金冠亮珠，街面可比高低）+ 柜台业务屏 + 左下名片三数值。一个画面同时回答“给多少钱、交多少金、几点下班”。],
+  caption: [特写同框（2026-11-04 R19 终版）：真 HR + 身后钱堆 + 参数碑（碑高=总包 / 灯条=五险 / 顶灯=下班，R18 起碑高拉开到 0.8–3.2m 并加金冠亮珠，街面可比高低）+ 柜台业务屏 + 左下名片三数值。一个画面同时回答“给多少钱、交多少金、几点下班”。],
 ) <fig-focus>
 
 = Aholo 技术栈：唯一的内容生产引擎
@@ -205,7 +205,7 @@ SpatialGen / World 以纯文案生成四套行业办公室，经 Aholo Viewer �
 
 *关于完成度*：照片到 3D 形象这条线，纯前端可兑现的那一半（本地处理、不上传不留存）是既定规格——组件骨架与隐私边界已就绪，本地裁切/调色在接入公开导航时完成；当前公开 Demo 的形象获取为预置资产选择。“把照片重建成 3D 网格”那一半，我们诚实地标注为回放。两条路径分开呈现，不混为一谈。
 
-= AI agent 工作流：十八轮盲审与根因事故
+= AI agent 工作流：盲审、停止规则与重构实验
 
 这不是一个“agent 一次生成、人类点发布”的项目。街区从 10 月 26 日到 29 日经历了*十八轮独立盲审*（R1–R18）：每轮由未接触实现的临时评审只看截图（昼/夜/移动/单人，每轮 ≤8 图/人），给出短板；实现侧修复后重拍，再进入下一轮。十余名评审、两套截图管线（egolite / Chrome），评审与实现严格隔离；R12 触发“连续两轮不涨即停”规则，按方案 B 换靶两轮后于 R14 宣布视觉冻结。R15/R16 转向首屏角色门与夜景蓝调；*R17 未过线（视觉 7.3 / 空间 6.8）并按纪律留痕未上线*，其短板清单成为 R18 的施工单：参数碑在街面读不出高低、屋顶噪点、64 摊同质。R18 定向修复后复评*双双过线（视觉 7.7 / 空间 7.3）*才部署。
 
@@ -240,6 +240,25 @@ SpatialGen / World 以纯文案生成四套行业办公室，经 Aholo Viewer �
 
 *这套过程本身也是作品的一部分*：在一个 AI 黑客松里，agent 不只是生成器，也可以是评审、探针、二分工具与事故记录者。我们把这套流程、失败与修复都留在仓库里（`docs/design/design-audit-2026-10-25.md`、`docs/lessons.md`、`docs/iterations/`），可复核、可复现。
 
+= 立体参数沙盘重构实验：三轮未过线也是过程证据
+
+2026-11-05，我们从第一性原理重新发问：求职者只想用三分钟回答「谁给得多、钱怎么构成、累不累、五险诚不诚实」，而不是走完 64 个摊位。据此提出低多边形 diorama「立体参数沙盘」：整条街区压成桌上微缩模型，一屏看全、轨道环绕、最多钉选三家并排对比；每个问题只开一个视觉信道（体量 / 色带 / 窗灯 / 地基台）。
+
+实验设了三条硬纪律：已提交版永远兜底、六天时间盒、暗坑清单逐条给规避答案；门禁沿用同一套双盲审（两位全新独立评审、只看图、不知实现、取视觉/空间两项较低者均 ≥7）。三轮六位独立评审的两项较低者依次为 6.2/6.5（首轮）、6.2/7.3（豁免后定向修复）、6.8/6.8（真实落地投影与三级材质后）。视觉分 6.2→6.2→6.8，空间分 6.5→7.3→6.8，分数在 6.8–7.6 区间震荡，始终没有稳定过线。
+
+结论不是「再补 0.2 分」，而是回退：官方评分里「群核技术栈应用」占 30%（最高权重），而沙盘为纯 three.js 程序几何、把 Lux3D / SpatialGen / Aholo Viewer 从体验链路全部下线；已过线且主链路跑通全套 Aholo 的 R19 才是主提交版本。三轮失败轮次、六位评审原文、三套迭代实拍全部入库，作为停止规则与过程完整性的证据 —— *没做成的也写下来*。
+
+#figure(
+  grid(
+    columns: 3,
+    gutter: 4pt,
+    image("figures/diorama-2026-11-05-d5-firstround/d4-day-bird.png", width: 100%),
+    image("figures/diorama-2026-11-05-d6/d6-day-bird.png", width: 100%),
+    image("figures/diorama-2026-11-05-d7/d7-day-bird.png", width: 100%),
+  ),
+  caption: [立体参数沙盘三轮迭代（左→右）：首轮低多边形骨架 / 选中标记与浮层收敛 / 真实落地投影与三级材质。三套画面、六位独立评审原文与全部失败轮次见 docs/design/reviews/ 与 docs/loop/。],
+) <fig-diorama>
+
 = 工程事实、性能与合规
 
 #figure(
@@ -251,7 +270,7 @@ SpatialGen / World 以纯文案生成四套行业办公室，经 Aholo Viewer �
 - *街区*：64 摊 + 四区 + 4 套办公门面，687 draw calls（2026-10-28 实测；≤200 为产品期红线，已列入下一阶段 InstancedMesh / 材质图集 / LOD）；可见页签复测白天 hero 83 / 越肩 45 / 特写 44 fps（桌面集显；此前引用的“越肩 13.5fps”已判定为后台页签限流造成的测量污染，见 lessons §12.2）——移动端真机数据待补，这是已知差距，不藏
 - *稳定性*：顶层 + 办公室 + 街区三层 ErrorBoundary；Draco 解码器自托管（4 个文件，无第三方 CDN）；对比篮与街区进度持久化；移动端 390px 顶栏两行、CTA 不裁切
 - *安全与合规*：API Key 仅存 `.env`（gitignored），前端零 Key 引用；受限授权资产（InteriorGS、`*.ply`）及其截图/渲染图不进公开仓库与公开部署；公开站使用虚构公司与虚构“逛厂币”；Draco 自托管；第三方素材清单见 `THIRD_PARTY_NOTICES.md`
-- *构建*：674 modules，`tsc --noEmit` + Vite；prebuild 自动跑设计令牌、对比度、面板墨色三道门禁；源码公开（MIT）。线上 Pages 已更新到 R18（`index-D2XdRAQG.js`）；魔搭同批为 `index-CjvpsPMS.js`，两端视频与角色门一致
+- *构建*：674 modules，`tsc --noEmit` + Vite；prebuild 自动跑设计令牌、对比度、面板墨色三道门禁；源码公开（MIT）。线上 Pages 已更新到 R19（`index-6A6MFh1z.js`）；魔搭同批 `Normal committed 45 / LFS 0` 并重新部署 Running，两端视频与角色门一致
 
 = 评审映射与提交物
 
@@ -265,7 +284,7 @@ SpatialGen / World 以纯文案生成四套行业办公室，经 Aholo Viewer �
   [25%], [作品有趣程度], [四模式可玩闭环；投递五重同帧反馈；滑杆实时长山；对比篮→A/B；2–3 分钟实机视频],
   [20%], [创新性], [“数据即景观”签名；词典即引擎；防博弈几何；诚实降级三通道],
   [20%], [完成度], [双端在线；首屏 0.36MB（含街景静帧）；ErrorBoundary；移动端 390；源码公开；报告/视频/素材授权齐备],
-  [5%], [传播], [小红书 \#Aholo黑客松（提交前发布）],
+  [5%], [传播], [小红书 \#Aholo黑客松（待发布，加分项尚未登记）],
 )
 
 #table(
@@ -274,9 +293,9 @@ SpatialGen / World 以纯文案生成四套行业办公室，经 Aholo Viewer �
   align: horizon,
   fill: (x, y) => if y == 0 { rgb("#f5f6f8") },
   table.header([*提交物*], [*状态 / 链接*]),
-  [在线 Demo], [GitHub Pages + 魔搭创空间，双端同源构建（基路径不同、bundle 哈希各异：Pages `index-dVCBXs9L.js` / 魔搭 `index-DUpMgR-n.js`）],
+  [在线 Demo], [GitHub Pages + 魔搭创空间，双端同源构建（基路径不同、bundle 哈希各异：Pages `index-6A6MFh1z.js` / 魔搭同批 Normal committed 45 / LFS 0；2026-11-04 23:16 官网已提交第 1 版）],
   [Demo 视频], [2–3 分钟实机录屏 + 旁白/字幕，随本报告同目录/链接],
-  [项目报告书], [本 PDF（v3.5，2026-10-29）],
+  [项目报告书], [本 PDF（v3.6，2026-11-05，R19 终版）],
   [源代码], [#link("https://github.com/zgqy379/guangchang")[github.com/zgqy379/guangchang]（MIT）],
   [第三方声明], [`THIRD_PARTY_NOTICES.md`：Aholo 能力/受限素材/Mixamo/Pexels/Draco/开源依赖/字体],
   [团队], [必胜客的汉堡最好吃（3FO4K4VY3D07 · 单人队）],

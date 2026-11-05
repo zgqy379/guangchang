@@ -30,6 +30,11 @@ const StreetScene = lazy(() =>
 const GalleryScene = lazy(() =>
   import('./components/gallery/GalleryScene').then((m) => ({ default: m.GalleryScene }))
 )
+// 立体参数沙盘（v1.5 / D1）：lazy 动态 import，禁止顶层静态 import 任何 3D 组件。
+// 只有 ?mode=diorama 深链或用户点顶栏按钮时才加载这块 chunk —— 默认 URL 首屏零 Canvas。
+const DioramaScene = lazy(() =>
+  import('./components/diorama/DioramaScene').then((m) => ({ default: m.DioramaScene }))
+)
 // 单场景（single/compare）用到的 3D 组件：改按需加载，避免静态 import 把它们
 // （含 three 依赖）打进主 chunk。首屏 roleGate 阶段不挂任何 <Canvas>，
 // 这些 chunk 也就不被请求 —— 这是首屏体积守住 5MB 红线的前提之一。
@@ -175,13 +180,30 @@ function Scene({
 const USE_CLASSIC_GATE =
   typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('gate') === 'classic'
 
+// v1.5 立体参数沙盘：评审/截图用 ?mode=diorama 深链直达。
+// 关键：默认 URL（无参数）行为**完全不变** —— roleGate 仍为 true、首屏零 Canvas / 零 GLB 请求。
+// 只有显式深链才跳过角色门（否则角色门盖住顶栏，采集脚本点不到任何东西）。
+// ?hour= 冻结（FROZEN_HOUR）逻辑不受影响，采集用 ?hour=10&mode=diorama。
+// 2026-11-05 13:03 主理人明确**豁免 kill switch**，启动 D6 定向修复 + 第二轮双盲审。
+// R5 的 FAIL 判定与失败轮次档案不篡改；豁免单独留痕于
+// docs/design/reviews/diorama-d5-blind-review.md。
+// `?mode=diorama` 深链始终可用，供评审/采集复现。
+const DIORAMA_ENTRY_ENABLED = true
+
+const DIORAMA_DEEPLINK =
+  typeof window !== 'undefined' &&
+  new URLSearchParams(window.location.search).get('mode') === 'diorama'
+
 export default function App() {
-  const [mode, setMode] = useState<'single' | 'compare' | 'office' | 'street' | 'gallery'>('single')
+  const [mode, setMode] = useState<'single' | 'compare' | 'office' | 'street' | 'gallery' | 'diorama'>(
+    DIORAMA_DEEPLINK ? 'diorama' : 'single'
+  )
   // 首屏角色门禁（v1.4 双角色体系）：
   //   首屏**不挂任何 <Canvas>** → 零 WebGL 上下文、零 3D 资产请求。
   //   这是首屏体积能守住 5MB 红线的前提（实测：渲染 single 模式会拉
   //   avatar-idle 3.08MB + avatar-walk 3.08MB + gc-bill-bundle 2.23MB ≈ 8.5MB）。
-  const [roleGate, setRoleGate] = useState(true)
+  // 深链直达时跳过角色门；默认 URL 仍为 true → 首屏不挂任何 Canvas（v1.5 入口策略①）
+  const [roleGate, setRoleGate] = useState(!DIORAMA_DEEPLINK)
   const [role, setRole] = useState<Role | null>(null)
   const [rememberedRole, setRememberedRole] = useState<Role | null>(() => loadRole())
   const [paramsA, setParamsA] = useState<CompanyParams>(defaultParams())
@@ -353,7 +375,9 @@ export default function App() {
           <button className={mode === 'compare' ? 'active' : ''} onClick={applyBasketAndCompare}>
             A/B 对比
           </button>
-          {basket.length > 0 && mode !== 'compare' && (
+          {/* v1.5 沙盘：对比篮是 A/B 对比页的跳转徽标，与沙盘「钉选 ≤3 家」语义冲突，diorama 下不显示。
+              其余模式的入口按钮一律不动（用户 11-05 拍板：只加沙盘按钮）。 */}
+          {basket.length > 0 && mode !== 'compare' && mode !== 'diorama' && (
             <button className="basket-badge" onClick={applyBasketAndCompare}>
               🧺 对比篮 {basket.length}
             </button>
@@ -373,7 +397,18 @@ export default function App() {
           >
             🏙️ 招聘街区
           </button>
-          {mode !== 'street' && mode !== 'office' && (
+          {/* v1.5 入口策略①：只加沙盘按钮，其余入口与角色门默认行为一律不动 */}
+          {DIORAMA_ENTRY_ENABLED && (
+            <button
+              className={`diorama-entry ${mode === 'diorama' ? 'active' : ''}`}
+              onClick={() => setMode('diorama')}
+            >
+              🗺️ 参数沙盘
+            </button>
+          )}
+          {/* v1.5 沙盘：生长动画驱动的是钞票山（single/compare），沙盘不消费 growthKey，
+              留着会变成一个点了没反应的按钮。仅 diorama 下隐藏，其他模式行为不变。 */}
+          {mode !== 'street' && mode !== 'office' && mode !== 'diorama' && (
             <button className="replay" onClick={() => setGrowthKey((k) => k + 1)}>
               ▶ 生长动画
             </button>
@@ -410,7 +445,9 @@ export default function App() {
       </header>
 
       <main>
-        {mode !== 'street' && (
+        {/* 最小适配：HR 参数面板与钞票山说明同沙盘语义冲突，diorama 模式下不显示；
+            这不是「摘入口」——被砍模式的顶栏按钮全部保留 */}
+        {mode !== 'street' && mode !== 'diorama' && (
           <aside className="controls">
           <div className="preset-row">
             {fictionalCompanies.map((c) => (
@@ -493,12 +530,18 @@ export default function App() {
         )}
 
         <section className={mode === 'compare' ? 'scenes compare' : 'scenes'}>
-          {mode !== 'office' && mode !== 'street' && (
+          {mode !== 'office' && mode !== 'street' && mode !== 'diorama' && (
             <div className="scale-note scale-note--overlay">
               钞票山 水平等比放大 2.5× · 高度做感知增强 · 公司间比例真实（换算见报告附录A）
             </div>
           )}
-          {mode === 'street' ? (
+          {mode === 'diorama' ? (
+            <SceneErrorBoundary label="立体参数沙盘">
+              <Suspense fallback={<div className="office-loading">参数沙盘加载中…</div>}>
+                <DioramaSceneLoader envHour={envHour} theme={theme} />
+              </Suspense>
+            </SceneErrorBoundary>
+          ) : mode === 'street' ? (
             <SceneErrorBoundary label="招聘街区">
               <Suspense fallback={<div className="office-loading">招聘街区加载中…</div>}>
                 <StreetSceneLoader
@@ -613,6 +656,47 @@ function StreetSceneLoader(props: {
         >
           <div style={{ fontSize: 30, fontWeight: 800, color: 'var(--color-brand-red-deep)' }}>逛厂</div>
           <div>招聘街区搭建中，即将开门…</div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// 立体参数沙盘加载遮罩：监听 diorama-ready 首帧事件撤遮罩 + 12s 兜底。
+// 与 StreetSceneLoader 同构；遮罩用随主题反相的面板令牌，不写死色值。
+function DioramaSceneLoader({ envHour, theme }: { envHour: number; theme: ThemeName }) {
+  const [ready, setReady] = useState(false)
+  useEffect(() => {
+    const h = () => setReady(true)
+    window.addEventListener('diorama-ready', h)
+    // 兜底：即便首帧事件因竞态丢失，12s 后也撤遮罩
+    const t = setTimeout(h, 12000)
+    return () => {
+      window.removeEventListener('diorama-ready', h)
+      clearTimeout(t)
+    }
+  }, [])
+  return (
+    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+      <DioramaScene envHour={envHour} theme={theme} />
+      {!ready && (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'var(--ui-panel-bg)',
+            zIndex: 20,
+            color: 'var(--ui-panel-fg-muted)',
+            fontSize: 14,
+            flexDirection: 'column',
+            gap: 12,
+          }}
+        >
+          <div style={{ fontSize: 30, fontWeight: 800, color: 'var(--color-brand-red-deep)' }}>逛厂</div>
+          <div>立体参数沙盘搭建中，即将开门…</div>
         </div>
       )}
     </div>

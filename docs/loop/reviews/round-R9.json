@@ -1,0 +1,41 @@
+{
+  "round": "R9",
+  "date": "2026-11-05",
+  "reviewer": "主理人定调：官方指定工具使用是重点工作（优先级重排）",
+  "milestone": "D5",
+  "kind": "priority-rebaseline",
+  "checks": [],
+  "problems": [
+    {
+      "id": "I-012",
+      "title": "官方指定工具使用（占官方评分 30%，最高权重）应定为最高优先级：沙盘版把 Aholo Lux3D/SpatialGen/World/Viewer 从体验链路全部砍光，官方工具归零",
+      "severity": "problem",
+      "affects": "D5",
+      "suggestion": "以 R19 为主提交版本（主链路含 Lux3D 角色/逛厂币、SpatialGen 四办公室、Aholo Viewer 3DGS）；沙盘降为未过线实验分支保留代码但不部署；把工作重心转到技术栈证据链与提交材料合规，暂停第四轮视觉盲审"
+    },
+    {
+      "id": "I-019",
+      "title": "第四轮视觉盲审按主理人新定调降级：三轮分数在 6.8–7.6 震荡未过线，继续冲 0.2 的机会成本高于 30% 技术栈维度与材料合规",
+      "severity": "concern",
+      "affects": "D6",
+      "suggestion": "视觉残差 I-014~I-018 保留在台账但不排期；若主理人后续重新授权再启动第四轮"
+    }
+  ],
+  "blockers": [],
+  "closedIds": [],
+  "suggestions": [
+    "2026-11-05 14:15 主理人「官方指定工具使用是重点工作」→ 视为对任务书 §5「砍办公室漫游/3DGS」的决策修正：官方工具须在最终提交版本中承担核心作用",
+    "审计结论：R19 技术栈证据链完整（report.typ 第八部分、THIRD_PARTY_NOTICES、docs/iterations/、tools/gen_*.py、report.typ 评审映射 30% 行）；沙盘为纯程序几何、零 Aholo 资产",
+    "不重新调用 Aholo API 生成新资产：静态 Demo 无后端、Key 不能进前端，且现有 10+ 款 HR、4 套办公室、玩家 avatar、逛厂币已足够；缺口不是资产数量而是「最终版本是否用上」",
+    "优先补齐 I-009~I-011：源码 push/合 main、报告 v3.6（R19 口径 + 三轮盲审留痕）、视频重录、小红书 5%",
+    "线上 R19 保持不动；三轮盲审失败轮次与迭代图作为报告书「关键资产迭代对比」素材保留"
+  ],
+  "scores": null,
+  "evidence": [
+    "project.md 第八部分 Aholo 技术栈应用 / v1.2-6 素材生产计划（全部走官方工具，映射评审 30%）",
+    "docs/report.typ:142-166,264（技术栈章节与评审映射表）",
+    "THIRD_PARTY_NOTICES.md",
+    "docs/iterations/（lux3d-avatar / lux3d-hr / lux3d-money / spatialgen-space / reality-office）",
+    "docs/submission-compliance-audit-2026-11-05.md"
+  ]
+}

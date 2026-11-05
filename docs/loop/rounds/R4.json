@@ -1,0 +1,137 @@
+{
+  "round": "R4",
+  "date": "2026-11-05",
+  "reviewer": "内部质量门（主理人 · 四张 1600×900 实拍 + 机器诊断 + 双主题光照复核）",
+  "mode": "ADVANCE",
+  "pace": "normal",
+  "progress": {
+    "completionPercent": 75,
+    "activeMilestone": "D5",
+    "daysLeft": 5,
+    "milestones": [
+      {
+        "id": "D1",
+        "status": "done",
+        "met": 9,
+        "total": 9
+      },
+      {
+        "id": "D2",
+        "status": "done",
+        "met": 8,
+        "total": 8
+      },
+      {
+        "id": "D3",
+        "status": "done",
+        "met": 5,
+        "total": 5
+      },
+      {
+        "id": "D4",
+        "status": "done",
+        "met": 5,
+        "total": 5
+      },
+      {
+        "id": "D5",
+        "status": "in_progress",
+        "met": 0,
+        "total": 4
+      },
+      {
+        "id": "D6",
+        "status": "pending",
+        "met": 0,
+        "total": 5
+      }
+    ],
+    "issues": {
+      "open": 1,
+      "closed": 6,
+      "blocker": 0,
+      "problem": 0,
+      "concern": 1
+    }
+  },
+  "adjustmentBasis": [
+    "无阻塞项、门禁未触发、时间盒内：按当前里程碑剩余验收项继续推进",
+    "本轮闭环 4 个问题（I-002, I-003, I-005, I-006），从待办中永久移除",
+    "1 个 concern 影响未来里程碑（D6）：登记为 deferred，本轮不排期也不遗忘"
+  ],
+  "closedThisRound": [
+    "I-002",
+    "I-003",
+    "I-005",
+    "I-006"
+  ],
+  "openedThisRound": [
+    "I-007"
+  ],
+  "duplicateSkipped": [],
+  "deferred": [
+    {
+      "id": "I-007",
+      "title": "夜景暖窗灯在高亮下略趋白（暖色语义弱于设计意图），画面四角仍偏暗但可接受",
+      "affects": "D6",
+      "suggestion": "作为可接受残差登记。若 D5 双盲审明确点名，D6 定向修复后须重新采集并重评；**若未点名则不再改动**（纪律：过线后不许追加视觉改动，部署构建必须等于被评审构建）"
+    }
+  ],
+  "nextRound": {
+    "round": "R5",
+    "focusMilestone": "D5",
+    "taskCount": 4,
+    "tasks": [
+      {
+        "key": "C-D5-01",
+        "priority": "P1",
+        "kind": "criterion",
+        "text": "[D5] 性能审计（draw calls / 首屏体积 / 零异常）",
+        "acceptance": "性能审计（draw calls / 首屏体积 / 零异常）",
+        "milestone": "D5"
+      },
+      {
+        "key": "C-D5-02",
+        "priority": "P1",
+        "kind": "criterion",
+        "text": "[D5] 首版截图 + 两名全新独立评审（只看图、不知实现、互不见结论）",
+        "acceptance": "首版截图 + 两名全新独立评审（只看图、不知实现、互不见结论）",
+        "milestone": "D5"
+      },
+      {
+        "key": "C-D5-03",
+        "priority": "P1",
+        "kind": "criterion",
+        "text": "[D5] 门禁判定：视觉/空间两项较低者均 ≥7，失败轮次同样入库",
+        "acceptance": "门禁判定：视觉/空间两项较低者均 ≥7，失败轮次同样入库",
+        "milestone": "D5"
+      },
+      {
+        "key": "C-D5-04",
+        "priority": "P1",
+        "kind": "criterion",
+        "text": "[D5] kill switch 判定与执行留痕（任一较低项 <7 当天中止）",
+        "acceptance": "kill switch 判定与执行留痕（任一较低项 <7 当天中止）",
+        "milestone": "D5"
+      }
+    ]
+  },
+  "policyFlags": {
+    "killSwitch": false,
+    "abort": false,
+    "gateMinScore": 7,
+    "fallback": "R19"
+  },
+  "notes": [],
+  "evidence": [
+    "docs/figures/diorama-2026-11-05-d4/d4-day-bird.png",
+    "docs/figures/diorama-2026-11-05-d4/d4-night-bird.png",
+    "docs/figures/diorama-2026-11-05-d4/d4-closeup.png",
+    "docs/figures/diorama-2026-11-05-d4/d4-compare.png",
+    "docs/figures/diorama-2026-11-05-d4/d4-done.json",
+    "web/src/components/diorama/BuildingField.tsx",
+    "web/src/components/diorama/DioramaScene.tsx",
+    "web/src/components/diorama/DioramaHud.tsx",
+    "web/design/tokens.json"
+  ]
+}
